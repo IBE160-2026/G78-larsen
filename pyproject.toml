@@ -1,0 +1,17 @@
+[project]
+name = "booking-platform"
+version = "0.1.0"
+description = "Sauna booking platform (Python backend, managed with uv)"
+readme = "README.md"
+authors = [
+    { name = "Lisa Larsen", email = "lisa.k.larsen@himolde.no" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+booking-platform = "booking_platform:main"
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
