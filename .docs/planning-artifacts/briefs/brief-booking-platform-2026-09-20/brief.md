@@ -31,7 +31,7 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 - **Cancellation and change:** individual seats can be changed, or swapped for a voucher, up to 12 hours before the start; a whole sauna can be cancelled, with a refund or voucher, or changed up to 72 hours before.
 - **Door codes and door control:** for saunas with self-service locks, bookers get their door codes by email shortly before the window. Where the lock allows it, the administrator can also open and lock doors remotely.
 - **Heating:** for saunas with external heater or temperature control, heating starts only for booked windows, and the administrator can override the temperature.
-- **Administration:** administrators manage time windows, capacity, prices, gift cards, memberships and period cards, and see every booking and cancellation. Rules that may differ between venues, such as booking deadlines, cut-offs and limits, are settings with defaults; a changed setting applies only to new bookings.
+- **Administration:** administrators manage time windows, capacity, prices, gift cards, memberships and period cards, and see every booking and cancellation. In a calendar, they can block one or all saunas for a period, for example for maintenance. Rules that may differ between venues, such as booking deadlines, cut-offs and limits, are settings with defaults; a changed setting applies only to new bookings.
 
 ## What Makes This Different
 
