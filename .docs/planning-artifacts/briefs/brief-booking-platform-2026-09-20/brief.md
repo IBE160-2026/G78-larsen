@@ -2,7 +2,7 @@
 title: "Product Brief: Booking platform"
 status: final
 created: 2026-09-20
-updated: 2026-09-21
+updated: 2026-09-24
 ---
 
 # Product Brief: Booking platform
@@ -25,12 +25,13 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 
 - **Individual seats:** a guest books one or more seats for a time window. Seats are not tied to a particular sauna: they draw on the combined capacity of the saunas that are not booked in full at that time. For example, with saunas of 7, 10, 12 and 15 seats, if the 7-seat and 15-seat saunas are booked in full, the other two remain open and offer 22 seats for individual booking. Guests book seats, not a sauna, and see the total number of free seats. The system places seats in one sauna until it is full, then continues in the next, so a group of 8 can end up split across two saunas. A group that wants to stay together books a whole sauna, and the booking flow says so. The administrator sets the order in which saunas are filled. When a cancellation frees seats in an earlier sauna, existing seats are moved there, only from the saunas that were filled last, so those saunas free up again. Guests are not told which sauna their seats are in, so a move needs no notice. The administrator can see in the system which sauna the seats are placed in. On site, guests can move freely between all saunas that are not booked in full, so the placement is the system's way of keeping count. A move must be complete before the freed sauna can be booked in full.
 - **Whole-sauna bookings:** available for the saunas the venue marks as bookable in full. A sauna booked in full leaves the individual-seat capacity for that time, and a sauna that already holds individual seats cannot be booked in full.
-- **Pricing:** set per time window (for example 15:00 to 16:30). Individual seats are priced per person, with a lower price for children under 14; a whole sauna has one price. The per-person price is the same across saunas. Guests can book several windows, consecutive or not, in one booking or in separate bookings made one after another, and pay for each window.
+- **Pricing:** set per time window (for example 15:00 to 16:30). Individual seats are priced per person; the administrator chooses whether children under 14 get a lower price or pay the adult price; by default they pay the adult price. A whole sauna has one price. The per-person price is the same across saunas. Guests can book several windows, consecutive or not, in one booking or in separate bookings made one after another, and pay for each window.
 - **Simulated payment and email:** a guest pays with a fictional payment flow and receives an email with a booking reference (the email is simulated).
 - **Door codes:** 20 minutes before the window starts, the booker receives an email with a code that unlocks the sauna door (simulated, like the email itself); a booking made later than that gets the email at once. Each sauna has one code per time window, shared by everyone booked into it, and valid from 20 minutes before the start until the window ends. A whole-sauna booker gets that sauna's code; an individual-seat booker gets the codes for the saunas that are not booked in full, since seat guests move freely between them. The administrator can see and resend the codes.
 - **Gift cards:** a guest can buy a gift card, no account needed, and pay (simulated). The buyer picks a fixed denomination or chooses their own amount up to a set limit; the administrator sets both. It is emailed to the buyer's own address as a coupon code; the buyer can print it or forward it to someone else. Whoever holds the code books individual seats or a whole sauna with it, with or without an account. A gift card can be used in part, with the remaining balance kept for later bookings, and a booking can be paid partly by gift card and the rest by the ordinary (simulated) payment.
 - **Cancellation and change:** individual seats are not offered a cash refund; up to 12 hours before the start, a guest can either change them (for example to a different time window) or choose a voucher sent by email instead of changing. A whole-sauna booking can be cancelled or changed to a different time up to 72 hours before the start; on cancellation, the guest chooses between a simulated refund and a voucher sent by email.
 - **Administration:** administrators have their own accounts. An administrator sets time windows freely, manages capacity and prices, sets the gift card denominations and the limit on buyer-chosen amounts, and can mark windows as whole-booking-only or reverse that. If a sauna is not booked in full for a window, its seats open for individual booking at 06:00 the same morning.
+- **Adjustable rules:** the administrator can change the booking rules that may differ from one venue or website to another: the cut-offs for changing seats and for cancelling or changing a whole sauna, when the door-code email is sent, when seats open for individual booking, the child age limit and whether children have their own price, how long seats are held during booking, how long gift cards and vouchers stay valid, and whether a cancelled whole-sauna booking offers a refund, a voucher or both. The times and limits stated elsewhere in this brief are the defaults. A changed setting applies only to bookings made after the change; existing bookings keep the rules they were made under.
 
 ## What Makes This Different
 
@@ -56,30 +57,34 @@ The project is done when the website is complete and the booking platform is con
 8. **Protection against hacking:** the website and the booking platform are protected against hacking, and all personal data (names, email addresses, credentials) is protected in particular. The measures are documented and tested.
 9. **Responsive design:** the website adapts its layout to mobile, tablet and desktop, and to any window size, so guests can browse and book, and administrators can manage the venue, from any device.
 10. **Door code before the start:** 20 minutes before the window starts, a guest with a booking receives an email with a code that unlocks the sauna door (simulated), or at once if they booked later than that. A guest with individual seats gets the codes for the saunas not booked in full; a guest with a whole sauna gets that sauna's code. The administrator can see and resend the codes.
+11. **Adjustable rules:** the administrator changes a rule setting, for example the cut-off for cancelling a whole sauna or whether children have their own price, and the platform applies the new value to bookings made after the change, while existing bookings keep the old rules. With the default settings, criteria 1 to 10 behave as described.
 
 ## Scope
 
 **In the first version**
 
 - One fictional sauna venue with at least four saunas, and a Finnish-inspired website in English. Guest accounts are optional, since booking does not require an account or login; administrator accounts (one or more) are required.
-- The booking rules: individual-seat and whole-sauna bookings, several windows per guest, adult and child pricing, a 10-minute seat hold and the overbooking fallback.
+- The booking rules: individual-seat and whole-sauna bookings, several windows per guest, adult pricing and optional child pricing, a seat hold (10 minutes by default) and the overbooking fallback.
 - Simulated payment, refunds, gift cards and email, including the door-code email 20 minutes before the start.
-- Administrator tools for time windows, capacity, prices and whole-booking-only windows.
+- Administrator tools for time windows, capacity, prices and whole-booking-only windows, and for the adjustable rules, with the values in this brief as defaults.
 - Security measures that protect the website and the booking platform against hacking, and all personal data in particular.
 - A responsive website design that adapts to mobile, tablet and desktop, and to any window size.
-- Automated tests covering the booking rules and the scenarios in Success Criteria 1 to 5 and 10.
+- Automated tests covering the booking rules and the scenarios in Success Criteria 1 to 5, 10 and 11.
 - Python backend and JavaScript frontend. Frameworks are left to the architecture phase.
+- A booking platform kept separate from the website it serves, so that more websites can be connected to it after the exam if desired. The first version connects one website.
 
 **Not in the first version**
 
 - Real payment providers and real email delivery.
 - Languages other than English.
 - Multiple venues and other bookable things (rooms, equipment).
+- More than one connected website. The platform is prepared for it, but only one website is built and connected.
+- Per-website settings and access: registering which websites may use the platform, which venue each website shows, the venue's name and identity, email sender and templates, time zone, currency, languages, terms, and administrator roles limited to one website. The architecture should leave room for them.
 - Native mobile apps (the responsive website itself is used through a browser on mobile, too).
 
 ## Vision
 
-If it succeeds, the platform becomes a real booking service: real payments and email, more languages, several venues, and bookable resources beyond saunas. The first version is built so those steps are extensions, not rewrites. [ASSUMPTION]
+If it succeeds, the platform becomes a real booking service: real payments and email, more languages, several venues, several websites connected to the same platform, and bookable resources beyond saunas. The first version is built so those steps are extensions, not rewrites. [ASSUMPTION]
 
 ## Open Questions
 
