@@ -78,7 +78,7 @@ The project is done when the website is complete and the booking platform is con
 
 ## Vision
 
-If it succeeds, the platform becomes a real booking service: real payments and email, more languages, several venues, several websites connected to the same platform, and bookable resources beyond saunas. The first version is built so those steps are extensions, not rewrites. [ASSUMPTION]
+If it succeeds, the platform becomes a real booking service: real payments and email, more languages, several venues, several websites connected to the same platform, and bookable resources beyond saunas. The first version is built so those steps are extensions, not rewrites.
 
 ## Open Questions
 
