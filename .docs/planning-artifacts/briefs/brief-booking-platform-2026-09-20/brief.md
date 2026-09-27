@@ -2,7 +2,7 @@
 title: "Product Brief: Booking platform"
 status: final
 created: 2026-09-20
-updated: 2026-09-24
+updated: 2026-09-27
 ---
 
 # Product Brief: Booking platform
@@ -17,7 +17,7 @@ The project is a learning project delivered as an exam submission in about three
 
 People who like Finnish saunas, or want to try one, need a simple way to see which times are open, and to reserve a place or book a whole sauna. The hard part is the mix of two booking types in the same venue: individual seats, where several guests share the open saunas, and private bookings where one group takes a whole sauna. Without clear rules, a private booking can collide with individual seats, capacity is double-sold, and cancellations leave the venue guessing.
 
-For the exam, the problem is different: demonstrate that an AI-generated application can be made correct and trustworthy, not only that it can be generated.
+The documentation must also show how AI was used, and how the student has quality-assured the code.
 
 ## The Solution
 
