@@ -13,11 +13,11 @@ The brief splits delivery into the first version (v1), step 2 and the vision. Th
 
 | Phase | Rows and settings |
 |---|---|
-| v1 | Individual seats, Seat placement, Gradual opening, Whole-sauna booking, Whole-booking-only windows, 06:00 rule, Children (children pay the adult price), Pricing (adult price only), Booking deadline, Booking horizon, Seat hold, Overbooking fallback (without door-code text), Cancellation and change, Accounts (guest and administrator; no memberships or period cards), Blocked periods (without door-code and heating overrides), Time windows, Email, and the matching administrator settings |
-| Step 2 | Gift cards; Door codes (codes, send time, source, resend, extra and moved-sauna emails, one-sauna access as it affects codes, door-code text in the overbooking email and block overrides) |
+| v1 | Individual seats, Seat placement, Whole-sauna booking, Whole-booking-only windows, 06:00 rule, Children (children pay the adult price), Pricing (adult price only), Booking deadline, Booking horizon, Seat hold, Overbooking fallback (without door-code text), Cancellation and change, Accounts (guest and administrator; no memberships or period cards), Blocked periods (without door-code and heating overrides), Time windows, Email, and the five adjustable settings (booking horizon, booking deadline, the two cancellation and change cut-offs, and the time seats open for individual booking); all other rules are fixed |
+| Step 2 | Gradual opening and one-sauna access (seat placement options); Gift cards; Door codes (codes, send time, source, resend, extra and moved-sauna emails, one-sauna access as it affects codes, door-code text in the overbooking email and block overrides) |
 | Vision | Separate child price and child age limit; Membership; Period cards; Renewal and payment of memberships and period cards; Remote door control; Heater and temperature control (and the heating override in Blocked periods); and their settings |
 
-One-sauna access affects seat placement in v1 and door codes in step 2. Vouchers (tilgodebevis) are part of v1, since cancellation and change use them; gift cards in step 2 may share their mechanism.
+Gradual opening and one-sauna access are built in step 2, so in v1 all saunas not booked in full are open for individual seats and guests may move between them; one-sauna access also affects door codes. Vouchers (tilgodebevis) are part of v1, since cancellation and change use them; gift cards in step 2 may share their mechanism.
 
 ## Booking rules (as decided)
 
@@ -47,23 +47,30 @@ One-sauna access affects seat placement in v1 and door codes in step 2. Vouchers
 | Time windows | Set freely by the administrator. New windows get a standard length, 1 hour 30 minutes by default (for example 15:00 to 16:30). The administrator can set another standard length. [ASSUMPTION: the administrator can also give a sauna or a single window another length than the standard; changing the standard length does not change windows already created.] |
 | Email | Simulated (no real provider) in the first version. |
 
-Times, limits and options in this table are defaults the administrator can change; see Administrator settings.
+Times, limits and options in this table are defaults. In v1 the administrator can change only the five settings listed under Administrator settings; the other rules are fixed until step 2 or the vision.
 
 ## Administrator settings
 
-Rules that may differ between venues are settings, not fixed code. Tests run against the defaults.
+In v1, only five rules are adjustable settings, each with a default. All other rules are fixed in v1 and work as described in this addendum; they become settings in step 2 or the vision. Tests run against the defaults.
 
-| Setting | Default |
+| Setting (v1) | Default |
 |---|---|
-| Standard length of a time window | 1 hour 30 minutes; the administrator can set another standard length |
 | How far ahead a guest can book | Up to 4 weeks before the window starts |
 | Last time a window can be booked | 5 minutes after the window starts |
 | Deadline to change individual seats or take a voucher | 12 hours before the window starts (no less than 2 hours) |
 | Deadline to cancel or change a whole-sauna booking | 72 hours before the window starts (no less than 2 hours) |
+| When seats open for individual booking | 06:00 the same morning; the administrator can set another time or turn the rule off |
+
+### Fixed in v1 (settings later)
+
+Not adjustable in v1. The value shown is the one the platform uses; where a rule is optional or belongs to a later step, it is off or not built in v1.
+
+| Rule | Value in v1 |
+|---|---|
+| Standard length of a time window | 1 hour 30 minutes (windows are still set freely per window by the administrator) |
 | Options when a whole-sauna booking is cancelled | Guest chooses a simulated refund or a voucher |
 | When the door-code email is sent | 20 minutes before the window starts (the codes are valid from then until the window ends) |
-| When seats open for individual booking | 06:00 the same morning; the administrator can set another time or turn the rule off |
-| Gradual opening of saunas for individual seats | Off (all saunas not booked in full are open for individual seats) |
+| Gradual opening of saunas for individual seats (step 2) | Off (all saunas not booked in full are open for individual seats) |
 | Maximum number of saunas open for individual seats (gradual opening) | All saunas |
 | Door access for an individual-seat booking | All saunas open for individual seats; guests may move between them (alternative: one sauna only, with all seats in a booking in the same sauna) |
 | Self-service door lock | Set per sauna by the administrator |

@@ -30,7 +30,7 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 - **Gift cards (step 2):** anyone can buy a gift card without an account, and whoever holds the code books with it.
 - **Cancellation and change:** individual seats can be changed, or swapped for a voucher, up to 12 hours before the start; a whole sauna can be cancelled, with a refund or voucher, or changed up to 72 hours before.
 - **Door codes (step 2):** for saunas with self-service locks, bookers get their door codes by email shortly before the window.
-- **Administration:** administrators manage time windows, capacity and prices, and see every booking and cancellation. In step 2 they also manage gift cards and door codes. In a calendar, they can block one or all saunas for a period, for example for maintenance. Rules that may differ between venues, such as booking deadlines, cut-offs and limits, are settings with defaults; a changed setting applies only to new bookings.
+- **Administration:** administrators manage time windows, capacity and prices, and see every booking and cancellation. In step 2 they also manage gift cards and door codes. In a calendar, they can block one or all saunas for a period, for example for maintenance. In v1, only a few rules are settings with defaults (the booking horizon, the booking deadline, the two cancellation and change cut-offs, and the time seats open for individual booking); all other rules are fixed and become settings later. A changed setting applies only to new bookings.
 
 ## What Makes This Different
 
@@ -53,7 +53,7 @@ The project is done when the website is complete and the booking platform is con
 5. **Gift card (step 2):** a guest buys a gift card without an account, and whoever holds the code books with it.
 6. **Door codes (step 2):** a booker receives the codes for exactly the doors they may use, at the time the administrator has chosen.
 7. **Membership and period card (vision):** a member books at the member price, and a cardholder books seats with no extra payment. Not part of the first version or step 2.
-8. **Adjustable rules:** a changed setting applies to new bookings only; with the defaults, criteria 1 to 4 behave as described (and 5 and 6 once step 2 is built).
+8. **Adjustable rules:** a changed setting (one of the five in v1) applies to new bookings only; with the defaults, criteria 1 to 4 behave as described (and 5 and 6 once step 2 is built).
 9. **Protection against hacking:** the website, the platform and personal data are protected, and the measures are documented and tested.
 10. **Responsive design:** guests and administrators can use the site on mobile, tablet and desktop, and at any window size.
 11. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author.
@@ -65,7 +65,7 @@ The project is done when the website is complete and the booking platform is con
 
 - One fictional venue with at least four saunas, and a website in English. Guest accounts are optional; administrator accounts are required.
 - The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
-- Administrator tools for time windows, capacity, prices, the adjustable rules, blocking saunas in a calendar, and an overview of all bookings and cancellations.
+- Administrator tools for time windows, capacity, prices, the five adjustable settings, blocking saunas in a calendar, and an overview of all bookings and cancellations.
 - Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8, including a concurrency test where two guests book the last seat at the same time.
 - A Python backend and JavaScript frontend, with the booking platform kept separate from the website through a single API. v1 supports one website only.
 
