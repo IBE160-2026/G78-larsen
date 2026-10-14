@@ -67,7 +67,7 @@ The project is done when the website is complete and the booking platform is con
 - The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
 - Administrator tools for time windows, capacity, prices, the adjustable rules, blocking saunas in a calendar, and an overview of all bookings and cancellations.
 - Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8.
-- A Python backend and JavaScript frontend, with the booking platform kept separate from the website so more websites can be connected later.
+- A Python backend and JavaScript frontend, with the booking platform kept separate from the website through a single API. v1 supports one website only.
 
 **Step 2**
 
@@ -79,7 +79,7 @@ The project is done when the website is complete and the booking platform is con
 
 - Real payment, email, door locks, lock systems, heaters and temperature sensors.
 - Other languages, several venues, other bookable resources, and native mobile apps.
-- More than one connected website, and per-website settings and access (see the addendum).
+- Support for more than one website: v1 has a single API between the platform and its one website, with no website registration, keys or per-website settings and access (see the addendum).
 - Memberships, period cards, a separate child price, remote door control and heating control: see the vision.
 
 ## Vision

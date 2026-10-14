@@ -51,7 +51,7 @@ Times, limits and options in this table are defaults the administrator can chang
 
 ## Administrator settings
 
-Rules that may differ between venues and websites are settings, not fixed code, so a new website can be connected without code changes. Tests run against the defaults.
+Rules that may differ between venues are settings, not fixed code. Tests run against the defaults.
 
 | Setting | Default |
 |---|---|
@@ -90,7 +90,7 @@ A changed setting applies only to bookings made after the change; existing booki
 
 ### Per-website settings and access (after the exam)
 
-Not built in the first version, but the architecture should leave room for them:
+Not built in the first version, which has a single API between the platform and its one website and no support for several websites. The architecture should leave room for them:
 
 - Registered websites: which websites may use the platform, each with its own key or allowed domain, and the option to switch one off.
 - Which venue and saunas each website shows.
@@ -107,7 +107,7 @@ Not built in the first version, but the architecture should leave room for them:
 - No licensed, trademarked, copyrighted or otherwise protected material on the site or in the platform. Images, fonts, icons and names must be AI-generated or freely licensed, unless the author has found or invented something and checked it.
 - Website and platform in English; more languages may be added later.
 - Technology direction: Python backend, JavaScript frontend. Specific frameworks are left to the architecture phase.
-- The booking platform must be separate from the website, so that more websites can be connected to it after the exam if desired. The first version builds and connects one website. How the separation is made (for example an API the website calls, and how a website identifies itself to the platform) is an architecture decision.
+- The booking platform must be separate from the website, and in v1 the separation is a single API the website calls. The first version builds and connects one website only, with no support for several websites: no website registration, no per-website keys or settings. Connecting more websites after the exam is possible later, but is not built or prepared beyond keeping the API clean.
 
 ## Exam requirements (source)
 
