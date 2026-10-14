@@ -7,6 +7,18 @@ created: 2026-09-20
 
 Detail that belongs in the PRD and architecture rather than the brief.
 
+## Delivery phases
+
+The brief splits delivery into the first version (v1), step 2 and the vision. The rules below are written in full, but are built in this order.
+
+| Phase | Rows and settings |
+|---|---|
+| v1 | Individual seats, Seat placement, Gradual opening, Whole-sauna booking, Whole-booking-only windows, 06:00 rule, Children, Pricing, Booking deadline, Booking horizon, Seat hold, Overbooking fallback (without door-code text), Cancellation and change, Accounts (guest and administrator; no memberships or period cards), Blocked periods (without door-code and heating overrides), Time windows, Email, and the matching administrator settings |
+| Step 2 | Gift cards; Door codes (codes, send time, source, resend, extra and moved-sauna emails, one-sauna access as it affects codes, door-code text in the overbooking email and block overrides) |
+| Vision | Membership; Period cards; Renewal and payment of memberships and period cards; Remote door control; Heater and temperature control (and the heating override in Blocked periods); and their settings |
+
+One-sauna access affects seat placement in v1 and door codes in step 2. Vouchers (tilgodebevis) are part of v1, since cancellation and change use them; gift cards in step 2 may share their mechanism.
+
 ## Booking rules (as decided)
 
 | Area | Rule |

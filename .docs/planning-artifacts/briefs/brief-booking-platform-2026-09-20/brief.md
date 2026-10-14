@@ -2,7 +2,7 @@
 title: "Product Brief: Booking platform"
 status: final
 created: 2026-09-20
-updated: 2026-09-27
+updated: 2026-10-14
 ---
 
 # Product Brief: Booking platform
@@ -26,12 +26,11 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 - **Individual seats:** guests book seats in a time window, not a particular sauna, and see the total number of free seats across the saunas not booked in full. The system fills one sauna at a time in an order the administrator sets, so a group can be split; a group that wants to stay together books a whole sauna.
 - **Whole-sauna bookings:** saunas marked as bookable in full can be booked privately, as long as no individual seats are placed in them for that window.
 - **Pricing:** set per time window: a per-person price for seats, with an optional child price, and one price per whole sauna. Guests can book several windows.
-- **Payment, email and gift cards:** payment and email are simulated. Guests get a booking reference by email, and anyone can buy a gift card without an account.
-- **Memberships and period cards (optional):** members book at member prices, and period cardholders book individual seats with no extra payment. Both are off by default.
+- **Payment and email:** both are simulated. Guests get a booking reference by email.
+- **Gift cards (step 2):** anyone can buy a gift card without an account, and whoever holds the code books with it.
 - **Cancellation and change:** individual seats can be changed, or swapped for a voucher, up to 12 hours before the start; a whole sauna can be cancelled, with a refund or voucher, or changed up to 72 hours before.
-- **Door codes and door control:** for saunas with self-service locks, bookers get their door codes by email shortly before the window. Where the lock allows it, the administrator can also open and lock doors remotely.
-- **Heating:** for saunas with external heater or temperature control, heating starts only for booked windows, and the administrator can override the temperature.
-- **Administration:** administrators manage time windows, capacity, prices, gift cards, memberships and period cards, and see every booking and cancellation. In a calendar, they can block one or all saunas for a period, for example for maintenance. Rules that may differ between venues, such as booking deadlines, cut-offs and limits, are settings with defaults; a changed setting applies only to new bookings.
+- **Door codes (step 2):** for saunas with self-service locks, bookers get their door codes by email shortly before the window.
+- **Administration:** administrators manage time windows, capacity and prices, and see every booking and cancellation. In step 2 they also manage gift cards and door codes. In a calendar, they can block one or all saunas for a period, for example for maintenance. Rules that may differ between venues, such as booking deadlines, cut-offs and limits, are settings with defaults; a changed setting applies only to new bookings.
 
 ## What Makes This Different
 
@@ -51,10 +50,10 @@ The project is done when the website is complete and the booking platform is con
 2. **Book a whole sauna:** a guest books a whole sauna; for that window, it cannot be booked again and its seats are no longer available.
 3. **Change seats or take a voucher:** up to the cut-off, a guest changes seats or takes a voucher, and capacity is restored.
 4. **Cancel or change a whole sauna:** up to the cut-off, a guest cancels with a refund or voucher, or changes the time, and capacity is restored.
-5. **Gift card:** a guest buys a gift card without an account, and whoever holds the code books with it.
-6. **Door codes:** a booker receives the codes for exactly the doors they may use, at the time the administrator has chosen.
-7. **Membership and period card:** a member books at the member price, and a cardholder books seats with no extra payment.
-8. **Adjustable rules:** a changed setting applies to new bookings only; with the defaults, criteria 1 to 7 behave as described.
+5. **Gift card (step 2):** a guest buys a gift card without an account, and whoever holds the code books with it.
+6. **Door codes (step 2):** a booker receives the codes for exactly the doors they may use, at the time the administrator has chosen.
+7. **Membership and period card (vision):** a member books at the member price, and a cardholder books seats with no extra payment. Not part of the first version or step 2.
+8. **Adjustable rules:** a changed setting applies to new bookings only; with the defaults, criteria 1 to 4 behave as described (and 5 and 6 once step 2 is built).
 9. **Protection against hacking:** the website, the platform and personal data are protected, and the measures are documented and tested.
 10. **Responsive design:** guests and administrators can use the site on mobile, tablet and desktop, and at any window size.
 11. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author.
@@ -62,23 +61,30 @@ The project is done when the website is complete and the booking platform is con
 
 ## Scope
 
-**In the first version**
+**In the first version (v1)**
 
 - One fictional venue with at least four saunas, and a website in English. Guest accounts are optional; administrator accounts are required.
-- The booking rules, simulated payment, email, gift cards, door locks and heating, and optional memberships and period cards.
-- Administrator tools for time windows, capacity, prices and the adjustable rules.
-- Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 8.
+- The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
+- Administrator tools for time windows, capacity, prices, the adjustable rules, blocking saunas in a calendar, and an overview of all bookings and cancellations.
+- Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8.
 - A Python backend and JavaScript frontend, with the booking platform kept separate from the website so more websites can be connected later.
 
-**Not in the first version**
+**Step 2**
+
+- Gift cards: buying without an account, and booking with the code (Success Criterion 5).
+- Door codes sent by email to exactly the bookers who may use each door, with the administrator's tools to set the timing (Success Criterion 6).
+- Tests of Success Criteria 5 and 6.
+
+**Not in the first version or step 2**
 
 - Real payment, email, door locks, lock systems, heaters and temperature sensors.
 - Other languages, several venues, other bookable resources, and native mobile apps.
 - More than one connected website, and per-website settings and access (see the addendum).
+- Memberships, period cards, remote door control and heating control: see the vision.
 
 ## Vision
 
-If it succeeds, the platform may become a real booking service: real payments and email, more languages, several venues, several websites connected to the same platform, and bookable resources beyond saunas. The first version is built so those steps are extensions, not rewrites.
+If it succeeds, the platform may become a real booking service: real payments and email, more languages, several venues, several websites connected to the same platform, and bookable resources beyond saunas. It may also add memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
 
 ## Open Questions
 
