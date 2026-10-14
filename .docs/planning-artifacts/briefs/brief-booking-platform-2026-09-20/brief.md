@@ -56,8 +56,12 @@ The project is done when the website is complete and the booking platform is con
 8. **Adjustable rules:** a changed setting (one of the five in v1) applies to new bookings only; with the defaults, criteria 1 to 4 behave as described (and 5 and 6 once step 2 is built).
 9. **Protection against hacking:** the website, the platform and personal data are protected, and the measures are documented and tested.
 10. **Responsive design:** guests and administrators can use the site on mobile, tablet and desktop, and at any window size.
-11. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author.
-12. **Assessment deliverable:** working code, with documentation of how AI was used and how the code was quality-assured.
+## Delivery Requirements
+
+What must be handed in with the exam submission, beyond the working product:
+
+1. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author.
+2. **Assessment deliverable:** working code, with documentation of how AI was used and how the code was quality-assured.
 
 ## Scope
 
