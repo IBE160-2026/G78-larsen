@@ -101,6 +101,20 @@ Not built in the first version, which has a single API between the platform and 
 - Terms and privacy statement.
 - Administrator roles limited to one website, so an administrator of one website cannot see or change another's bookings or personal data.
 
+## Concurrency tests
+
+The Seat hold rule requires capacity to be checked and reserved in one atomic operation. v1 proves it with automated tests that run bookings in parallel, not one after another. The main case is two guests booking the last free seat in a window at the same time.
+
+| Case | Expected result |
+|---|---|
+| Two guests hold the last free seat at the same moment | Exactly one hold succeeds. The other guest is told no seat is free and nothing is held for them. |
+| Two guests confirm a booking for the last free seat at the same moment | Exactly one booking is confirmed. The other is rejected and not charged (simulated), and gets no confirmation email. |
+| Free seats after either case | Zero, never negative. The administrator sees one booking, not two. |
+| The first guest's hold expires and the second guest then books | The second booking succeeds, since the seat is free again. |
+| A payment completes after the hold has expired, and the seat was taken meanwhile | No booking is made and the payment is refunded (simulated), as in the Seat hold rule. |
+
+[ASSUMPTION: the test repeats the race many times, for example 100, because a single run can pass by luck. It runs against the same storage the platform uses, since a test against a stand-in without the same locking would prove nothing. How the atomic operation is built is an architecture decision.] The overbooking fallback is a safety net for failures outside the platform's control, not an expected outcome of this race: in these cases the losing booking is never created.
+
 ## Constraints
 
 - Delivery in about 3 months; then optional further development.

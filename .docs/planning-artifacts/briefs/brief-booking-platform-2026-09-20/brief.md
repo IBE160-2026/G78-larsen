@@ -46,7 +46,7 @@ If it becomes a real service, it competes with other booking platforms on price,
 
 The project is done when the website is complete and the booking platform is connected and works as intended:
 
-1. **Book seats:** a guest books four seats in a time window, pays and gets confirmation; the administrator sees the booking, and the seats are deducted from capacity.
+1. **Book seats:** a guest books four seats in a time window, pays and gets confirmation; the administrator sees the booking, and the seats are deducted from capacity. If two guests try to book the last free seat at the same moment, exactly one gets it and the other is told it is gone, without being charged.
 2. **Book a whole sauna:** a guest books a whole sauna; for that window, it cannot be booked again and its seats are no longer available.
 3. **Change seats or take a voucher:** up to the cut-off, a guest changes seats or takes a voucher, and capacity is restored.
 4. **Cancel or change a whole sauna:** up to the cut-off, a guest cancels with a refund or voucher, or changes the time, and capacity is restored.
@@ -66,7 +66,7 @@ The project is done when the website is complete and the booking platform is con
 - One fictional venue with at least four saunas, and a website in English. Guest accounts are optional; administrator accounts are required.
 - The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
 - Administrator tools for time windows, capacity, prices, the adjustable rules, blocking saunas in a calendar, and an overview of all bookings and cancellations.
-- Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8.
+- Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8, including a concurrency test where two guests book the last seat at the same time.
 - A Python backend and JavaScript frontend, with the booking platform kept separate from the website through a single API. v1 supports one website only.
 
 **Step 2**
