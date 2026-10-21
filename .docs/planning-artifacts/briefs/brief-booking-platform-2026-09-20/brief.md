@@ -25,7 +25,7 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 
 - **Individual seats:** guests book seats in a time window, not a particular sauna, and see the total number of free seats across the saunas not booked in full. The system fills one sauna at a time in an order the administrator sets, so a group can be split; a group that wants to stay together books a whole sauna.
 - **Whole-sauna bookings:** saunas marked as bookable in full can be booked privately, as long as no individual seats are placed in them for that window.
-- **Pricing:** set per time window: a per-person price for seats (children pay the same) and one price per whole sauna. Guests can book several windows.
+- **Pricing:** set per time window: one price per seat and one price per whole sauna. Guests book seats, with no distinction between children and adults. Guests can book several windows.
 - **Payment and email:** both are simulated. Guests get a booking reference by email.
 - **Gift cards (step 2):** anyone can buy a gift card without an account, and whoever holds the code books with it.
 - **Cancellation and change:** individual seats can be changed, or swapped for a voucher, up to 12 hours before the start; a whole sauna can be cancelled, with a refund or voucher, or changed up to 72 hours before.
@@ -101,11 +101,11 @@ What must be handed in with the exam submission, beyond the working product:
 - Real payment, email, door locks, lock systems, heaters and temperature sensors.
 - Other languages, more than one location, other bookable resources, and native mobile apps.
 - Support for more than one website: v1 has a single API between the platform and its one website, with no website registration, keys or per-website settings and access (see the addendum).
-- Memberships, period cards, a separate child price, remote door control and heating control: see the vision.
+- Memberships, period cards, the distinction between children and adults (with a separate child price), remote door control and heating control: see the vision.
 
 ## Vision
 
-If it succeeds, the platform may become a real booking service: real payments and email, more languages, several sauna locations (for example locations A and B, run as separate places, with a choice of location when booking and an overview per location for the administrator), several websites connected to the same platform, and bookable resources beyond saunas. It may also add a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
+If it succeeds, the platform may become a real booking service: real payments and email, more languages, several sauna locations (for example locations A and B, run as separate places, with a choice of location when booking and an overview per location for the administrator), several websites connected to the same platform, and bookable resources beyond saunas. It may also tell children and adults apart when booking seats, with an age limit and a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
 
 ## Open Questions
 
