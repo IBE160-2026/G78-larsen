@@ -68,8 +68,12 @@ The project is done when the website is complete and the booking platform is con
 6. **Door codes (step 2):** a booker receives the codes for exactly the doors they may use, at the time the administrator has chosen.
 7. **Membership and period card (vision):** a member books at the member price, and a cardholder books seats with no extra payment. Not part of the first version or step 2.
 8. **Adjustable rules:** a changed setting (one of the five in v1) applies to new bookings only; with the defaults, criteria 1 to 4 behave as described (and 5 and 6 once step 2 is built).
-9. **Protection against hacking:** the website, the platform and personal data are protected, and the measures are documented and tested. This includes input validation: the platform checks all input on the server and rejects invalid or malicious values (wrong type or format, seat counts outside the allowed range, oversized text, and injection or script strings) with a clear error and without changing any data. Automated tests send such input and check that it is rejected. Passwords are never stored in plain text: administrator passwords are stored hashed, and user accounts (guest accounts) require strong passwords, which are stored hashed too. Tests check that weak passwords are refused and that no password can be read from the stored data. Access is role-based: only a logged-in administrator can reach administrator functions, and a guest can see and change only their own bookings. Tests call administrator functions as a guest and without logging in, and try to open another guest's booking, and check that each is refused.
+9. **Protection against hacking:** the website, the platform and personal data are protected by three measures, each documented and tested automatically (details in the addendum):
+   - **Input validation:** the platform checks all input on the server and rejects invalid or malicious values (wrong type or format, seat counts outside the allowed range, oversized text, injection or script strings) with a clear error and without changing any data. Tests send such input and check that it is rejected.
+   - **Passwords:** administrator passwords are stored hashed, and guest accounts require strong passwords, also stored hashed. Tests check that weak passwords are refused and that no password can be read from the stored data.
+   - **Role-based access:** only a logged-in administrator can reach administrator functions, and a guest can see and change only their own bookings. Tests call administrator functions as a guest and without logging in, and try to open another guest's booking, and check that each is refused.
 10. **Responsive design:** guests and administrators can use the site on mobile, tablet and desktop, and at any window size.
+
 ## Delivery Requirements
 
 What must be handed in with the exam submission, beyond the working product:
@@ -84,7 +88,7 @@ What must be handed in with the exam submission, beyond the working product:
 - One fictional sauna location with at least four saunas, and one website in English. Guest accounts are optional; administrator accounts are required.
 - The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
 - Administrator tools for time windows, capacity, prices, the five adjustable settings, blocking saunas in a calendar, and an overview of all bookings and cancellations.
-- Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8, input validation (part of Success Criterion 9), including a concurrency test where two guests book the last seat at the same time.
+- Security measures (input validation, hashed and strong passwords, role-based access), a responsive design, and automated tests of the booking rules, Success Criteria 1 to 4, 8 and 9, including a concurrency test where two guests book the last seat at the same time.
 - A Python backend and JavaScript frontend, with the booking platform kept separate from the website through a single API. v1 supports one website only.
 
 **Step 2**
@@ -107,4 +111,4 @@ If it succeeds, the platform may become a real booking service: real payments an
 ## Open Questions
 
 - The names of the fictional venue and its location (must be invented and checked against existing names).
-- Which concrete security measures are required. The PRD and architecture will turn "protected against hacking" into specific, testable measures.
+- The exact limits for input validation and password strength (maximum text lengths and seats per booking, minimum password length), and the password-hashing algorithm. The PRD and architecture will decide them.
