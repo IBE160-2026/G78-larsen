@@ -161,6 +161,22 @@ Requirement: the website and the booking platform must be protected against hack
 
 Starting points for the PRD and architecture (not yet decided): hashed passwords, encrypted connections (HTTPS), input validation against injection and cross-site scripting, role-based access so guests cannot reach administrator functions, protection against brute-force login attempts, up-to-date dependencies, storing only the data needed, and security tests as part of quality assurance.
 
+## Input validation tests
+
+Success Criterion 9 requires input validation that can be tested. The platform validates every input on the server, whatever the website already checks, and a rejected request changes no data (no hold, booking or payment). v1 proves it with automated tests against the API.
+
+| Case | Expected result |
+|---|---|
+| Seat count is zero, negative, fractional, not a number, or above the free seats | Rejected with a clear error; nothing is held |
+| Date or time window is malformed, does not exist, or is outside the booking horizon or past the booking deadline | Rejected; no booking |
+| Required field is missing, or an unknown field is sent | Rejected |
+| Text (name, email, notes) is empty, far too long, or has the wrong format, for example an invalid email address | Rejected |
+| Text contains SQL injection strings, script tags or HTML | Never run or shown as markup; either rejected or stored and shown only as escaped text |
+| Administrator input is invalid, for example a negative price or capacity, or a window that ends before it starts | Rejected |
+| A guest sends an administrator request | Rejected as not allowed (role-based access) |
+
+[ASSUMPTION: the exact limits (maximum text lengths, maximum seats per booking) are set in the PRD; the tests use those limits and the cases above as a minimum.]
+
 ## Open questions on individual seats
 
 Answered: seats are placed in one sauna until it is full and then in the next; the administrator sets the fill order; a group may be split; a group that wants to stay together must book a whole sauna; guests see the total number of free seats; the per-person price is the same across saunas; after a cancellation, seats move into earlier saunas from the saunas filled last. The late whole-sauna question is resolved by the rule that a sauna holding individual seats cannot be booked in full.
