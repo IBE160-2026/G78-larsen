@@ -54,7 +54,6 @@ If it becomes a real service, it competes with other booking platforms on price,
 
 - **Sauna guests:** people who already enjoy Finnish saunas or are curious to try. They book for themselves or a group, and need to see availability and price clearly and cancel easily.
 - **The venue administrator:** manages when saunas are open, at what capacity and price, and sees every booking and cancellation.
-- **The assessor (exam):** reads the code and the documentation of AI use and quality assurance.
 
 ## Success Criteria
 
