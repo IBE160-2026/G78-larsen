@@ -9,7 +9,7 @@ updated: 2026-10-21
 
 ## Executive Summary
 
-Booking platform is a reservation system for saunas, delivered together with a website inspired by Finnish sauna culture. Guests can reserve seats for themselves, their family or friends, or book an entire sauna privately. Payment is simulated, and the first version is built around one fictional sauna location with at least four saunas.
+Booking platform is a reservation system for saunas, delivered together with a website inspired by Finnish sauna culture. Guests can reserve seats for themselves, their family or friends, or book an entire sauna privately. Payment is simulated, and the first version is built around one fictional sauna venue, Saunalöyly, with at least four saunas.
 
 The project is a learning project delivered as an exam submission in 2026. Its purpose is twofold: to produce a working, AI-built application, and to document honestly how AI was used and how the result was quality-assured. It is built so it can grow into a real service later, but the exam version does not pretend to be one.
 
@@ -77,7 +77,7 @@ The project is done when the website is complete and the booking platform is con
 
 What must be handed in with the exam submission, beyond the working product:
 
-1. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author.
+1. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author. The venue name Saunalöyly was checked on 2026-10-21: no hit in EUIPO TMview, and navnesok.no shows the domain name and company name as free and the name as possibly free as a trademark.
 2. **Assessment deliverable:** working code, with documentation of how AI was used and how the code was quality-assured.
 
 ## Scope
@@ -109,5 +109,4 @@ If it succeeds, the platform may become a real booking service: real payments an
 
 ## Open Questions
 
-- The names of the fictional venue and its location (must be invented and checked against existing names).
 - The exact limits for input validation and password strength (maximum text lengths and seats per booking, minimum password length), and the password-hashing algorithm. The PRD and architecture will decide them.
