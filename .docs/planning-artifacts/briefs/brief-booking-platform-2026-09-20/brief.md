@@ -2,14 +2,14 @@
 title: "Product Brief: Booking platform"
 status: final
 created: 2026-09-20
-updated: 2026-10-14
+updated: 2026-10-21
 ---
 
 # Product Brief: Booking platform
 
 ## Executive Summary
 
-Booking platform is a reservation system for saunas, delivered together with a website inspired by Finnish sauna culture. Guests can reserve seats for themselves, their family or friends, or book an entire sauna privately. Payment is simulated, and the first version is built around two fictional sauna locations, A and B, with at least four saunas in total.
+Booking platform is a reservation system for saunas, delivered together with a website inspired by Finnish sauna culture. Guests can reserve seats for themselves, their family or friends, or book an entire sauna privately. Payment is simulated, and the first version is built around one fictional sauna location with at least four saunas.
 
 The project is a learning project delivered as an exam submission in 2026. Its purpose is twofold: to produce a working, AI-built application, and to document honestly how AI was used and how the result was quality-assured. It is built so it can grow into a real service later, but the exam version does not pretend to be one.
 
@@ -30,20 +30,20 @@ A website that presents the sauna venue in a calm, Finnish-inspired style, conne
 - **Gift cards (step 2):** anyone can buy a gift card without an account, and whoever holds the code books with it.
 - **Cancellation and change:** individual seats can be changed, or swapped for a voucher, up to 12 hours before the start; a whole sauna can be cancelled, with a refund or voucher, or changed up to 72 hours before.
 - **Door codes (step 2):** for saunas with self-service locks, bookers get their door codes by email shortly before the window.
-- **Administration:** administrators manage time windows, capacity and prices, and see every booking and cancellation, with an overview per location. Seats are never moved between locations, and door codes are given only for the location the guest booked. In step 2 they also manage gift cards and door codes. In a calendar, they can block one or all saunas for a period, for example for maintenance. In v1, only a few rules are settings with defaults (the booking horizon, the booking deadline, the two cancellation and change cut-offs, and the time seats open for individual booking); all other rules are fixed and become settings later. A changed setting applies only to new bookings.
+- **Administration:** administrators manage time windows, capacity and prices, and see every booking and cancellation. In step 2 they also manage gift cards and door codes. In a calendar, they can block one or all saunas for a period, for example for maintenance. In v1, only a few rules are settings with defaults (the booking horizon, the booking deadline, the two cancellation and change cut-offs, and the time seats open for individual booking); all other rules are fixed and become settings later. A changed setting applies only to new bookings.
 
 ### The guest's journey
 
 The guest first chooses between two paths: **Individual seats** or **Private sauna** (a whole sauna).
 
 **Individual seats**
-1. Pick a date in a calendar and a location: all locations, location A or location B. The guest chooses a location, not a sauna.
-2. The calendar shows again, and the guest can keep or change the date. The guest sees a list of locations with their time windows and free seats, not a list of saunas, picks a time window, and then the number of seats.
+1. The guest picks a date in a calendar, and can change it at any time. The guest sees a list of time windows with free seats, not a list of saunas, picks a time window and the number of seats, and presses Book.
+2. The guest chooses to log in or to continue without an account.
 3. The guest accepts the terms and presses to pay.
 
 **Private sauna**
-1. Pick a date in a calendar and a location: all locations, location A or location B.
-2. The calendar shows again, and the guest can keep or change the date. The guest sees the free private saunas and their time windows, and either picks a time window directly, or opens a specific sauna, keeps or changes the date, picks the time window, and presses Book.
+1. The guest picks a date in a calendar, and can change it at any time. The guest sees the free private saunas and their time windows, and either picks a time window directly, or opens a specific sauna, picks the time window, and presses Book.
+2. The guest chooses to log in or to continue without an account.
 3. The guest accepts the terms and presses to pay.
 
 ## What Makes This Different
@@ -53,7 +53,7 @@ If it becomes a real service, it competes with other booking platforms on price,
 ## Who This Serves
 
 - **Sauna guests:** people who already enjoy Finnish saunas or are curious to try. They book for themselves or a group, and need to see availability and price clearly and cancel easily.
-- **The venue administrator:** manages when saunas are open, at what capacity and price, and sees every booking and cancellation, per location.
+- **The venue administrator:** manages when saunas are open, at what capacity and price, and sees every booking and cancellation.
 - **The assessor (exam):** reads the code and the documentation of AI use and quality assurance.
 
 ## Success Criteria
@@ -81,9 +81,9 @@ What must be handed in with the exam submission, beyond the working product:
 
 **In the first version (v1)**
 
-- Two fictional sauna locations, A and B, run as separate places with at least four saunas in total, and one website in English that covers both. Guest accounts are optional; administrator accounts are required.
+- One fictional sauna location with at least four saunas, and one website in English. Guest accounts are optional; administrator accounts are required.
 - The booking rules for individual seats and whole saunas, including cancellation and change, with simulated payment and email (Success Criteria 1 to 4).
-- Administrator tools for time windows, capacity, prices, the five adjustable settings, blocking saunas in a calendar, and an overview of all bookings and cancellations, per location.
+- Administrator tools for time windows, capacity, prices, the five adjustable settings, blocking saunas in a calendar, and an overview of all bookings and cancellations.
 - Security measures, a responsive design, and automated tests of the booking rules and Success Criteria 1 to 4 and 8, including a concurrency test where two guests book the last seat at the same time.
 - A Python backend and JavaScript frontend, with the booking platform kept separate from the website through a single API. v1 supports one website only.
 
@@ -96,15 +96,15 @@ What must be handed in with the exam submission, beyond the working product:
 **Not in the first version or step 2**
 
 - Real payment, email, door locks, lock systems, heaters and temperature sensors.
-- Other languages, more than the two locations, other bookable resources, and native mobile apps.
+- Other languages, more than one location, other bookable resources, and native mobile apps.
 - Support for more than one website: v1 has a single API between the platform and its one website, with no website registration, keys or per-website settings and access (see the addendum).
 - Memberships, period cards, a separate child price, remote door control and heating control: see the vision.
 
 ## Vision
 
-If it succeeds, the platform may become a real booking service: real payments and email, more languages, more locations, several websites connected to the same platform, and bookable resources beyond saunas. It may also add a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
+If it succeeds, the platform may become a real booking service: real payments and email, more languages, several sauna locations (for example locations A and B, run as separate places, with a choice of location when booking and an overview per location for the administrator), several websites connected to the same platform, and bookable resources beyond saunas. It may also add a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
 
 ## Open Questions
 
-- The names of the fictional venue and of locations A and B (must be invented and checked against existing names).
+- The names of the fictional venue and its location (must be invented and checked against existing names).
 - Which concrete security measures are required. The PRD and architecture will turn "protected against hacking" into specific, testable measures.
