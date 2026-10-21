@@ -177,6 +177,20 @@ Success Criterion 9 requires input validation that can be tested. The platform v
 
 [ASSUMPTION: the exact limits (maximum text lengths, maximum seats per booking) are set in the PRD; the tests use those limits and the cases above as a minimum.]
 
+## Password tests
+
+Success Criterion 9 also requires hashed administrator passwords and strong passwords for user accounts. v1 proves it with automated tests.
+
+| Case | Expected result |
+|---|---|
+| An administrator account is created or its password changed | Only a salted hash from a slow password-hashing algorithm is stored; the plain password is never stored, logged or returned by the API |
+| A user (guest) account is created with a weak password: too short, too common, or equal to the email address | Rejected with a clear error; no account is made |
+| A user account is created with a strong password | Accepted, and stored hashed as for administrators |
+| The stored account data is read directly | No password can be read from it, and the same password gives different hashes for different accounts |
+| Login with the correct and with a wrong password | Correct password logs in; wrong password is refused with an error that does not say whether the email exists |
+
+[ASSUMPTION: "strong" is set in the PRD, for example at least 12 characters and not on a list of common passwords, following current guidance rather than forced mixes of character types; the hashing algorithm (for example Argon2id or bcrypt) is an architecture decision. Guest accounts are optional, so the strong-password rule applies only to those who create one.]
+
 ## Open questions on individual seats
 
 Answered: seats are placed in one sauna until it is full and then in the next; the administrator sets the fill order; a group may be split; a group that wants to stay together must book a whole sauna; guests see the total number of free seats; the per-person price is the same across saunas; after a cancellation, seats move into earlier saunas from the saunas filled last. The late whole-sauna question is resolved by the rule that a sauna holding individual seats cannot be booked in full.
