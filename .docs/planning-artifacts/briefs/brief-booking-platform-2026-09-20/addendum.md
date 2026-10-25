@@ -160,7 +160,7 @@ Project code and functionality: an AI-generated application. Documentation must 
 
 Requirement: the website and the booking platform must be protected against hacking, and all personal data in particular. Guest and administrator accounts store personal data (name, email, credentials). Even in a fictional service, the documentation should state what is stored, why, and how it is protected.
 
-Starting points for the PRD and architecture (not yet decided): hashed passwords, encrypted connections (HTTPS), input validation against injection and cross-site scripting, role-based access so guests cannot reach administrator functions, protection against brute-force login attempts, up-to-date dependencies, storing only the data needed, and security tests as part of quality assurance.
+Starting points for the PRD and architecture (not yet decided): hashed passwords, input validation against injection and cross-site scripting, role-based access so guests cannot reach administrator functions, protection against brute-force login attempts, up-to-date dependencies, storing only the data needed, and security tests as part of quality assurance.
 
 ## Input validation tests
 
@@ -206,6 +206,19 @@ Success Criterion 9 also requires role-based access. The platform checks the cal
 | A guest account tries to change its own role | Refused |
 
 The link in the confirmation email carries a long, random token that cannot be guessed, so the booking reference alone gives no access.
+
+## HTTPS tests
+
+Success Criterion 9 also requires encrypted connections. The website and the API are served only over HTTPS, so passwords, login sessions and booking links cannot be read on the way. v1 proves it with automated tests against the running platform.
+
+| Case | Expected result |
+|---|---|
+| A request is sent over plain HTTP to the website or the API | Redirected to the HTTPS address; no data is returned or changed over HTTP |
+| An HTTPS response is inspected | Carries a Strict-Transport-Security header, so browsers keep using HTTPS |
+| A login session is created | The session cookie is marked Secure and HttpOnly, and is never sent over HTTP |
+| The confirmation email is generated | The change-or-cancel link starts with https:// |
+
+[ASSUMPTION: the fictional service runs locally during the exam, so the tests use a local development certificate; the certificate setup for a real deployment (for example a free certificate from Let's Encrypt) is an architecture decision.]
 
 ## Open questions on individual seats
 
