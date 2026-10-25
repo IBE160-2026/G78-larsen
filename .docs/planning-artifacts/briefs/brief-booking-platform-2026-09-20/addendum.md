@@ -146,7 +146,7 @@ The Seat hold rule requires capacity to be checked and reserved in one atomic op
 
 ## Constraints
 
-- Delivery in about 3 months; then optional further development.
+- Delivery in 2026; then optional further development.
 - No licensed, trademarked, copyrighted or otherwise protected material on the site or in the platform. Images, fonts, icons and names must be AI-generated or freely licensed, unless the author has found or invented something and checked it.
 - Website and platform in English; more languages may be added later.
 - Technology direction: Python backend, JavaScript frontend. Specific frameworks are left to the architecture phase.
