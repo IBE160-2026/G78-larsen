@@ -20,7 +20,9 @@ Hente siste endringer fra remote (`pull`) og få forklart hva den nye `sesjonslo
 - Commits: `01724c7` (loggfil + `CLAUDE.md`) og `1401cbd` (`SKILL.md`). Begge pushet til `main` (`19b0e77..1401cbd`).
 - Statuslinjen (`~/.claude/statusline-command.sh`, utenfor repoet) ble utvidet via statusline-setup-agenten og deretter justert direkte: tokens brukt / total kontekst, `timer: %` med tid igjen, `dager: %` med tid igjen på egen linje under, og effort level etter modellnavnet. Testet med eksempeldata (full, manglende felt, resets_at i fortiden); ikke verifisert i en ekte statuslinje-oppdatering.
 - Merk: token-tallet i statuslinjen er nåværende kontekststørrelse + siste svar, ikke kumulativt sesjonstotal.
-- Denne oppdateringen av loggfila ble committet separat etter at den ble skrevet.
+- Loggoppdateringen ble committet separat (`b9e34bc`, etter rebase).
+- `CLAUDE.md` ble endret til «Logg alltid sesjonen» (`151dc69`) og så tilbakestilt til den opprinnelige teksten (`f9516cd`). Første push ble avvist fordi remote hadde `4d0b652` («Oppdater sesjonslogg-skill og instruks»); løst med `git pull --rebase` og ny push. `main` på remote: `f9516cd`.
+- `4d0b652` endret `SKILL.md`: skillen fører nå åpne punkter i `.logs/<bruker>/issues.md` (ikke `book issues`) og committer loggfil + `issues.md` lokalt, uten push.
 
 ### Åpne punkter
-Ingen.
+- `CLAUDE.md` sier at åpne punkter føres som `Agent`-Issues via `book issues`, men skillen på `main` bruker nå `issues.md`. Regelen i `CLAUDE.md` og skillen må samordnes.
