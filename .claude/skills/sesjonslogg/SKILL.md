@@ -53,6 +53,15 @@ bygge videre uten å gjette.
 
 Dato-overskriften bærer klokkeslettet for når loggen skrives **og hvem som kjørte oppgaven**: `## yyyy-mm-dd kl. hh:mm — <utfører>` (24-timers; `date "+%F kl. %H:%M"` / `Get-Date -Format "yyyy-MM-dd 'kl.' HH:mm"`). Utføreren er git-brukeren: `git config user.name` (fall tilbake på `user.email`, eller utelat hvis begge mangler). Fortsettelser: legg `## <ny dato> kl. <tid> — <utfører>` **nederst** i den eksisterende fila, med de samme fire underseksjonene — slik ser man også hvem som kjørte hver økt.
 
+## Commit loggfila
+
+Etter at loggfila er skrevet (ny fil eller oppdatert seksjon), **skal** du alltid committe den. Dette er et krav, ikke et valg.
+
+- Commit **kun** loggfila: `git add -- <sti-til-loggfila>` og `git commit -m "Logg sesjon: <tittel>" -- <sti-til-loggfila>`. Angi stien eksplisitt i begge kommandoene, slik at ingen andre filer kommer med.
+- Aldri `git add -A`, `git add .` eller `git commit -a`. Andre endringer i arbeidskopien (også filer som allerede er staget) skal ikke inn i loggcommiten og skal ikke røres.
+- Ikke push, med mindre brukeren ber om det.
+- Nevn commit-hashen for loggcommiten i sluttoppsummeringen.
+
 ## Hva er (ikke) et åpent punkt?
 
 Et åpent punkt er noe som gjenstår i selve produktet eller prosjektet: en manglende test, en kjent bug, konfig som må settes ved deploy, en beslutning som venter, noe brukeren eksplisitt ba deg huske. Git- og prosesstatus er **ikke** åpne punkter — brukeren ser git-status selv, og slike punkter drukner de ekte. (I Resultat-seksjonen kan commit-hash eller «ukommittert» nevnes kort som faktum.) Eksempler på ting som IKKE skal inn i Åpne punkter eller opprettes som Issues:
