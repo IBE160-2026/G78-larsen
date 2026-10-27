@@ -5,3 +5,6 @@
 - [ ] 2026-10-27 [research-samtidighet-booking](998-2026-10-27-15-08-00-research-samtidighet-booking.md) — ingen kildebelagt ytelsestall for hot-row; mål i spike før PRD setter lasttestmål
 - [ ] 2026-10-27 [research-samtidighet-booking](998-2026-10-27-15-08-00-research-samtidighet-booking.md) — betaling etter utløpt hold og utløpsavvik uten primærkilde; avgjør i arkitekturen og bevis med parallelle tester
 - [ ] 2026-10-27 [research-samtidighet-booking](998-2026-10-27-15-08-00-research-samtidighet-booking.md) — semantisk sitatsjekk og polering av research.md hoppet over
+- [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — HTTPS: kjerne eller «hvis tid»; beslutning utsatt
+- [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — avgjør i arkitekturen om `sauna_id` følger hver plass fra dag én, så hel badstue blir en utvidelse og ikke en omskriving
+- [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — Backcasting fra 15.12 ikke kjørt; byggerekkefølgen er ikke testet baklengs
