@@ -40,3 +40,17 @@ Oppdatere `issues.md` etter at `CLAUDE.md` nå viser til `issues.md` (ikke `book
 
 ### Åpne punkter
 Ingen.
+
+## 2026-10-27 kl. 13:26 — Lisa Larsen
+
+### Oppgave
+Pushe lokale commits til remote.
+
+### Plan
+- Sjekke status, deretter `git push` til `origin/main`.
+
+### Resultat
+- Pushet 1 commit: `38661f8` («Logg: hent-sesjonslogg-skill») til `origin/main` (`36bb5ac..38661f8`).
+
+### Åpne punkter
+Ingen.
