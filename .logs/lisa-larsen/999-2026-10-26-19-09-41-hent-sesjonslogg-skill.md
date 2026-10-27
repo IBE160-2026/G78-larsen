@@ -26,3 +26,17 @@ Hente siste endringer fra remote (`pull`) og få forklart hva den nye `sesjonslo
 
 ### Åpne punkter
 - `CLAUDE.md` sier at åpne punkter føres som `Agent`-Issues via `book issues`, men skillen på `main` bruker nå `issues.md`. Regelen i `CLAUDE.md` og skillen må samordnes.
+
+## 2026-10-27 kl. 13:19 — Lisa Larsen
+
+### Oppgave
+Oppdatere `issues.md` etter at `CLAUDE.md` nå viser til `issues.md` (ikke `book issues`).
+
+### Plan
+- Lukke det åpne punktet om uoverensstemmelsen mellom `CLAUDE.md` og skillen.
+
+### Resultat
+- Punktet om `book issues` vs. `issues.md` markert `[x]` i `.logs/lisa-larsen/issues.md` (løst 2026-10-27, `CLAUDE.md` rettet i `36bb5ac`).
+
+### Åpne punkter
+Ingen.
