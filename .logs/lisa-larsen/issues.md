@@ -8,3 +8,7 @@
 - [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — HTTPS: kjerne eller «hvis tid»; beslutning utsatt
 - [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — avgjør i arkitekturen om `sauna_id` følger hver plass fra dag én, så hel badstue blir en utvidelse og ikke en omskriving
 - [ ] 2026-10-27 [brainstorm-minste-v1](997-2026-10-27-16-06-48-brainstorm-minste-v1.md) — Backcasting fra 15.12 ikke kjørt; byggerekkefølgen er ikke testet baklengs
+- [ ] 2026-10-28 [research-kapasitetsmodell-enkeltplasser](996-2026-10-28-13-35-00-research-kapasitetsmodell-enkeltplasser.md) — avgjør i PRD: opphevet blokkering (D7), hel-badstue-markering med plasser (D8), senket kapasitet (F1), endret fyllrekkefølge (F2), flytting i startet vindu (F3)
+- [ ] 2026-10-28 [research-kapasitetsmodell-enkeltplasser](996-2026-10-28-13-35-00-research-kapasitetsmodell-enkeltplasser.md) — avgjør i PRD: tidsvinduer felles for anlegget og uten delvis overlapp (E1, E3); ellers holder ikke kapasitetsgarantien
+- [ ] 2026-10-28 [research-kapasitetsmodell-enkeltplasser](996-2026-10-28-13-35-00-research-kapasitetsmodell-enkeltplasser.md) — arkitektur: lagret eller utledet plassering; bevis utledet formel med modellbasert test (knytter til `sauna_id`-punktet fra brainstorm-minste-v1)
+- [ ] 2026-10-28 [research-kapasitetsmodell-enkeltplasser](996-2026-10-28-13-35-00-research-kapasitetsmodell-enkeltplasser.md) — semantisk sitatsjekk og `bmad-review`-polering av research.md hoppet over
