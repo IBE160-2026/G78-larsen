@@ -24,7 +24,8 @@ updated: '2026-10-28'
 - **The algorithm is unusual, and comparable domains avoid it.** Hotels sell by room type and assign the physical room late, because fixing rooms at booking time causes unnecessary rejections [6][7]. A restaurant-table vendor never moves already-assigned tables [8]. No booking product using "keep the last unit free for whole-unit sale" was found.
 - **Move-based repacking cannot fully prevent fragmentation in theory** [4][5], but that result concerns items that cannot be split. The brief lets seats split across saunas, so the fill is fully determined by the total seat count (inference, see Dimension 1).
 - **Derived placement turns the hard rules into arithmetic (inference, not sourced).** A whole sauna S is bookable only if total seats ≤ the combined capacity of the non-blocked, non-whole saunas *before* S in fill order. Cancellation, unblock and whole-booking cancellation then restore the fill order automatically. This must be proven by a model-based test (Dimension 2).
-- **The catalogue below (39 examples) is the deliverable.** The sharpest finds: overlapping time windows silently break per-window capacity (E1), a block can force bookings out (D3), and unblocking or reordering needs an explicit rule (D7, F2).
+- **Door codes (Success Criterion 6) need stored placement only with one-sauna access (group H).** In the default mode the codes follow from counts, blocks and whole bookings, so derived placement works. One-sauna access, and moves that trigger a new email, need the sauna of each booking stored.
+- **The catalogue below (62 examples) is the deliverable.** The sharpest finds: overlapping time windows silently break per-window capacity (E1), a block can force bookings out (D3), unblocking or reordering needs an explicit rule (D7, F2), and a whole-sauna booking after the codes went out leaves seat bookers holding a valid code for that sauna (H12).
 - **Biggest caveat:** no sauna, spa or fitness comparable was found, and the formula and all edge-case outcomes are derived from the project's own addendum, which is specification, not evidence.
 
 ## Dimension 1. Landscape: what this problem is, and what others do
@@ -123,7 +124,61 @@ Notation: saunas S1=7, S2=10, S3=12, S4=15 (total 44), fill order S1→S4, one w
 
 | ID | Given | When | Then | Basis |
 |---|---|---|---|---|
-| G1 | S1=7, S2=10, no-split. A=3 in S1, B=5 in S2 | C=6 books | first-fit rejects C (S1: 9>7, S2: 11>10) though a repack fits (C in S1, A+B = 8 in S2). State whether repacking is allowed | add, inf, [4] |
+| G1 | S1=7, S2=10, no-split. A=3 in S1, B=5 in S2 | C=6 books | first-fit rejects C (S1: 9>7, S2: 11>10) though a repack fits (C in S1, A+B = 8 in S2). State whether repacking is allowed. Once codes are sent, a repack is a move that triggers a new email (H20) | add, inf, [4] |
+
+### H. Door codes (Success Criterion 6, step 2)
+
+Notation: `K(Sn)` = the code(s) for the door(s) of Sn in window W. Unless stated: every sauna has a self-service lock, the email is sent 20 minutes before W starts, gradual opening and one-sauna access are off, and the codes are valid from the send time until W ends (addendum, Door codes). "Exactly the bookers who may use each door" means each Then also implies that nobody else gets that code.
+
+H1–H18 depend only on counts, blocks, whole bookings and flags, so the derived model suffices (inference). H19–H23 need the sauna of each booking to be stored.
+
+**H1–H7. Who gets which codes (default mode)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| H1 | empty W, no blocks. A books 5 seats | send time | A gets one email with K(S1) to K(S4), whichever saunas the 5 seats are placed in | add |
+| H2 | S4 whole-booked by B. A has 5 seats | send time | B gets K(S4) only. A gets K(S1) to K(S3), never K(S4). Nobody else gets K(S4) | add |
+| H3 | S2 blocked (no override), S3 whole-booking-only in W. A has seats | send time | A gets K(S1) and K(S4). No guest gets K(S2) or K(S3) | add |
+| H4 | S3 blocked with the door-code override | send time | K(S3) is made and shown to the administrator; no guest gets it | add |
+| H5 | S4 has no self-service lock. A has seats; B whole-booked S4 | send time | A gets K(S1) to K(S3). B gets no door-code email (S4 is B's only sauna) | add |
+| H6 | W1 15:00–16:30 (A) and W2 16:30–18:00 (B), same doors | send times | A gets W1 codes, B gets W2 codes, never the other's. At 16:10 the same door has two valid codes, and B's code works while W1 is still in use. Open decision: accept, or start validity at window start | add, inf |
+| H7 | A has 4 seats in W, then cancels 1 (voucher or change) before the send time; C has 1 seat and cancels it | send time | A still gets one email; C gets none (no booking left) | add |
+
+**H8–H11. Timing and the administrator's tools**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| H8 | default send time; A booked 3 days ahead | W starts 15:00 | email at 14:40; codes valid 14:40–16:30 | add |
+| H9 | administrator sets the send time to 60 minutes before; A books at 14:30 for a 15:00 window (or at 15:03, before the deadline) | booking confirmed | A gets the email at once, because the send time (14:00) has passed; codes valid until 16:30 | add |
+| H10 | emails for W1 already sent; administrator changes the send time | change saved | open decision; recommended: applies only to windows whose email has not been sent; sent emails are not resent | inf |
+| H11 | door D has source "administrator enters", no code set at the send time | send time passes, later the code is entered | administrator is alerted at the send time; the email goes out as soon as the code is in place; the code can be changed until the email is sent; "resend" sends the current code | add |
+
+**H12–H15. Changes after the codes were sent (default mode)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| H12 | `[7,10,12,0]`, codes sent: A holds K(S1) to K(S4) | B whole-books S4 (0 seats there, so allowed) | gap: A holds a valid K(S4) for a sauna that is now B's. Open decision; recommended: after the send time, refuse a whole booking of S while seat bookers hold K(S) (in default mode, any seat booking in W). Alternative: accept and issue a new code for B | inf |
+| H13 | `[7,10,5,0]`, codes sent: A holds K(S3) | S3 is blocked, seats move to S4 (D2) | A is unaffected in placement but holds K(S3) for a blocked sauna. Open decision; recommended: every seat booker of W gets a correction email naming the codes to use | inf |
+| H14 | S3 blocked, codes sent without K(S3) | the block is lifted (D7) | S3 opens for individual seats after the send time, so the seat bookers get an extra email with K(S3) | add |
+| H15 | codes sent; B (latest booking) loses to the overbooking fallback | fallback runs | B gets the apology email saying the codes must not be used and the refund notice. Other bookers' codes are unchanged. The code is shared, so the rule is a request, not enforced | add |
+
+**H16–H18. Gradual opening (step 2)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| H16 | gradual opening on, maximum 4. A has 6 seats (S1 open, not full) | send time | A gets K(S1) only; unopened S2 to S4 give no codes. The open set follows from the seat count (inference) | add, inf |
+| H17 | gradual opening on, codes sent with K(S1) only. S1 is full, then B books 1 seat | B confirmed | S2 opens. A (and every earlier seat booker of W) gets an extra email with K(S2). B, booking after the send time, gets K(S1) and K(S2) in one email at once | add |
+| H18 | S2 open, codes sent with K(S2). Cancellations empty S2 | S2 closes and is free for whole booking | seat bookers still hold K(S2); same gap as H12 | add, inf |
+
+**H19–H23. One-sauna access (step 2, needs stored placement)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| H19 | one-sauna access on, S1=7, S2=10. A books 3 (→ S1), B books 5 (→ S2: 3+5 > 7) | send time | A's email names S1 with K(S1) only; B's names S2 with K(S2) only. Neither gets the other's codes | add |
+| H20 | as H19, codes sent | A cancels; B's whole booking moves S2 → S1 (5 ≤ 7) | B gets a new email naming S1 and K(S1). The extra email for newly opened saunas is not sent. The move is complete before S2 is bookable whole (A3, C3) | add |
+| H21 | as H19, W has started (F3) | a block or cancellation would move B | open decision; recommended: no move in a started window, use the overbooking fallback; a move would send people out of the sauna they are in | inf |
+| H22 | one-sauna access on, S1 has no self-service lock. A is placed in S1 | send time | A gets an email naming S1 without codes | add |
+| H23 | one-sauna access off, a future window has a booking of 4 seats split 2+2 | administrator turns it on | open decision; recommended: refuse while any future window has a split booking. Turning it off applies only to windows whose email is not yet sent | inf |
 
 ## Cross-dimension insights
 
@@ -136,7 +191,8 @@ The theory and the hotel evidence point the same way: the cost of the move algor
 3. **Require venue-wide, non-overlapping time windows** (E1, E3). Without it the capacity guarantee does not hold. Basis: addendum plus reasoning (medium).
 4. **Decide D3, D7, D8, F1–F3 in the PRD.** Each is silent in the addendum; the catalogue gives a recommended answer for each.
 5. **Run all of group C as parallel tests; wrap each write unit in one transaction** (`BEGIN IMMEDIATE` in SQLite [1]; Serializable with retry in PostgreSQL [2]). Basis: official docs (high for the mechanism).
-6. **Skip group G unless one-sauna access is promoted.**
+6. **Skip group G unless one-sauna access is promoted.** If it is, H19–H23 apply and placement must be stored.
+7. **Write group H into the PRD as the acceptance criteria for Success Criterion 6.** Decide H6, H10, H12, H13, H21 and H23. The addendum is silent on each; the catalogue gives a recommended answer. Basis: addendum plus reasoning (medium).
 
 ## Open questions
 
@@ -146,6 +202,7 @@ The theory and the hotel evidence point the same way: the cost of the move algor
 | Is the derived formula correct under blocks and whole bookings together? | A model-based test comparing the formula to a brute-force reference |
 | Sauna, spa or fitness comparables for private-vs-shared booking and moves | A vendor documentation search (not run, budget) |
 | Full text of the migration-bound papers [4][5] and the RoomTetris algorithm [7] | Optional; matters only if no-split groups are built |
+| Can a real lock system hold two valid codes on one door (H6), and replace or revoke a code already sent (H12–H14)? | Lock vendor documentation; not run, since locks are simulated in the first version and step 2 |
 
 ## Source appendix
 
