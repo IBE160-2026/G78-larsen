@@ -24,3 +24,17 @@ Kjøre en liten teknisk research på om ekte smartlåser kan ha to gyldige koder
 - TTLock, Nuki og Yale/August er dekket bare via integratorer og forumposter (delvis 2018–2019); RemoteLock-dokumentet er bare lest til tegn 100 000 av 317 000; Schlages API-referanse er ikke lest.
 - Semantisk sitatsjekk og `bmad-review`-polering hoppet over.
 - Funnene er ikke ført tilbake i gruppe H i kapasitetsmodell-rapporten ennå.
+
+## 2026-10-28 kl. 15:03 — Lisa Larsen
+
+### Oppgave
+Føre funnene fra låsresearchen tilbake i gruppe H i kapasitetsmodell-rapporten.
+
+### Plan
+- Oppdatere de berørte radene i H og legge til kilde [11] (låsresearchen) i kildetabellen.
+
+### Resultat
+- `.docs/planning-artifacts/research/technical-kapasitetsmodell-enkeltplasser-2026-10-28/research.md`: H6 (ulike PIN-er, lengre overlapp på timelåser), H11 (kode bekreftet på låsen før utsendelse), H12 (baseline uten tilbakekalling, bytte av kode bare for nettkoder), H13 (bytt eller slett der låsen støtter det), H15 (best effort), H20 og H21 (frys plassering ved sendetid) er oppdatert. Sammendrag, anbefaling 7 og det åpne spørsmålet om låser er justert. Ny kilde [11]. Ukommittert.
+
+### Åpne punkter
+- Ingen nye. Punktet om å føre funnene tilbake i gruppe H er lukket.

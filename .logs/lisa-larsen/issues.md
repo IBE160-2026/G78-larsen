@@ -17,5 +17,5 @@
 - [ ] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — avgjør i PRD: frys plassering ved sendetid under én-badstue-tilgang (utvider H21), H6 overlapp vs start ved vindusstart, H12 baseline uten tilbakekalling
 - [ ] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — overlapp av koder med ulike PIN-er og endring etter at gyldigheten har startet er ikke besvart av noen kilde; test på ekte eller Seam-sandbox-lås
 - [ ] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — TTLock/Nuki/Yale kun via integratorer og forum; RemoteLock-dokument lest til 100k av 317k; Schlage API-referanse ikke lest
-- [ ] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — før funnene tilbake i gruppe H i kapasitetsmodell-rapporten (H6, H12–H14, H21)
+- [x] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — før funnene tilbake i gruppe H i kapasitetsmodell-rapporten (H6, H12–H14, H21) (løst 2026-10-28)
 - [ ] 2026-10-28 [research-laslosninger-dorkoder](995-2026-10-28-14-58-07-research-laslosninger-dorkoder.md) — semantisk sitatsjekk og `bmad-review`-polering av research.md hoppet over
