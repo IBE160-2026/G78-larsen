@@ -24,7 +24,10 @@ Endringer (ikke committet):
 
 Oppfølging samme dag: 10-minutters seat hold er «hvis tid» i v1 (beslutning fra brainstorm-minste-v1, 2026-10-27). `brief.md`: ny Scope-linje (v1 reserverer kapasitet atomisk ved bekreftelse; holdet bygges bare hvis tid). `addendum.md`: faseraden for v1, notat under fasetabellen, raden Seat hold, notat under Concurrency tests, og Research input. SC1 er uendret. Beslutningen er ført i `.memlog.md` (118 oppføringer).
 
-Ikke gjort: polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 200 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens utsettelse av 10-minutters hold er ført inn i en oppfølging samme dag (se over).
+Oppfølging 2: resten av «hvis tid»-listen og kjernen fra brainstormen er ført inn. `brief.md`: Scope v1 delt i «Core: must finish» og «If time allows, in this order» (1 avbestilling av enkeltplasser, 2 hel badstue, 3 «min booking», 4 hold, 5 gjestekontoer, 6 trinn 2, 7 resten av v1); SC2–4 og 8 merket «if time», HTTPS åpen, SC10 enkel i kjernen; nye linjer i sammendrag og Open Questions. `addendum.md`: faseraden for v1 delt i kjerne og hvis-tid, ny seksjon «Schedule and build order», frist 15.12.2026. Lisa valgte å plassere v1-punktene brainstormen ikke nevner (admin-skjermer, de fem innstillingene, blokkeringskalender, 06:00-regel, «bare hel badstue»-vinduer, overbooking-fallback) sist, etter trinn 2. Bare «avbestilling før hel badstue» er avgjort av Lisa; resten av rekkefølgen er merket [ASSUMPTION]. Flagget i addendumet: midlertidig simulert refusjon for enkeltplasser strider mot «ingen kontantrefusjon», og «min booking» med referanse + e-post strider mot token-lenken i Accounts.
+
+Ikke gjort: polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 600 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens utsettelse av 10-minutters hold er ført inn i en oppfølging samme dag (se over).
 
 ### Åpne punkter
-- Polering av `brief.md` og `addendum.md` (`bmad-review` structure, prose) er ikke kjørt; briefen er ca. 2 200 ord og bør kortes ned mot 1–2 sider.
+- Refusjon vs voucher for enkeltplasser og «min booking»-oppslag vs token-lenke er flagget i addendumet; PRD må avgjøre.
+- Polering av `brief.md` og `addendum.md` (`bmad-review` structure, prose) er ikke kjørt; briefen er ca. 2 600 ord og bør kortes ned mot 1–2 sider.
