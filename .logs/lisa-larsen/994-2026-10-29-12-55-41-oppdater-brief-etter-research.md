@@ -22,8 +22,9 @@ Endringer (ikke committet):
 - `addendum.md`: radene Seat placement, Door codes, Time windows og «Fixed in v1»; seksjonene «Open questions» for enkeltplasser og dørkoder; ny seksjon «Research input» med 14 anbefalte tilfeller, samtidighetskrav og testtilnærming.
 - `.memlog.md`: fire beslutninger og én endringsoppføring (117 oppføringer).
 
-Ikke gjort: polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 200 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens beslutning om å utsette 10-minutters hold i MVP (997) er ikke ført inn i briefen eller addendumet, siden den ikke kommer fra research.
+Oppfølging samme dag: 10-minutters seat hold er «hvis tid» i v1 (beslutning fra brainstorm-minste-v1, 2026-10-27). `brief.md`: ny Scope-linje (v1 reserverer kapasitet atomisk ved bekreftelse; holdet bygges bare hvis tid). `addendum.md`: faseraden for v1, notat under fasetabellen, raden Seat hold, notat under Concurrency tests, og Research input. SC1 er uendret. Beslutningen er ført i `.memlog.md` (118 oppføringer).
+
+Ikke gjort: polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 200 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens utsettelse av 10-minutters hold er ført inn i en oppfølging samme dag (se over).
 
 ### Åpne punkter
 - Polering av `brief.md` og `addendum.md` (`bmad-review` structure, prose) er ikke kjørt; briefen er ca. 2 200 ord og bør kortes ned mot 1–2 sider.
-- Briefen sier ikke at 10-minutters hold er utsatt i MVP (beslutning i brainstorm-minste-v1); avgjør om brief/addendum skal justeres eller om dette hører hjemme i PRD.
