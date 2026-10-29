@@ -28,7 +28,9 @@ Oppfølging 2: resten av «hvis tid»-listen og kjernen fra brainstormen er før
 
 Oppfølging 3: «Min booking» (hvis-tid-punkt 3) sender bare token-lenken på nytt til e-posten på bookingen; siden viser ingen data, gir likt svar ved treff og ikke-treff, og har forsøksgrense. Kun lenken gir tilgang. Oppdatert i `brief.md` (punkt 3, Open Questions) og `addendum.md` (faserad, Accounts, Schedule). Token-levetid og hashet lagring er `[ASSUMPTION]` til PRD.
 
-Ikke gjort: polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 600 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens utsettelse av 10-minutters hold er ført inn i en oppfølging samme dag (se over).
+Oppfølging 4: polering kjørt med `bmad-review` (structure, prose). `brief.md`: alle rader godtatt (journey kortet, SC9-underpunkter kortet, Scope flyttet foran Success Criteria, mindre kutt, språkrettinger); 2 593 → 2 355 ord. `addendum.md`: alt unntatt sammenslåingen av «Open questions»-seksjonene (Lisa vil beholde dem): Door codes, Heater, Membership, Period cards og Renewal flyttet fra tabellen til egne underseksjoner, Concurrency tests flyttet til de andre testseksjonene, Research input og Schedule kondensert, if-time-rekkefølgen slått sammen med faseraden, tre språkrettinger; 8 954 → 8 892 ord. Én brief-rad var et spørsmål (innlogging i reiseløpet): løst ved å si at alle gjester i kjernen fortsetter uten konto.
+
+Ikke gjort (opprinnelig): polering etter `doc_standards` (`bmad-review` med structure og prose) er hoppet over for å spare tokens. `brief.md` er nå ca. 2 600 ord, over målet på 1–2 sider; verdt en kortning ved neste runde. Brainstormens utsettelse av 10-minutters hold er ført inn i en oppfølging samme dag (se over).
 
 ### Åpne punkter
-- Polering av `brief.md` og `addendum.md` (`bmad-review` structure, prose) er ikke kjørt; briefen er ca. 2 600 ord og bør kortes ned mot 1–2 sider.
+- `brief.md` er fortsatt ca. 2 350 ord, over målet på 1–2 sider; videre kortning krever at innhold flyttes eller fjernes.
