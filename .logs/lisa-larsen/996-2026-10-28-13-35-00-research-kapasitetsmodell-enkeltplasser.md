@@ -46,3 +46,24 @@ Sjekke om researchen dekket Success Criterion 6 (dørkoder sendt på e-post til 
 ### Åpne punkter
 - Avgjør i PRD: H6 (kode gyldig 20 min før start mens forrige vindu pågår), H10 (endret sendetid etter utsendelse), H12 (hel booking etter utsendelse), H13 (blokk etter utsendelse), H21 (flytting i startet vindu med én-badstue-tilgang), H23 (slå på én-badstue-tilgang med delte bookinger). Katalogen har anbefalt svar.
 - Kan en ekte låsløsning ha to koder på én dør eller bytte en sendt kode (H6, H12–H14)? Ikke undersøkt; låser er simulert.
+
+## 2026-10-29 kl. 10:24 — Lisa Larsen
+
+### Oppgave
+Lisa spurte om visjonen tar hensyn til fjernstyrte ovner når researchen sier at plasser kanskje ikke må flyttes ved avbestilling (slik at ikke flere badstuer enn nødvendig varmes opp). Etter svaret ba hun om en gruppe I for oppvarming i `research.md`.
+
+### Plan
+- Lese addendum og brief om oppvarming: regelen er at en badstue varmes bare i vinduer med minst én booking; blokkert badstue varmes ikke uten overstyring; oppvarmingen står i visjonen, ikke v1.
+- Bygge gruppe I fra addendumet og katalogen (A, B, D, F, H), ikke fra nye kilder.
+
+### Resultat
+- Svar: visjonen dekker «bare booket badstue varmes», men koblingen til plassering stod ikke noe sted, og researchen nevnte ikke oppvarming. Utledet plassering gir færrest ovner (kompakt fyllrekkefølge); lagret plassering uten flytting ville gitt flere.
+- `.docs/planning-artifacts/research/technical-kapasitetsmodell-enkeltplasser-2026-10-28/research.md`: ny gruppe I med 23 eksempler (I1–I23), nå 85 eksempler totalt. Ukommittert.
+  - I1–I7: hvilke badstuer varmes. I8–I10: komprimering før oppvarmingsstart. I11–I12: varme vs åpne badstuer. I13–I18: endringer etter oppvarmingsstart. I19: startet vindu. I20–I23: flere vinduer og innstillinger.
+  - Nye invarianter INV-6 (varmet sett = første k badstuer i fyllrekkefølge) og INV-7 (ingen ovn slås av før stopptid i startet vindu). Nytt punkt i sammendrag, krysspunkt, anbefaling 8 og to åpne spørsmål.
+- Skarpeste funn: gjester beveger seg fritt mellom åpne badstuer, så en åpen badstue kan være kald (I11, I12). Utledet plassering vil slå av en ovn gjester kan bruke i et startet vindu, så ovnstilstanden må lagres (I19).
+- Ikke kjørt: ny kildesøk eller sitatsjekk; I er spesifikasjon fra addendumet, ikke bevis. Ingen kilder om ovner (oppvarmingstid, fjernstyring) er søkt opp.
+
+### Åpne punkter
+- Avgjør i PRD når oppvarming bygges (visjon): I11/I12 (kald åpen badstue), I13 (ovn på uten booking), I14 (sen booking), I19 (startet vindu), I22 (tom vindu mellom to bookede), I23 (endret starttid). Katalogen har anbefalt svar.
+- Ikke undersøkt: hvor lang tid en ovn trenger for å bli varm, og om fjernstyrte ovner kan slås av og på fritt.
