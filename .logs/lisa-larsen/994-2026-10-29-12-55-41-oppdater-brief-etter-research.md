@@ -34,3 +34,22 @@ Ikke gjort (opprinnelig): polering etter `doc_standards` (`bmad-review` med stru
 
 ### Åpne punkter
 - `brief.md` er fortsatt ca. 2 350 ord, over målet på 1–2 sider; videre kortning krever at innhold flyttes eller fjernes.
+
+## 2026-10-29 kl. 13:39 — Lisa Larsen
+
+### Oppgave
+Endre responsiv-rekkefølgen i brief og addendum: lag webside (desktop) først, og mobil etterpå, i stedet for «mobile first».
+
+### Plan
+- Finne alle steder som sier «mobile first» / responsivt i `brief.md` og `addendum.md`.
+- Endre bare rekkefølgen, ikke kravet: SC10 (responsivt på mobil, nettbrett og desktop) står fast.
+
+### Resultat
+Tre små tekstendringer, ikke committet (arbeidsendring i brief-mappen):
+- `brief.md`, Scope-kjernen: «A simple responsive design» → desktop først, mobil-layout følger når desktop-siden fungerer.
+- `brief.md`, SC10: «one stylesheet, mobile first» → «one stylesheet, desktop first; the mobile layout is added afterwards, once the desktop website works».
+- `addendum.md`, Risk handling: «mobile first» → «desktop first with the mobile layout added afterwards».
+`.memlog.md` er ikke oppdatert med denne endringen. Native mobilapper er fortsatt utenfor omfanget (uendret).
+
+### Åpne punkter
+- Avklar om mobil-layoutet er en del av kjernen (SC10) eller kan falle bort hvis tiden går ut; nå står det som «etterpå» uten å være plassert i «hvis tid»-listen.
