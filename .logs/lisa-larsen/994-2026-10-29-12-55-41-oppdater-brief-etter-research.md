@@ -51,5 +51,12 @@ Tre små tekstendringer, ikke committet (arbeidsendring i brief-mappen):
 - `addendum.md`, Risk handling: «mobile first» → «desktop first with the mobile layout added afterwards».
 `.memlog.md` er ikke oppdatert med denne endringen. Native mobilapper er fortsatt utenfor omfanget (uendret).
 
+
+### Oppfølging (samme økt): laptop først
+Lisa endret rekkefølgen igjen: laptop-versjon først, deretter mobil og desktop hvis tid. Avløser «desktop først, mobil etterpå» over.
+- `brief.md`: Scope-kjernen sier «a simple layout for a laptop screen; mobile and desktop layouts are if time allows»; nytt hvis-tid-punkt 8 (mobil- og desktop-layout, etter at laptop-layoutet fungerer); SC10 delt i laptop (kjerne) og mobil/desktop (hvis tid); «core is done when» og setningen om hvis-tid-kriterier justert tilsvarende.
+- `addendum.md`, Risk handling: «laptop layout first, with mobile and desktop layouts if time allows».
+- Plasseringen sist i hvis-tid-listen er en antakelse; ikke committet; `.memlog.md` ikke oppdatert.
+
 ### Åpne punkter
-- Avklar om mobil-layoutet er en del av kjernen (SC10) eller kan falle bort hvis tiden går ut; nå står det som «etterpå» uten å være plassert i «hvis tid»-listen.
+- Plasseringen av mobil/desktop (punkt 8) sist i hvis-tid-listen er en antakelse; bekreft i PRD.
