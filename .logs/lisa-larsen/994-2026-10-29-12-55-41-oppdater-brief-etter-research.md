@@ -97,3 +97,19 @@ Lisa ba om å ta desktop ut av briefen og addendumet, slik at bare laptop (kjern
 
 ### Åpne punkter
 Ingen.
+
+## 2026-10-29 kl. 14:15 — Lisa Larsen
+
+### Oppgave
+Lisa spurte om `sauna_id` bør følge hver plass fra dag én, slik at hel-badstue-booking blir en utvidelse og ikke en omskriving, og ba om at svaret føres inn i `issues.md`.
+
+### Plan
+- Støtte svaret på addendumets Seat placement-rad (forskningen anbefaler utledet plassering).
+- Føre anbefalingen inn som eget åpent punkt, uten å lukke det opprinnelige punktet fra brainstorm-minste-v1.
+
+### Resultat
+- Anbefaling: ikke `sauna_id` per plass; plassering utledes fra antall per vindu. `sauna_id` på blokkeringer og hel-badstue-bookinger, én kapasitetsfunksjon over ledige badstuer fra v1, nullable «plassert i badstue»-kolonne for én-badstue-tilgang i trinn 2.
+- Ført inn i `issues.md`. Ingen endringer i brief eller addendum. Forskningsfila selv er ikke lest på nytt.
+
+### Åpne punkter
+- Arkitekturbeslutningen om plassering og `sauna_id` er ikke tatt (ført i `issues.md`).
