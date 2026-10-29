@@ -79,3 +79,21 @@ Rekkefølgen er nå Lisas beslutning, ikke en antakelse. `.memlog.md` er ikke op
 
 ### Åpne punkter
 Ingen.
+
+## 2026-10-29 kl. 14:03 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å ta desktop ut av briefen og addendumet, slik at bare laptop (kjerne) og mobil (sist i trinn 2, hvis tid) står igjen.
+
+### Plan
+- Finne alle forekomster av «desktop» i `brief.md` og `addendum.md` (5 + 2).
+- Endre «mobile and desktop» til «mobile» i Scope, trinn 2, Success Criteria (innledning og SC10) og Risk handling/faseraden i addendumet.
+- La `.memlog.md` og eldre loggfiler stå urørt (historikk).
+
+### Resultat
+- `brief.md`: Scope-kjernen («the mobile layout comes last in step 2, if time allows»), rekkefølgesetningen, trinn 2-punktet («Mobile layout, last, …»), Success Criteria-innledningen («the mobile part of 10») og SC10 («on mobile and at any window size») er rettet.
+- `addendum.md`: faseraden for trinn 2 («mobile layout last», «Mobile layout, after the laptop layout works») og Risk handling («the mobile layout last in step 2 if time allows»).
+- Verifisert at alle 5 + 2 forekomster er byttet. `.memlog.md` nevner fortsatt desktop som historikk og er ikke endret.
+
+### Åpne punkter
+Ingen.
