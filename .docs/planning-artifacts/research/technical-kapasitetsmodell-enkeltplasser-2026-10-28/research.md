@@ -25,7 +25,8 @@ updated: '2026-10-28'
 - **Move-based repacking cannot fully prevent fragmentation in theory** [4][5], but that result concerns items that cannot be split. The brief lets seats split across saunas, so the fill is fully determined by the total seat count (inference, see Dimension 1).
 - **Derived placement turns the hard rules into arithmetic (inference, not sourced).** A whole sauna S is bookable only if total seats ≤ the combined capacity of the non-blocked, non-whole saunas *before* S in fill order. Cancellation, unblock and whole-booking cancellation then restore the fill order automatically. This must be proven by a model-based test (Dimension 2).
 - **Door codes (Success Criterion 6) need stored placement only with one-sauna access (group H).** In the default mode the codes follow from counts, blocks and whole bookings, so derived placement works. One-sauna access, and moves that trigger a new email, need the sauna of each booking stored. A later lock-behaviour run [11] adds: codes sent cannot be recalled on offline locks, so the rules should work without revoking (H12), and under one-sauna access placement should be frozen at the send time (H21).
-- **The catalogue below (62 examples) is the deliverable.** The sharpest finds: overlapping time windows silently break per-window capacity (E1), a block can force bookings out (D3), unblocking or reordering needs an explicit rule (D7, F2), and a whole-sauna booking after the codes went out leaves seat bookers holding a valid code for that sauna (H12).
+- **Heating (vision) is helped by the fill order but makes placement visible (group I).** With seats compacted in fill order the fewest heaters run (I9, I10, INV-6); a stored placement without moves would heat more saunas. Three things stay open: guests move freely, so open saunas can be cold (I11, I12); late changes after the heating start need a rule (I13–I18); and in a started window the heater state must be remembered, since derived placement would switch off a heater guests may be using (I19).
+- **The catalogue below (85 examples) is the deliverable.** The sharpest finds: overlapping time windows silently break per-window capacity (E1), a block can force bookings out (D3), unblocking or reordering needs an explicit rule (D7, F2), and a whole-sauna booking after the codes went out leaves seat bookers holding a valid code for that sauna (H12).
 - **Biggest caveat:** no sauna, spa or fitness comparable was found, and the formula and all edge-case outcomes are derived from the project's own addendum, which is specification, not evidence.
 
 ## Dimension 1. Landscape: what this problem is, and what others do
@@ -40,13 +41,13 @@ updated: '2026-10-28'
 
 - **Single-writer database makes the whole unit atomic.** In SQLite, `BEGIN IMMEDIATE` starts the write transaction up front and may fail with SQLITE_BUSY at that point; a deferred transaction that reads then writes can fail with SQLITE_BUSY on upgrade when another connection has modified the database; in WAL mode IMMEDIATE and EXCLUSIVE are the same [1] (high, re-fetched by the lead). Wrapping "check, place, move" in one `BEGIN IMMEDIATE` serializes writers (inference), with a busy timeout and a bounded retry for the loser.
 - **PostgreSQL.** Serializable needs a whole-transaction retry on SQLSTATE 40001; the docs' write-skew example matches "two guests check the sauna is empty, then book different rows" [2] (high). Exclusion constraints forbid overlap between rows of the same kind per resource [3]; the cross-kind rule (whole booking vs seat group) is not covered by them (inference). Earlier locking and hold findings: see the prior concurrency run [10].
-- **Store vs derive placement.** No practitioner source was found (open question). Reasoned position (inference): store only booked seats per window plus whole bookings and blocks; compute placement on read. Guests are never told their sauna and need no notice on moves (addendum), so stored placement has no observable meaning until one-sauna access exists in step 2.
+- **Store vs derive placement.** No practitioner source was found (open question). Reasoned position (inference): store only booked seats per window plus whole bookings and blocks; compute placement on read. Guests are never told their sauna and need no notice on moves (addendum), so stored placement has no observable meaning until one-sauna access exists in step 2. Heating (vision, group I) adds a second effect: which heaters run depends on placement, and in a started window the heater state must be stored (I19).
 - **Derived rules (inference, to be proven by test).** Let `seats(W)` be total individual seats in window W, and `P(S)` the sum of capacities of saunas that precede S in fill order and are neither whole-booked nor blocked.
   - Free seats shown = Σ capacity of non-whole, non-blocked saunas − `seats(W)`.
   - Whole booking of S allowed iff S is not blocked, not whole-booked, and `seats(W) ≤ P(S)`.
   - Placement of seats = fill saunas in fill order, skipping whole-booked and blocked.
 - **Fixed slots vs free windows.** With a venue-wide grid of fixed windows, "same window" is equality of a window id and a plain UNIQUE or partial-unique constraint works in both databases (inference, no source retrieved). Free overlapping windows need interval logic (see E1).
-- **Test approach.** Model-based (stateful) testing generates action sequences and checks invariants after each step [9] (medium; mirror, snippet only). Worth using for this rule set because the examples below are sequences of bookings, cancellations and blocks. Invariants: INV-1 per sauna placed ≤ capacity; INV-2 Σ placed = Σ booked seats in the window; INV-3 a whole-booked sauna holds zero seats; INV-4 a blocked sauna holds zero seats; INV-5 compaction: no sauna earlier in fill order has free space while a later one holds seats (inference).
+- **Test approach.** Model-based (stateful) testing generates action sequences and checks invariants after each step [9] (medium; mirror, snippet only). Worth using for this rule set because the examples below are sequences of bookings, cancellations and blocks. Invariants: INV-1 per sauna placed ≤ capacity; INV-2 Σ placed = Σ booked seats in the window; INV-3 a whole-booked sauna holds zero seats; INV-4 a blocked sauna holds zero seats; INV-5 compaction: no sauna earlier in fill order has free space while a later one holds seats (inference); INV-6 heating: the saunas heated for seats are the first k in fill order (skipping whole-booked and blocked) whose combined capacity covers `seats(W)`, so no heater runs without a booking except for overrides and carry-over between booked windows (follows from INV-5; inference); INV-7 in a started window no heater is switched off before its stop time (inference, I19).
 
 ## Edge-case catalogue (Given / When / Then)
 
@@ -180,9 +181,70 @@ H1–H18 depend only on counts, blocks, whole bookings and flags, so the derived
 | H22 | one-sauna access on, S1 has no self-service lock. A is placed in S1 | send time | A gets an email naming S1 without codes | add |
 | H23 | one-sauna access off, a future window has a booking of 4 seats split 2+2 | administrator turns it on | open decision; recommended: refuse while any future window has a split booking. Turning it off applies only to windows whose email is not yet sent | inf |
 
+### I. Heating (heater control, vision)
+
+Notation: unless stated, every sauna has external heater control, heating starts 60 minutes before the window (14:00 for a window at 15:00–16:30) and stops at the window end, gradual opening and one-sauna access are off, and blocks have no heating override. These are example values; the addendum sets no defaults. "On: S1, S2" lists the heaters running for W. The rule under test (addendum, Heater and temperature control): a sauna is heated in a window only if it has at least one booking in that window. Everything below follows from that rule plus the placement rules. Heating is simulated and in the vision, so nothing here is v1.
+
+The wanted heater set is a function of counts, blocks, whole bookings and flags (inference). The actual state (what is running now) must be recorded: the simulated platform already logs when heating would start and stop, and I13–I19 need that log.
+
+**I1–I7. Which saunas are heated (default mode)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I1 | empty W, no blocks. A books 5 seats | 14:00 | `[5,0,0,0]`. On: S1. S2 to S4 have no booking and are not heated | add |
+| I2 | A books 9 seats | 14:00 | `[7,2,0,0]`. On: S1, S2 | add |
+| I3 | S4 whole-booked by B. A has 3 seats | 14:00 | `[3,0,0,—]`. On: S1, S4. S2 and S3 are not heated | add |
+| I4 | S2 has no external heater control. `[7,10,0,0]` | 14:00 | start and stop are recorded for S1 only. S2 is shown as "no external control", with no heating entry and no alert. Seats still fill S2 as normal | add |
+| I5 | S3 blocked, no override. `[7,10,—,3]` (20 seats) | 14:00 | On: S1, S2, S4. S3 is not heated. With the heating override on the block, S3 is also heated as for a booked window, with no guest in it | add |
+| I6 | S3 marked whole-booking-only in W, no whole booking. `[7,10,—,3]` | 14:00 | On: S1, S2, S4. S3 has no booking and is not heated | add |
+| I7 | no booking in W | 14:00 | nothing starts; no heating entry for W | add |
+
+**I8–I10. Compaction before heating starts (does the fill order save heaters?)**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I8 | `[7,10,5,0]`, heating not started | 3 seats in S1 cancel | `[7,10,2,0]`. Plan unchanged: S1 to S3, since S3 still holds 2 seats | add |
+| I9 | `[7,10,2,0]`, heating not started | 2 seats in S1 cancel | `[7,10,0,0]` (A3). S3 is not heated. With stored placement and no move the state would be `[5,10,2,0]` and S3 would be heated, so the fill-order rule saves one heater. No heater was on, so nothing is switched off | add, inf |
+| I10 | `[7,10,12,3]` (32 seats), heating not started | 5 seats in S1 cancel | `[7,10,10,0]` (A5). S4 is not heated: four saunas become three. The seat heaters are always the first k in fill order with combined capacity ≥ seats (INV-6) | add, inf |
+
+**I11–I12. Warm saunas vs open saunas**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I11 | gradual opening off, `[7,3,0,0]`, On: S1, S2. Guests move freely between all saunas not booked in full, and hold K(S1) to K(S4) (A, H1) | guests arrive | S3 and S4 are open for seats and cold, and guests are not told which sauna their seats are in. A guest can walk into a cold sauna. Open decision; recommended: with heater control on, the email says which saunas are warm, or gradual opening is used so that codes follow the open set (I12) | add, inf |
+| I12 | gradual opening on, maximum 4. S1 is full (`[7,0,0,0]`) and S2 has opened empty | 14:00 | strict rule: On: S1 only, although S2 is open and its code has gone out (H17). Open decision; recommended: while heating applies to W, also heat the sauna that is open for seats but empty. Cost: one extra heater at most; it extends the addendum's "at least one booking" to "or open for seats" | add, inf |
+
+**I13–I18. Changes after heating has started**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I13 | `[7,10,2,0]`, On: S1, S2, S3 since 14:00 | 14:30: 2 seats in S1 cancel | `[7,10,0,0]`; S3 is on without a booking. Open decision; recommended: switch S3 off at once, because "no booking, no heating" holds at every moment, and switch it on again if a later booking needs it (I14). Alternative: leave it on until the stop time | add, inf |
+| I14 | `[7,10,0,0]`, On: S1, S2 since 14:00 | 14:40: A books 1 seat (before the booking deadline) | `[7,10,1,0]`. S3 heating starts at 14:40, 40 minutes late (compare H9). The booking is accepted; the administrator sees "started late" for S3. Refusing is the alternative; not recommended (lost sale, and the default deadline is 5 minutes after the start) | add, inf |
+| I15 | `[7,10,0,0]`, On: S1, S2 since 14:00. Codes go out at 14:40 | 14:30: B whole-books S4 (17 ≤ 29) | accepted; S4 heating starts at 14:30. H12 does not apply yet, because the codes are not sent; from 14:40 it does (recommended refusal) | add, inf |
+| I16 | `[7,10,5,0]`, On: S1 to S3 since 14:00 | 14:30: S3 is blocked | seats move to S4 (D2): `[7,10,—,5]`. S3 off (no override). S4 on from 14:30, 30 minutes late | add, inf |
+| I17 | state of I16 | 14:50: the block is lifted | recommended D7: `[7,10,5,0]`. S3 on again, S4 off. A short block flips two heaters twice; accept | add, inf |
+| I18 | `[7,—,12,4]` (23 seats), On: S1 to S4 (S2 whole-booked) | 14:30: the whole booking of S2 cancels | `[7,10,6,0]` (B6). S2 stays on (now holds seats), S4 goes off. The heater set changes by sauna, not only by count | add, inf |
+
+**I19. Window already started**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I19 | W has started (15:00). `[7,10,2,0]`, On: S1 to S3 | 15:20: 2 seats in S1 cancel | F3 recommends no moves in a started window. The derived model would give `[7,10,0,0]` and switch S3 off while guests, who move freely, may be in it. Recommended: no heater is switched off before its stop time in a started window, and the heater state is recorded when it is switched on, not recomputed. This is the first effect of placement that is visible in default mode, and it is why F3 needs the heater events remembered (INV-7) | add, inf |
+
+**I20–I23. Several windows and settings**
+
+| ID | Given | When | Then | Basis |
+|---|---|---|---|---|
+| I20 | W1 15:00–16:30 and W2 16:30–18:00, S1 booked in both | 16:30 | S1 stays on; no stop and start (addendum assumption) | add |
+| I21 | W1 `[7,10,3,0]`, W2 `[7,2,0,0]`, different bookers | 16:30 | S1 and S2 stay on. S3 stops at 16:30 and is not restarted for W2. The fill order is the same in every window, so S1 is the sauna most often carried over, which saves stop/start cycles | add, inf |
+| I22 | S3 booked in W1 (15:00–16:30) and W3 (18:00–19:30), none in W2. Stop is set 45 minutes after the window end | 16:30 to 18:00 | the stop (17:15) is later than the W3 start (17:00), so S3 stays on. Open decision; recommended: stays on. The addendum names only consecutive booked windows; this extends it to booked windows with an empty one between | add, inf |
+| I23 | heating for W started at 14:00. Administrator changes the heating start to 90 minutes before | 14:20 | open decision; recommended: applies only to windows whose heating has not started (compare H10) | inf |
+
 ## Cross-dimension insights
 
 The theory and the hotel evidence point the same way: the cost of the move algorithm comes from *committing* a placement and then repairing it [4][6][7]. The addendum already says guests are not told their sauna, so committing a placement buys nothing until step 2. Deriving it removes the move step, removes the "move must finish before the sauna is bookable" race (A3, C3) by making it one atomic count, and shrinks the if-time work for cancellation to "decrement the count". The stored-placement version remains the right choice only if one-sauna access must be built.
+
+Heating points the same way on the fill rule and the other way on state. Compaction is what keeps the number of running heaters at the minimum (I9, I10), so heating is a second reason to keep the fill order and not to let seats stay where they were first placed. But a heater is a side effect that cannot be taken back like a count, just as a sent door code cannot (H12). The wanted heater set can be derived; the actual state must be recorded and reconciled against it (I13–I19).
 
 ## Recommendations
 
@@ -193,6 +255,7 @@ The theory and the hotel evidence point the same way: the cost of the move algor
 5. **Run all of group C as parallel tests; wrap each write unit in one transaction** (`BEGIN IMMEDIATE` in SQLite [1]; Serializable with retry in PostgreSQL [2]). Basis: official docs (high for the mechanism).
 6. **Skip group G unless one-sauna access is promoted.** If it is, H19–H23 apply and placement must be stored.
 7. **Write group H into the PRD as the acceptance criteria for Success Criterion 6.** Decide H6, H10, H12, H13, H21 and H23. The addendum is silent on each; the catalogue gives a recommended answer. H6, H11–H13, H15 and H21 now rest partly on the lock-behaviour run [11]. Basis: addendum plus reasoning (medium).
+8. **Write group I into the PRD only when heating is built (vision); v1 needs nothing from it.** Then decide I11/I12, I13, I14, I19, I22 and I23; the addendum is silent on each, and the catalogue gives a recommended answer. Keep the heater controller as "wanted set derived from the bookings, actual state recorded, reconcile on every booking, cancellation and block". Basis: addendum plus reasoning (low-medium; no source on heaters).
 
 ## Open questions
 
@@ -203,6 +266,8 @@ The theory and the hotel evidence point the same way: the cost of the move algor
 | Sauna, spa or fitness comparables for private-vs-shared booking and moves | A vendor documentation search (not run, budget) |
 | Full text of the migration-bound papers [4][5] and the RoomTetris algorithm [7] | Optional; matters only if no-split groups are built |
 | Can two codes with different PINs overlap on one real lock (H6), and can a standard code be edited or deleted after its validity started (H12–H14)? | Partly answered by a later run [11]: several codes per door is normal, offline codes cannot be revoked, online codes can be changed. Overlap and after-start edits are unanswered; test on a real or Seam sandbox lock |
+| How long does a sauna heater need to warm up, and can a remote-controlled heater be switched on and off freely? | Manufacturer and controller documentation; not searched. Decides whether late starts (I14–I18) and flipping heaters (I13, I17) matter in practice, and what start lead time is sensible |
+| Is an open but cold sauna acceptable (I11, I12)? | A product decision in the PRD; the catalogue recommends warm-sauna information or heating the open set |
 
 ## Source appendix
 
