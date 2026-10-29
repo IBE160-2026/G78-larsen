@@ -52,7 +52,7 @@ If it becomes a real service, it competes with other booking platforms on price,
 - Time windows, capacity and prices are kept in the database and set by a seed or configuration file, with no administrator screens. The rules that become settings later (booking horizon, booking deadline, cancellation cut-offs) are fixed defaults.
 - The database enforces that booked seats in a window never exceed capacity, and booking checks and reserves capacity in one atomic step because payment is instant (Success Criterion 1).
 - Administrator: one account with password login, and a simple list of bookings.
-- Input validation, hashed passwords and role-based access, each tested automatically (Success Criterion 9); HTTPS is not yet placed. A simple responsive design.
+- Input validation, hashed passwords and role-based access, each tested automatically (Success Criterion 9); HTTPS is not yet placed. A simple layout for a laptop screen; mobile and desktop layouts are if time allows.
 
 **If time allows, in this order**
 
@@ -63,6 +63,7 @@ If it becomes a real service, it competes with other booking platforms on price,
 5. Guest accounts.
 6. Step 2, below.
 7. The rest of the v1 rules and tools: administrator screens for time windows, capacity, prices and the five adjustable settings (Success Criterion 8), the blocking calendar, the 06:00 rule, whole-booking-only windows, and the overbooking fallback.
+8. Mobile and desktop layouts, after the laptop layout works (Success Criterion 10).
 
 It is decided that cancelling comes before whole-sauna booking; the rest of the order is a proposal from the brainstorm of 27 October [ASSUMPTION].
 
@@ -80,7 +81,7 @@ It is decided that cancelling comes before whole-sauna booking; the rest of the 
 
 ## Success Criteria
 
-The core is done when the website is complete, the booking platform is connected, and criteria 1, 9 and 10 work as intended. Criteria 2 to 4 and 8 follow the if-time order under Scope, and 5 and 6 belong to step 2. A criterion not reached is reported as not delivered.
+The core is done when the website is complete, the booking platform is connected, and criteria 1 and 9 and the laptop part of 10 work as intended. Criteria 2 to 4 and 8, and the mobile and desktop part of 10, follow the if-time order under Scope, and 5 and 6 belong to step 2. A criterion not reached is reported as not delivered.
 
 1. **Book seats:** a guest books four seats in a time window, pays and gets confirmation; the administrator sees the booking, and the seats are deducted from capacity. If two guests try to book the last free seat at the same moment, exactly one gets it and the other is told it is gone, without being charged. Parallel automated tests prove it; no speed figure is promised.
 2. **Book a whole sauna (if time):** a guest books a whole sauna; for that window, it cannot be booked again and its seats are no longer available.
@@ -95,7 +96,7 @@ The core is done when the website is complete, the booking platform is connected
    - **Passwords:** administrator and guest passwords are stored hashed, and guest accounts require strong passwords.
    - **Role-based access:** only a logged-in administrator can reach administrator functions, and a guest can see and change only their own bookings.
    - **HTTPS:** the website and the API are served only over HTTPS, and login sessions and booking links never travel unencrypted. Whether HTTPS is core or if-time is not yet decided.
-10. **Responsive design:** guests and administrators can use the site on mobile, tablet and desktop, and at any window size. In the core it is kept simple: one stylesheet, mobile first.
+10. **Responsive design:** guests and administrators can use the site on a laptop screen (core), and then on mobile and desktop and at any window size (if time, after the laptop layout works). It is kept simple: one stylesheet.
 
 ## Delivery Requirements
 
