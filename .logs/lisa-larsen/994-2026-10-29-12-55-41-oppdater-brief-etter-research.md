@@ -60,3 +60,22 @@ Lisa endret rekkefølgen igjen: laptop-versjon først, deretter mobil og desktop
 
 ### Åpne punkter
 - Plasseringen av mobil/desktop (punkt 8) sist i hvis-tid-listen er en antakelse; bekreft i PRD.
+
+## 2026-10-29 kl. 13:54 — Lisa Larsen
+
+### Oppgave
+Lisa ba om at v1 og «hvis tid» i v1 kommer før trinn 2, at hvis-tid-punkt 6 endres tilsvarende, og at mobil- og desktop-layout kommer sist i trinn 2.
+
+### Plan
+- Flytte «resten av v1» (administratorskjermer, blokkeringskalender, 06:00-regel m.m.) foran trinn 2 i hvis-tid-listen.
+- Flytte mobil/desktop fra eget punkt 8 til siste punkt i trinn 2.
+- Rette alle steder som viser til rekkefølgen: Scope, Success Criteria (innledning, SC8, SC10), faseraden og Risk handling i addendumet.
+
+### Resultat
+Ikke committet (arbeidsendring i brief-mappen):
+- `brief.md`: hvis-tid-listen har nå 7 punkter (6 = resten av v1, 7 = trinn 2); overskriften er «Step 2 (item 7 above), in this order» med mobil/desktop som siste punkt; setningen om rekkefølge sier at v1 og dets hvis-tid-punkter kommer før trinn 2 og at mobil/desktop kommer sist i trinn 2; kjernens layoutsetning, SC8 («if time, before step 2»), SC10 og innledningen til Success Criteria er rettet tilsvarende.
+- `addendum.md`: faseradene «v1 if time» (6 = resten av v1, 7 = trinn 2) og «Step 2» (mobil/desktop sist), og Risk handling.
+Rekkefølgen er nå Lisas beslutning, ikke en antakelse. `.memlog.md` er ikke oppdatert.
+
+### Åpne punkter
+Ingen.
