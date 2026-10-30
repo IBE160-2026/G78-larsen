@@ -113,3 +113,31 @@ Lisa spurte om `sauna_id` bør følge hver plass fra dag én, slik at hel-badstu
 
 ### Åpne punkter
 - Arkitekturbeslutningen om plassering og `sauna_id` er ikke tatt (ført i `issues.md`).
+
+## 2026-10-30 kl. 11:35 — Lisa Larsen
+
+### Oppgave
+Lisa ba om at brief-addendumet oppdateres slik at én-badstue-tilgang flyttes til visjon (samme valg som i PRD-en), og om to tillegg i PRD-en: sikkerhetsreglene «bad med forsiktighet» og «isbad aldri alene», og en lenke til «Before you come» (etikette og sikkerhet) på bekreftelsessiden og i bekreftelses-e-posten.
+
+### Plan
+- Gå gjennom alle steder i `addendum.md` og `brief.md` som nevner én-badstue-tilgang, og endre dem i stedet for bare faseraden. Reglene beholdes, merket «vision».
+- Legge de to badereglene i sikkerhetsdelen av «Before you come» (PRD FR-1, PRD-addendum F) og lenken i FR-8 og §7.
+- Rette PRD-ens omtale av avviket mot briefen (Q16, PRD-addendum H).
+
+### Resultat
+- `addendum.md` (`updated: 2026-10-30`):
+  - Trinn 2-raden har bare gradvis åpning. «Moved-sauna emails» og «one-sauna access as it affects codes» er tatt ut av dørkoderaden.
+  - Visjonsraden har én-badstue-tilgang.
+  - Setningen om trinn 2 under tabellen, Seat placement, Door codes og tabellen «Fixed in v1» er merket «vision».
+  - H23 i anbefalingstabellen, H21 under «Decided» og «Open questions on door codes» er merket «vision».
+- `brief.md` (`updated: 2026-10-30`): én-badstue-tilgang står i «Not in the first version or step 2» og i Vision, og er fjernet fra åpne spørsmål om dørkoder.
+- PRD:
+  - FR-1: «bathe with caution, and never take an ice bath alone» under sikkerhet. Seksjonen kan lenkes direkte. Antakelsen i FR-1 og §13 omfatter ikke badereglene.
+  - FR-8 og §7: bekreftelsessiden og -e-posten har lenke til «Before you come» på landingssiden.
+  - Q16 og PRD-addendum H er oppdatert fordi briefen nå er på linje. PRD-addendum F har badereglene.
+- `.memlog.md` i både PRD- og brief-mappa er oppdatert.
+- Løste punkter i `issues.md`: brief-addendumet justert, og lenke til «Before you come» på bekreftelsen.
+- Ikke committet: brief- og PRD-filene (kun loggfilene committes av denne skillen).
+
+### Åpne punkter
+Ingen.
