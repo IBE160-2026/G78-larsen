@@ -131,7 +131,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Guest account:** an optional account that lets a Guest see their own Bookings (If time, FR-37).
 - **Seat booker:** a Guest who holds a Seat booking in a given Window.
 - **Administrator:** a staff user with an Administrator account. The Core has one seeded Administrator; more can exist.
-- **Open for Seats:** a Sauna is open for Seats in a Window when it is not Whole-sauna-booked, not Blocked, and not an unreleased Whole-booking-only Sauna. In Step 2 with Gradual opening, it must also already be opened.
+- **Open for Seats:** a Sauna is open for Seats in a Window when it is not Whole-sauna-booked, not Blocked, and not an unreleased Whole-booking-only Sauna. With Gradual opening (Step 2), a Sauna that may open but has not been opened still counts as open for Seats, and only Door codes depend on whether it has been opened (FR-46, FR-50).
 - **Seat capacity:** for a Window, the sum of Capacity over the Saunas that are open for Seats. In the Core, this is the sum of all Capacities.
 - **Seats left:** Seat capacity minus the Seats booked in the Window, and also minus the Seats held once Holds exist.
 - **Fill order:** the order, set by the Administrator, in which Seats are counted into Saunas. Each Sauna is filled before the next.
@@ -148,8 +148,9 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Manage link:** the link in the confirmation email. It carries a long random token and is the only way back into a Booking for a Guest without an account (If time).
 - **Voucher:** a credit issued by email in place of money. A Guest gets one when giving up Seats, or by choice when a Booking is cancelled. It is valid for one year from issue.
 - **Gift card:** a purchased code with a balance, used like a Voucher (Step 2).
-- **Hold:** a temporary reservation of Seats for 10 minutes, and never past the Booking deadline, while a Guest completes payment (If time).
+- **Hold:** a temporary reservation of Seats for 10 minutes, and never past the Booking deadline, while a Guest completes payment (If time). A Hold reserves Seats only; a Whole-sauna booking has none (FR-29).
 - **Simulated payment:** a payment step that moves no real money and needs no keys or external service. Refunds are simulated in the same way.
+- **Test switch:** a setting read at start-up from a local file that git ignores. It is off by default and can never be changed through the API. Tests use it to force a failed or held Simulated payment, a conflict, a pending code or a stopped Hold cleanup. The examiner can use it only by editing that file.
 - **Outbox:** the platform's store of simulated emails. It stands in for the Guests' mailboxes, so it holds links and codes exactly as sent. Only Administrators can list it.
 - **Overbooking fallback:** the rule that applies if Seats booked ever exceed Seat capacity: the Seat booking with the latest Entry time loses.
 - **Entry time:** the moment a Seat booking's Seats entered their Window: the time the Booking was created, or the time of the Change that moved them in. A Change that moves only some Seats gives the new Booking the time of the move, and the original Booking keeps its Entry time.
@@ -237,6 +238,7 @@ A Guest can pay with a Simulated payment, and a successful payment creates the B
 **Consequences (testable):**
 - The pay button states both the obligation and the amount, for example "Pay NOK 500" (angrerettloven § 16).
 - The platform runs with no payment credentials and no external payment service.
+- The pay step, and every email that mentions a payment, carry the plain note "Simulated payment: no money moves" (Lisa, 2026-10-30).
 - A successful payment reduces the Window's Seats left by exactly the number of Seats booked.
 - The Simulated payment is synchronous in every phase (decided 2026-10-30): the charge is recorded in the same atomic step that creates the Booking, so a request that creates no Booking charges nothing.
 - Each review page carries a one-time key. Submitting the same review twice (by double click, reload or retry) never creates two Bookings or two charges, and a repeat returns the first outcome: a Guest who was booked sees the confirmation again, never "no Seat free".
@@ -246,7 +248,7 @@ A failed Simulated payment creates nothing. Realizes UJ-1.
 
 **Consequences (testable):**
 - A test switch can force the Simulated payment to fail.
-- A failed payment creates no Booking, takes no Seats and sends no email. The Guest sees a message with a way to try again.
+- A failed payment creates no Booking, takes no Seats and sends no email. The Guest sees a message with a way to try again. Any Hold stays until it expires (FR-35).
 
 #### FR-8: Confirmation page and email
 After a successful Booking, the Guest sees a confirmation page and receives a simulated confirmation email. Realizes UJ-1.
@@ -399,7 +401,7 @@ The server checks the caller's role on every request.
 The platform stores only the personal data a Booking needs, and a privacy notice says so.
 
 **Consequences (testable):**
-- For a Guest, the platform stores name and email only. For an Administrator, it stores email and the password hash.
+- For a Guest, the platform stores name and email only; a Guest with an account (FR-37) also has a password hash. For an Administrator, it stores email and the password hash.
 - A privacy notice is linked wherever data is collected and is kept separate from the terms. It states:
   - what is stored and why (to deliver the Booking);
   - the legal basis;
@@ -475,6 +477,7 @@ Before the Cutoff, a Guest can move some or all Seats of a Seat booking to anoth
 - Moving only some Seats splits the Booking. The moved Seats become a new Booking in the target Window, with its own Booking reference and Manage link, emailed at once and shown on the result page (FR-17). The original Booking keeps its reference and link, with fewer Seats. Both keep the price paid per Seat and the Cutoff setting the original was made under. Moving all Seats moves the Booking and keeps its reference.
 - The target Window must be inside the Booking horizon and before its Booking deadline (FR-39).
 - A move costs nothing extra `[ASSUMPTION: one price per Seat in every Window in v1]`.
+- Every move, partial or full, sends the booker a confirmation email, shown on the result page (FR-17, §7).
 - The freed Seats count in Seats left at once, and the Administrator's list shows the Change.
 - After the Cutoff, every Change is refused with an explanation.
 
@@ -518,6 +521,7 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
   - Sauna 3 cannot (B2).
 - With 1 Seat booked, Sauna 1 cannot be booked whole (B3).
 - After the booking, Seats left drops at once by the Sauna's Capacity (B7) when the Sauna was open for Seats, and Seats are counted around the Sauna (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
+- A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
 - When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
 - With Sauna 1 marked Whole-booking-only and 5 Seats booked, Sauna 1 can still be booked whole (FR-41).
 
@@ -563,6 +567,8 @@ Before its Cutoff (72 hours), a Guest with the Manage link can cancel a Whole-sa
 **Consequences (testable):**
 - On cancellation, the Guest chooses a Simulated refund or a Voucher valid for one year. Capacity is restored, and the Administrator sees the cancellation.
 - A move to a Window where the Sauna is not available whole (FR-29) is rejected, and the original Booking is untouched `[ASSUMPTION: a move keeps the same Sauna unless the Guest picks another one that is available]`.
+- A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again (Lisa, 2026-10-30).
+- Every cancellation or move sends a confirmation email (§7).
 - After the Cutoff, every Change is refused with an explanation.
 
 ### 4.10 "My booking" link resend *[If time — 4]*
@@ -592,7 +598,9 @@ When a Guest presses Book, the chosen Seats are held for that Guest for 10 minut
 - A Hold ends at the earlier of 10 minutes after it was made and the Booking deadline of its Window, so a Hold never lets a Guest book past the deadline.
 - If two Guests try to hold the last Seat at once, exactly one Hold succeeds and the other Guest holds nothing (CT-1).
 - After a Hold expires, another Guest can book those Seats (CT-4).
-- A failed payment, or the Guest pressing Back or Cancel, releases the Hold at once.
+- A browser session has at most one Hold per Window. Going back and choosing another number of Seats resizes that Hold in one step and keeps the Seats already held; if the extra Seats are not free, the old Hold stays and the Guest is told. Holds per source address are limited `[ASSUMPTION: the architecture sets the limit]`.
+- The Guest pressing Cancel releases the Hold at once. A failed payment keeps it until it expires, so the Guest can try again (FR-7).
+- The Guest is not told about the Hold: no page or email mentions it or shows a time limit. Other Guests see held Seats as taken, with no comment (Lisa, 2026-10-30; addendum M).
 - With cleanup switched off, an expired Hold no longer reduces Seats left.
 - Expiry never discards what the Guest has entered. The Guest can still pay, and FR-36 decides the outcome. `[NOTE FOR PM]` This keeps the fixed 10 minutes compatible with WCAG 2.2.1 (adjustable time limits); addendum A explains why.
 
@@ -615,12 +623,13 @@ A Guest can create an account, sign in and sign out, and see the Bookings made w
 
 **Consequences (testable):**
 - A Guest signs up with an email and a password that meets FR-19 `[ASSUMPTION: Guests sign in by email, as Administrators do]`.
-- Sign-in is throttled as in FR-15, and a wrong email or password gives the same message (PW-5). Sign-up does not reveal whether an email already has an account.
+- Sign-in is throttled as in FR-15, and a wrong email or password gives the same message (PW-5). Sign-up does not reveal whether an email already has an account: the reply is the same, and the account is confirmed through a link emailed to the address (Outbox). A password is reset the same way, by an emailed link.
 - The choice to sign in appears after **Book**. Continuing without an account is the default and the most prominent option.
 - A signed-in Guest:
   - sees only the Bookings made while signed in to that account (RB-4);
   - cannot reach Administrator functions (RB-2);
-  - cannot change their own role (RB-6).
+  - cannot change their own role (RB-6);
+  - books with the account's email.
 - Booking, paying and using the Manage link work the same with or without an account.
 
 ### 4.13 Administrator tools and Venue rules *[If time — 7, the last part of v1]*
@@ -638,6 +647,7 @@ An Administrator can create and edit Windows, set each Sauna's Capacity, the pri
 - A price change applies only to new Bookings. Existing Bookings keep the price paid. A Guest who has reached the review page is charged the price shown there, even if the price changes meanwhile.
 - A Window that has Bookings or Holds cannot be deleted or moved in time. Its Saunas can be Blocked instead (FR-40).
 - The Administrator can create and see Windows beyond the Booking horizon.
+- Windows are created one at a time. The seed supplies the standard programme (FR-13), and v1 has no recurring schedule (Vision; Lisa, 2026-10-30).
 
 #### FR-39: Five Settings
 An Administrator can change five Settings. Every other rule is fixed in v1.
@@ -741,7 +751,7 @@ Each booker receives the Door codes for exactly the doors their Booking allows.
 
 **Consequences (testable):**
 - A Whole-sauna booker receives the codes of that Sauna only (H2).
-- A Seat booker receives the codes of every Sauna that is open for Seats in the Window (H1). A Seat booker never receives the code of a Sauna that is Whole-sauna-booked, Blocked, or Whole-booking-only and not released (H2, H3).
+- A Seat booker receives the codes of every Sauna that is open for Seats in the Window (H1). With Gradual opening, only Saunas already opened give codes (FR-50). A Seat booker never receives the code of a Sauna that is Whole-sauna-booked, Blocked, or Whole-booking-only and not released (H2, H3).
 - A Sauna without a self-service lock gives no code (H5).
 - A Blocked Sauna with the door-code override gives its code to the Administrator only (H4).
 - A Guest who gives up all Seats before the Send time receives no codes (H7).
@@ -750,10 +760,10 @@ Each booker receives the Door codes for exactly the doors their Booking allows.
 Door codes are emailed at the Send time and are valid until the Window ends.
 
 **Consequences (testable):**
-- The Administrator sets the Send time. By default, codes are emailed 20 minutes before the Window starts, and they are valid from the Send time until the Window ends (H8).
-- A Booking made after the Send time receives its email at once (H9).
+- The Administrator sets the Send time. By default, codes are emailed 20 minutes before the Window starts, and they are valid from the Send time until the Window ends (H8). The Send time is no earlier than the Cutoff for Seat Changes (12 hours before the start) and no later than the Window start.
+- A Booking made after the Send time, and Seats moved into the Window after it, receive the email at once (H9). A Whole-sauna move follows FR-48.
 - A changed Send time applies only to Windows whose email has not been sent (H10).
-- Codes for two different Windows on the same door always differ, and the simulated lock rejects a duplicate PIN on a door.
+- A new code differs from every code still stored on that door, and the simulated lock rejects a duplicate PIN on a door.
 - `[NOTE FOR PM]` With back-to-back Windows, two codes are valid on one door during the 20 minutes before the second Window starts (H6). Lisa deferred this on 2026-10-29; see §12 Q1 and addendum C.
 
 #### FR-48: Rules that never depend on revoking a code
@@ -761,8 +771,8 @@ No Door-code rule depends on taking back a code already sent.
 
 **Consequences (testable):**
 - After the Send time, a Whole-sauna booking of a Sauna is refused while Seat bookers hold its code. In the default mode, that means while the Window has any Seat booking and the Sauna is open for Seats (H12).
-- A Block after the Send time sends every Seat booker of the Window a correction email naming the codes to use. Where the Blocked Sauna's door allows it, its code is also replaced (H13).
-- Lifting a Block after the Send time sends the Seat bookers an extra email with the reopened Sauna's code `[ASSUMPTION: H14 as in the brief]`.
+- Whenever a Sauna stops being open for Seats after the Send time (Block, Whole-booking-only mark), every Seat booker of the Window gets a correction email naming the codes to use. For a Block, where the Sauna's door allows it, its code is also replaced (H13).
+- Whenever a Sauna becomes open for Seats after the Send time (lifted Block, release, removed mark, cancelled Whole-sauna booking whose Sauna is not Blocked, Gradual opening), every Seat booker of the Window gets an extra email with its code `[ASSUMPTION: H14 as in the brief, widened to every way a Sauna becomes open]`.
 - When a Booking is cancelled after the Send time, its email says that the codes must not be used `[ASSUMPTION: H15 as in the brief]`. A shared code is replaced only on doors marked replaceable. When it is, every remaining holder receives the new code before the old one stops working. Otherwise no code is replaced.
 
 #### FR-49: Codes are sent only when the lock confirms them
@@ -778,9 +788,10 @@ A Door code is emailed only after the lock confirms it `[ASSUMPTION: H11 as reco
 An Administrator can turn on Gradual opening, an optional access mode that is off by default (H16 to H18).
 
 **Consequences (testable):**
-- Saunas open for Seats one at a time in the Fill order, up to a maximum the Administrator sets (default: all Saunas). A Booking larger than the room left in the open Saunas opens the next Sauna, up to the maximum.
+- Saunas open for Seats one at a time in the Fill order, up to a maximum the Administrator sets (default: all Saunas). Seat capacity counts every Sauna that may open, up to the maximum, so a Booking larger than the room left in the open Saunas is accepted and opens as many next Saunas as it needs. Whether a Sauna is opened decides only which Door codes are sent.
 - A Sauna emptied by cancellations closes again. Before the Send time it is free for a Whole-sauna booking; after it, FR-48 applies (H18).
-- When a Sauna opens after the Send time, its Seat bookers get an extra email with its code (H17).
+- When a Sauna opens after the Send time, every Seat booker of the Window gets an extra email with its code (H17, FR-48).
+- Turning the mode on, or lowering the maximum, is refused while a future Window would have more Seats booked than the Seat capacity it would then have. It applies only to Windows whose Door-code email has not been sent.
 
 ### 4.16 Mobile layout *[Step 2 — 3, last]*
 **Description:** The website also works on a phone-sized screen and at any window size, with the same stylesheet. This closes the Reflow exception of FR-23 and completes SC10.
@@ -804,14 +815,15 @@ The Vision items are:
 - several websites on one platform, with per-website settings;
 - more languages, including Norwegian pre-contract information if the service is marketed to Norwegian consumers;
 - real payment and email;
-- bookable resources beyond saunas.
+- bookable resources beyond saunas;
+- creating Windows from a daily pattern over a period of dates.
 
 v1 is built so that these are extensions, not rewrites. That readiness costs no v1 build time: v1 adds no tables, settings, endpoints or abstractions for Vision items, and the architecture only checks that each could be added without rewriting the capacity core. The brief addendum holds the detailed Vision rules (memberships, period cards, renewal, heating, remote doors and per-website settings). Addendum L keeps the rules worked out for one-Sauna access.
 
 ## 5. Cross-Cutting Requirements
 - **NFR-1 Runs locally.** A fresh clone runs from the README alone on a laptop. It needs no keys, paid accounts or external services. The examiner may be asked to install Python with uv, Node.js and Docker, and nothing else (Lisa, 2026-10-30). Docker is allowed so that the data store can run in a container `[ASSUMPTION: one command each to start the backend and the frontend, and one to run all tests]`.
 - **NFR-2 One API, and the server decides.** The website talks to the booking platform only through one API. The platform enforces every rule in this PRD, whatever the website does. Other websites are not supported, but the API is kept clean so that support can be added later.
-- **NFR-3 Venue time.** All Windows, Booking deadlines, Cutoffs, Release times and Send times are in Venue time, including on the days when daylight saving time starts or ends `[ASSUMPTION: a Window keeps its local clock times across the change]`.
+- **NFR-3 Venue time.** All Windows, Booking deadlines, Cutoffs, Release times and Send times are in Venue time, including on the days when daylight saving time starts or ends `[ASSUMPTION: a Window keeps its local clock times across the change]`. Offsets (Booking horizon, Booking deadline, Cutoffs, Send time, Hold length and the 45-minute limit) are elapsed time from the Window's start or end. The Release time is a clock time on the date the Window starts. A Window belongs to the date it starts. A Window that would start or end in a skipped or repeated hour is refused.
 - **NFR-4 Money.** Prices are in NOK including VAT and come from seed data in the Core. A Booking keeps the price it was paid at.
 - **NFR-5 English.** The website and the emails are in English only.
 - **NFR-6 Test depth.** Each story includes its tests as part of being done. Concurrency, capacity, validation and SC1 are tested in depth; other features are tested for breadth `[ASSUMPTION: brainstorm proposal, not yet confirmed by Lisa]`. Concurrency tests run in parallel against the same kind of data store the platform uses, never against a mock. All tests run with one command.
@@ -848,6 +860,24 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 - **If time, Administrator:** screens for Windows, Capacity, prices, the Fill order and the Settings; the blocking calendar with Whole-booking-only marks; Placement per Window.
 - **Step 2:** Gift card purchase. Administrator screens for Gift card values, limits and the list of cards sold; for doors, locks, codes, the Send time, per-Block door-code overrides and resend; and for Gradual opening.
 - The UX workflow sketches the booking flow and the Administrator booking list first, and the blocking calendar when §4.13 comes near. This follows the teacher's advice (2026-10-06) to sketch the booking flow and the administrator calendar early.
+- **UX scope for this round (Lisa, 2026-10-30):** the UX workflow designs every Core page in full, plus the places on Core pages where If-time features plug in (the Private sauna entry, the Voucher field, the sign-in choice), and the flows of §4.8 to §4.12. The screens of §4.13 come later.
+- **States left to the UX designer under FR-22:** behaviour is the designer's call unless a rule above fixes it. Core: the Booking deadline passing between choosing a Window and paying; a Window that has started but can still be booked; the last day of the horizon; no Window with room anywhere in the horizon; sign-in slowed or refused; an anonymous visitor at an Administrator address; a date with no Bookings; payment in progress. If time: the Manage page after a Voucher, a Venue cancellation, the Cutoff and the end of the Window; a Voucher that covers the whole total, where "Pay NOK 0" needs other wording; a resend refused by the rate limit; the Remedy page after the choice or after 30 days; a Seat taken by another Guest while the details are entered.
+
+**Emails.** All emails are plain text in English and appear in the Outbox. A Guest sees an email on the page of the action that sent it (FR-17).
+
+| Email | To | Content | Phase |
+|---|---|---|---|
+| Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, terms, "Before you come", payment note | Core |
+| Confirmation of a Change (FR-26, FR-33) | Booker | What changed, the new Window and Seats, the Manage link | If time 2–3 |
+| Split-off Booking (FR-26) | Booker | New Booking reference and its own Manage link | If time 2 |
+| Voucher (FR-27, FR-28, FR-42) | Booker | Code, value, expiry date | If time 2 |
+| Manage link resend (FR-34) | Address given, on a match | New link; the old one stops working. Visible only in the Outbox | If time 4 |
+| Whole-sauna booking, cancellation or move (FR-29, FR-33) | Booker | Sauna, Window, price, refund or Voucher | If time 3 |
+| Apology with Remedy link (FR-40, FR-42) | Booker whose Booking was cancelled | What happened, the link, 30 days to choose; Step 2: do not use any Door codes received | If time 3, 7 |
+| Remedy confirmation (FR-42) | Same | The refund (may take a few days) or the Voucher | If time 3, 7 |
+| Account confirmation and password reset (FR-37) | Address given | A single-use link | If time 6 |
+| Gift card (FR-43) | Buyer | Code, value, expiry date, not paid out in money | Step 2 |
+| Door codes, extra codes, correction (FR-46 to FR-48) | Seat or Whole-sauna booker | The codes to use, or a correction naming them | Step 2 |
 
 ## 8. Delivery Requirements and Constraints
 
@@ -1010,6 +1040,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-29: once a Window has started and has Seat bookings, no Sauna open for Seats can be booked whole.
 - FR-33: a move keeps the same Sauna unless the Guest picks another available one.
 - FR-34: the resend limit is 5 per hour per email address and per source address.
+- FR-35: Holds per source address are limited; the architecture sets the limit.
 - FR-37: Guests sign in by email.
 - FR-39: changes to the Booking horizon, Booking deadline and Release time apply from the moment of the change.
 - FR-39: for a Window of another length, the earlier of the Booking deadline setting and 45 minutes before its end applies; the Booking horizon and Booking deadline apply to every way of taking capacity.
@@ -1019,7 +1050,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-42: a refund is made if the Guest has not chosen within 30 days.
 - FR-43: Gift cards carry a 14-day right of withdrawal (legal reading).
 - FR-45: Administrator-entered codes can be changed until sent; every Sauna has a self-service lock in the seed data.
-- FR-48: H14 and H15 as in the brief.
+- FR-48: H14 (widened to every way a Sauna becomes open) and H15 as in the brief.
 - FR-49: H11 as recommended.
 - NFR-1: one command each to start the backend and frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.

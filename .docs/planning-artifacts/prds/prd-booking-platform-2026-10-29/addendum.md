@@ -68,6 +68,20 @@ This file holds supporting material that does not belong in `prd.md`. The decisi
 - Use group G and H19 to H23 (one-Sauna access) and group I (heating) only in Vision.
 - Catalogue examples that use one request above 10 Seats, such as B4 (38 Seats), must be rewritten as several Bookings under the 10-Seat cap.
 
+**Tokens and sessions.** The PRD names several tokens. This table fixes what each one is for. The lifetimes marked as an assumption are the architecture's to set.
+
+| Token | Issued when | Valid until | Revoked by | Opens |
+|---|---|---|---|---|
+| Manage link (FR-25) | In the confirmation email, from If time 2 (the Core confirmation has none) | The Window ends | A new Manage link for the same Booking (FR-34) | That Booking only |
+| Split-off Manage link (FR-26) | When Seats are split into a new Booking | The new Booking's Window ends | A new link for that Booking | The new Booking only |
+| Remedy link (FR-42) | In the apology email. A separate single-purpose token | 30 days, even after the Window has ended | The Guest's choice | The Remedy page only |
+| Session after the first load of a Manage link | When the link is first opened: the token is swapped for a short-lived cookie and removed from the URL | The architecture sets the lifetime `[ASSUMPTION]`. When it ends, the Guest opens the link in the email again, and Changes already confirmed stay | Expiry, or a new link | The same Booking |
+| One-time keys (FR-6, FR-25) | On each review page and each confirming action | Single use | Use | A repeat returns the first outcome |
+| Account confirmation and reset links (FR-37) | By email | Single use; the architecture sets the lifetime | Use | Confirmation or reset only |
+| Administrator session | At sign-in | The architecture sets the lifetime | Sign-out | Administrator pages. It is separate from a Manage-link session, and both can exist in one browser `[ASSUMPTION]` |
+
+Only hashes of the Manage link and the Remedy link are stored.
+
 ## B. Decisions taken from research, with the alternative
 
 | Topic | PRD position | Alternative not taken |
@@ -351,3 +365,14 @@ Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downst
 | Store-level refusal (FR-10) | The data store refuses over-capacity writes in every phase | Core only, with serialised requests as the guarantee afterwards |
 | "Latest" (D3, Overbooking fallback) | By Entry time, and only Seat bookings lose. A Whole-sauna booking is cancelled only when its own Sauna is Blocked (D4) | The most recently created Booking of any kind |
 | What the examiner installs | Python with uv, Node.js and Docker (NFR-1) | Python and Node.js only, which would mean SQLite; or leaving it to the architecture |
+| Gradual opening and Seat capacity (Step 2) | Seat capacity counts every Sauna that may open, up to the maximum. Opening decides only the Door codes. Turning the mode on, or lowering the maximum, is refused if a future Window would exceed the new capacity (FR-50) | Keep the glossary as it was, which made a second Sauna impossible to open; or move Gradual opening to Vision |
+| Door codes after the Send time | One rule: when a Sauna becomes open for Seats, every Seat booker gets an extra email with its codes. When it stops being open, they get the correction email. The Send time lies between the Cutoff and the Window start (FR-47, FR-48) | Keep the narrow rules (lifted Block and Gradual opening only) and list the gaps as known limits |
+| Time arithmetic | Offsets are elapsed time. The Release time is a clock time on the Window's start date. A Window belongs to its start date. No Window starts or ends in a skipped or repeated hour (NFR-3) | Leave it to the architecture |
+| Hold limits and Whole-sauna bookings | One Hold per browser session per Window, resized in one step. A failed payment keeps the Hold. A Whole-sauna booking has no Hold and the review page says so (FR-35, FR-29) | A Whole-sauna Hold of 10 minutes that counts in Seat capacity |
+| What the Guest is told about a Hold | Nothing. No page or email mentions it or shows a time limit. Other Guests see held Seats as taken (FR-35) | A fixed clock time ("We're holding 2 seats for you until 15:42") with no timer. It is more honest to the Guest, but it is a time-limit cue next to NFR-9 |
+| Simulation visible to the Guest | The pay step and every payment email say "Simulated payment: no money moves". The "test switch" is a start-up setting from a git-ignored file, off by default, never reachable through the API (§3, FR-6) | No notice on the website |
+| Move to a Sauna with another price | Refused with the reason. The Guest cancels and books again (FR-33) | Charge or refund the difference |
+| Emails | Plain text. One table of emails in §7. Every Change sends a confirmation | Simple HTML in the §6 look |
+| UX scope for this round | Every Core page in full, the places where If-time features plug in, and the flows of §4.8 to §4.12 (§7) | Core only |
+| Creating Windows (If time 7) | One at a time. The seed supplies the standard programme. A daily pattern over a period of dates goes to Vision (FR-38) | The Administrator creates Windows from a daily pattern over a period |
+| Guest accounts (If time 6) | Sign-up and password reset go by emailed links (Outbox). A signed-in Guest books with the account's email (FR-37) | As chosen, but password reset by a command only, as for Administrators |
