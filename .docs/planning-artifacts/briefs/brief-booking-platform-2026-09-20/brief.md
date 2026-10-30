@@ -2,7 +2,7 @@
 title: "Product Brief: Booking platform"
 status: final
 created: 2026-09-20
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 # Product Brief: Booking platform
@@ -77,7 +77,7 @@ It is decided that cancelling comes before whole-sauna booking, that v1 and ever
 - Real payment, email, door locks, lock systems, heaters and temperature sensors.
 - Other languages, more than one location, other bookable resources, and native mobile apps.
 - Support for more than one website: v1 has a single API between the platform and its one website, with no website registration, keys or per-website settings and access (see the addendum).
-- Memberships, period cards, the distinction between children and adults (with a separate child price), remote door control and heating control: see the vision.
+- Memberships, period cards, the distinction between children and adults (with a separate child price), remote door control, one-sauna access and heating control: see the vision.
 
 ## Success Criteria
 
@@ -107,7 +107,7 @@ What must be handed in with the exam submission, beyond the working product:
 
 ## Vision
 
-If it succeeds, the platform may become a real booking service: real payments and email, more languages, several sauna locations (for example locations A and B, run as separate places, with a choice of location when booking and an overview per location for the administrator), several websites connected to the same platform, and bookable resources beyond saunas. It may also tell children and adults apart when booking seats, with an age limit and a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
+If it succeeds, the platform may become a real booking service: real payments and email, more languages, several sauna locations (for example locations A and B, run as separate places, with a choice of location when booking and an overview per location for the administrator), several websites connected to the same platform, and bookable resources beyond saunas. It may also tell children and adults apart when booking seats, with an age limit and a separate, lower price for children, memberships (members book at member prices), period cards (cardholders book individual seats with no extra payment), remote opening and locking of doors for the administrator, one-sauna access (an individual-seat booking is placed whole in one sauna, and guests use only that sauna), and heating that starts only for booked windows, with the administrator able to override the temperature. The first version is built so those steps are extensions, not rewrites.
 
 ## Open Questions
 
@@ -115,6 +115,6 @@ If it succeeds, the platform may become a real booking service: real payments an
 - **Architecture, from the research:** the database engine (the concurrency research covers PostgreSQL only, and no speed figure could be sourced, so any load-test target is set after measuring), and whether seat placement is stored or derived from counts.
 - **PRD, from the research** (each case has a recommended answer in the addendum):
   - Administrator changes: lifting a block, marking a sauna whole-booking-only while it holds seats, lowering capacity, changing the fill order, and changes in a window that has started.
-  - Door codes (step 2): two valid codes on one door at back-to-back windows, a changed send time, a block after the codes are sent, and turning on one-sauna access while bookings are split.
+  - Door codes (step 2): two valid codes on one door at back-to-back windows, a changed send time, and a block after the codes are sent.
 - **Core and schedule, from the brainstorm:** whether HTTPS is core or if-time; whether each seat carries its sauna from the first day, so whole-sauna booking is an extension and not a rewrite (architecture); and the backward check of the build order from 15 December, which was not run.
 - **Not yet tested:** whether a real lock accepts two codes with different PINs on one door, and whether a code can be changed after its validity started. No source answers it; it needs a test on a real or sandbox lock.
