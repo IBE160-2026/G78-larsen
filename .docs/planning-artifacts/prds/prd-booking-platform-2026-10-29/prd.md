@@ -383,7 +383,7 @@ Passwords are stored only as salted hashes from a slow password-hashing algorith
   - at least 15 characters, with at least 64 allowed and any characters permitted;
   - refused if it is on a list of common passwords or equals the account's email;
   - no required mix of character types.
-- These rules apply to Administrators now, and to guest accounts once §4.12 is built (PW-2, PW-3).
+- These rules apply to Administrators now, and to Guest accounts once §4.12 is built (PW-2, PW-3).
 - Pasting a password and using a password manager both work.
 
 #### FR-20: Role-based access
@@ -394,7 +394,7 @@ The server checks the caller's role on every request.
   - anonymous: refused as not signed in, and nothing changes (RB-1, IV-7);
   - signed-in Guest: refused as not allowed (RB-2, with §4.12);
   - signed-in Administrator: allowed (RB-3).
-- A Booking can be opened only with its Manage link (§4.8) or by the guest account that made it (§4.12). Guessing a Booking reference or a link gives the same response whether or not the Booking exists (RB-4). A Guest with their own Manage link reaches that Booking and no other (RB-5).
+- A Booking can be opened only with its Manage link (§4.8) or by the Guest account that made it (§4.12). Guessing a Booking reference or a link gives the same response whether or not the Booking exists (RB-4). A Guest with their own Manage link reaches that Booking and no other (RB-5).
 - No account can change its own role (RB-6, with §4.12).
 
 #### FR-21: Personal data and privacy notice
@@ -415,7 +415,7 @@ The platform stores only the personal data a Booking needs, and a privacy notice
 - The privacy notice, or a security section in the README, states how the data is protected: password hashing, server-side role checks, Manage-link tokens stored only as hashes in the Booking data (the Outbox, a simulated mailbox, holds the links as sent), whether HTTPS is in place, and no third-party requests.
 
 ### 4.6 Look, feel and laptop layout *[Core]*
-**Description:** One stylesheet and no design system, following the direction in §6: calm, honest and plain. The palette is light wood, deep forest green, granite grey, birch white, grey sea-blue and sky blue. Headings use Finlandica and text uses Source Sans 3. Images show Finnish saunas inside and out with their traditional equipment. The Core layout targets a laptop screen; mobile comes last in Step 2. Realizes UJ-1 and UJ-3.
+**Description:** One stylesheet and no design system, following the direction in §6: calm, honest and plain. The Core layout targets a laptop screen; mobile comes last in Step 2. Realizes UJ-1 and UJ-3.
 
 **Functional Requirements:**
 
@@ -432,7 +432,7 @@ Every Core page meets WCAG 2.2 level AA, with one stated exception: success crit
 
 **Consequences (testable):**
 - An automated accessibility check reports no level A or AA failures on the Core pages, except 1.4.10 Reflow, which the report lists as a known gap until FR-51. If FR-51 is not built, the README names the gap among the success criteria not delivered (DR-2).
-- A manual pass confirms that the whole booking flow and the Administrator list can be completed with the keyboard alone. Focus is always visible and never hidden behind fixed elements.
+- A manual pass confirms that the entire booking flow and the Administrator list can be completed with the keyboard alone. Focus is always visible and never hidden behind fixed elements.
 - Text contrast meets AA.
 - Interactive targets are at least 24×24 CSS pixels.
 - No information is conveyed by colour alone.
@@ -618,7 +618,7 @@ A payment that completes after its Hold expired creates a Booking only if the Se
 
 **Functional Requirements:**
 
-#### FR-37: Optional guest account
+#### FR-37: Optional Guest account
 A Guest can create an account, sign in and sign out, and see the Bookings made with that account.
 
 **Consequences (testable):**
@@ -701,7 +701,7 @@ If the Seats booked in a Window ever exceed its Seat capacity, the Seat booking 
 
 **Consequences (testable):**
 - The Seat booking with the latest Entry time is cancelled in full, and as many more as needed, latest first. A Whole-sauna booking never loses its place this way.
-- The Guest is emailed an apology with a link to a remedy page, where they choose once between a refund and a Voucher. In Step 2 the email also says that any Door codes received must not be used.
+- The Guest is emailed an apology with a link to the Remedy page, where they choose once between a refund and a Voucher. In Step 2 the email also says that any Door codes received must not be used.
 - The remedy link works for 30 days, even after the Window has ended. The 30 days are a condition checked as in NFR-11. With no choice in 30 days, a Simulated refund is made `[ASSUMPTION: refund as the default, in line with the unfair-terms note in addendum D]`.
 - A second email confirms the choice: either the refund, which may take a few days to arrive, or the Voucher.
 - The Administrator sees each cancelled Booking with its remedy: pending, refunded or Voucher.
@@ -764,7 +764,7 @@ Door codes are emailed at the Send time and are valid until the Window ends.
 - A Booking made after the Send time, and Seats moved into the Window after it, receive the email at once (H9). A Whole-sauna move follows FR-48.
 - A changed Send time applies only to Windows whose email has not been sent (H10).
 - A new code differs from every code still stored on that door, and the simulated lock rejects a duplicate PIN on a door.
-- `[NOTE FOR PM]` With back-to-back Windows, two codes are valid on one door during the 20 minutes before the second Window starts (H6). Lisa deferred this on 2026-10-29; see §12 Q1 and addendum C.
+- `[NOTE FOR PM]` With back-to-back Windows, two codes are valid on one door during the 20 minutes before the second Window starts (H6). This is undecided; see §12 Q1 and addendum C.
 
 #### FR-48: Rules that never depend on revoking a code
 No Door-code rule depends on taking back a code already sent.
@@ -859,7 +859,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
   - guest sign-up, sign-in and My bookings.
 - **If time, Administrator:** screens for Windows, Capacity, prices, the Fill order and the Settings; the blocking calendar with Whole-booking-only marks; Placement per Window.
 - **Step 2:** Gift card purchase. Administrator screens for Gift card values, limits and the list of cards sold; for doors, locks, codes, the Send time, per-Block door-code overrides and resend; and for Gradual opening.
-- The UX workflow sketches the booking flow and the Administrator booking list first, and the blocking calendar when §4.13 comes near. This follows the teacher's advice (2026-10-06) to sketch the booking flow and the administrator calendar early.
+- The UX workflow sketches the booking flow and the Administrator booking list first, and the blocking calendar when §4.13 comes near, following the teacher's advice (2026-10-06).
 - **UX scope for this round (Lisa, 2026-10-30):** the UX workflow designs every Core page in full, plus the places on Core pages where If-time features plug in (the Private sauna entry, the Voucher field, the sign-in choice), and the flows of §4.8 to §4.12. The screens of §4.13 come later.
 - **States left to the UX designer under FR-22:** behaviour is the designer's call unless a rule above fixes it. Core: the Booking deadline passing between choosing a Window and paying; a Window that has started but can still be booked; the last day of the horizon; no Window with room anywhere in the horizon; sign-in slowed or refused; an anonymous visitor at an Administrator address; a date with no Bookings; payment in progress. If time: the Manage page after a Voucher, a Venue cancellation, the Cutoff and the end of the Window; a Voucher that covers the whole total, where "Pay NOK 0" needs other wording; a resend refused by the rate limit; the Remedy page after the choice or after 30 days; a Seat taken by another Guest while the details are entered.
 
@@ -873,7 +873,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 | Voucher (FR-27, FR-28, FR-42) | Booker | Code, value, expiry date | If time 2 |
 | Manage link resend (FR-34) | Address given, on a match | New link; the old one stops working. Visible only in the Outbox | If time 4 |
 | Whole-sauna booking, cancellation or move (FR-29, FR-33) | Booker | Sauna, Window, price, refund or Voucher | If time 3 |
-| Apology with Remedy link (FR-40, FR-42) | Booker whose Booking was cancelled | What happened, the link, 30 days to choose; Step 2: do not use any Door codes received | If time 3, 7 |
+| Apology with remedy link (FR-40, FR-42) | Booker whose Booking was cancelled | What happened, the link, 30 days to choose; Step 2: do not use any Door codes received | If time 3, 7 |
 | Remedy confirmation (FR-42) | Same | The refund (may take a few days) or the Voucher | If time 3, 7 |
 | Account confirmation and password reset (FR-37) | Address given | A single-use link | If time 6 |
 | Gift card (FR-43) | Buyer | Code, value, expiry date, not paid out in money | Step 2 |
@@ -892,7 +892,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
   - the Administrator test login and the seeded sample Bookings; once §4.8 is built, where to find a sample Manage link in the Outbox; once §4.12 is built, a Guest test account;
   - how to view the Outbox, which also holds the emails that Guests do not see on a page (FR-17);
   - which success criteria were not delivered.
-- **DR-3 Clean assets.** No licensed, trademarked or otherwise protected material is used. Every image, font, icon and text is AI-generated, freely licensed or checked by the author, and an asset register lists the source and licence of each. On 2026-10-21 the Venue name Saunalöyly had no hit in EUIPO TMview, and navnesok.no showed it as possibly free as a trademark. A check of existing "LÖYLY" marks is still open (§12 Q10).
+- **DR-3 Clean assets.** No licensed, trademarked or otherwise protected material is used. Every image, font, icon and text is AI-generated, freely licensed or checked by the author, and an asset register lists the source and licence of each. The trademark check of the Venue name is described under the title and is still open (§12 Q10).
 - **DR-4 Traceability.** The repository shows the path from plan to code: the planning documents, small descriptive commits and the session logs.
 - **DR-5 Tidy repository.** No secret is committed. Any secret, such as the session key, is generated on first start or read from a git-ignored local file, and an example file is committed instead. The seeded Administrator password is a documented local test value. Seed and sample data live in one named folder, tests in another, and planning documents in `.docs/`. The README names each location.
 
@@ -986,7 +986,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
   - Validates FR-1 to FR-17.
 - **SM-2: The security measures pass their tests, phase by phase.** This is SC9.
   - Core: IV-1 to IV-7; PW-1 to PW-5 on Administrator accounts; RB-1, RB-3, and RB-4 for guessed Booking references.
-  - With §4.7: HT-1 to HT-4. With §4.8: RB-4 for guessed links, and RB-5. With §4.12: RB-2, RB-6, and PW-2 and PW-3 on guest accounts.
+  - With §4.7: HT-1 to HT-4. With §4.8: RB-4 for guessed links, and RB-5. With §4.12: RB-2, RB-6, and PW-2 and PW-3 on Guest accounts.
   - Validates FR-15, FR-18 to FR-21, FR-24, FR-25 and FR-37.
 - **SM-3: The Core website works on a laptop and is accessible.** This is the laptop part of SC10: every Core page passes FR-22 and FR-23. Validates FR-1 to FR-4, FR-22 and FR-23.
 - **SM-4: The examiner can run and check it.** A fresh clone starts, and all its tests pass, by following the README alone, with no keys or paid services. DR-1 to DR-5 are complete at the freeze. Validates NFR-1 and DR-1 to DR-5.
@@ -1004,7 +1004,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 ## 12. Open Questions
 1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
 2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Owner: Lisa. Decide before the UX workflow.
-3. **Price model and seed data.** Is the price per Seat the same in every Window in v1, or does each Window have its own prices, as the brief's "set per time window" can be read? Decided 2026-10-30 (Lisa): one price per Seat in every Window in v1 (FR-26). Still open: opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
+3. **Seed data.** The price per Seat is the same in every Window in v1 (decided 2026-10-30, Lisa; FR-26). Still open: opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
 4. **Database engine.** An architecture decision, made before the first story. The examiner may be asked to install Docker (NFR-1, Lisa 2026-10-30), so PostgreSQL in a container is possible, and so is SQLite without Docker. The concurrency research covers PostgreSQL; the capacity research checked SQLite's transaction rules. The architecture weighs the extra install for the examiner against the engine's documented concurrency behaviour, and picks an engine for which the store-level refusal of FR-10 can be built in every phase.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
 6. **Order of If-time items 3 to 6.** It is still a proposal, and backcasting from 15 December has not been run. Owner: Lisa. Decide before sprint planning.

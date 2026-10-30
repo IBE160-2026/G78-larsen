@@ -286,10 +286,6 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
   - H20 contradicts itself under H21.
   - The formulas omit held Seats and Whole-booking-only status.
   - B4 uses a single request above the 10-Seat cap.
-- **issues.md:**
-  - L12 (E1/E3) is still open although it was decided on 2026-10-29.
-  - L15, L17 and L31 treat H12 and the frozen Placement as open.
-  - L28–29 still mention desktop.
 - **Brief memlog.** Its front matter and its success-criterion numbers are out of date.
 - **Concurrency research.** Its appendix labels some references "high" that its memlog lists as unverified.
 
@@ -313,7 +309,7 @@ The brainstorm of 2026-10-27 proposed this; Lisa has not confirmed it.
 - **Private sauna prices:** to be set per Sauna. Oslo comparables range from NOK 1,125 to 2,900 for 6–8 seats.
 
 ## K. Test map: brief test IDs to PRD requirements
-The brief addendum's test tables are unnumbered, so these IDs follow row order. "Core (Administrator)" means the case runs on Administrator accounts until guest accounts exist.
+The brief addendum's test tables are unnumbered, so these IDs follow row order. "Core (Administrator)" means the case runs on Administrator accounts until Guest accounts exist.
 
 | ID | Case (short) | FR | Phase |
 |---|---|---|---|
@@ -339,7 +335,7 @@ The brief addendum's test tables are unnumbered, so these IDs follow row order. 
 | RB-3 | Administrator function by a signed-in Administrator: allowed | FR-20 | Core |
 | RB-4 | Another Guest's Booking by account or by guessed reference or link: refused, existence not revealed | FR-20, FR-25 | Core (reference), If time 2 (link), If time 6 (account) |
 | RB-5 | An account-less Guest uses their own link: allowed for that Booking only | FR-25 | If time 2 |
-| RB-6 | A guest account tries to change its own role: refused | FR-20, FR-37 | If time 6 |
+| RB-6 | A Guest account tries to change its own role: refused | FR-20, FR-37 | If time 6 |
 | HT-1 | Plain HTTP is redirected; nothing is returned or changed over HTTP | FR-24 | If time 1 |
 | HT-2 | Every HTTPS response carries Strict-Transport-Security | FR-24 | If time 1 |
 | HT-3 | Session cookies are Secure and HttpOnly | FR-24 | If time 1 |
