@@ -476,7 +476,7 @@ Before the Cutoff, a Guest can move some or all Seats of a Seat booking to anoth
 - The move is atomic. If the target Window lacks room, nothing changes and the original Booking is untouched (catalogue E5).
 - Moving only some Seats splits the Booking. The moved Seats become a new Booking in the target Window, with its own Booking reference and Manage link, emailed at once and shown on the result page (FR-17). The original Booking keeps its reference and link, with fewer Seats. Both keep the price paid per Seat and the Cutoff setting the original was made under. Moving all Seats moves the Booking and keeps its reference.
 - The target Window must be inside the Booking horizon and before its Booking deadline (FR-39).
-- A move costs nothing extra `[ASSUMPTION: one price per Seat in every Window in v1]`.
+- A move costs nothing extra, because the price per Seat is the same in every Window in v1 (Lisa, 2026-10-30).
 - Every move, partial or full, sends the booker a confirmation email, shown on the result page (FR-17, §7).
 - The freed Seats count in Seats left at once, and the Administrator's list shows the Change.
 - After the Cutoff, every Change is refused with an explanation.
@@ -513,7 +513,7 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
 - The Sauna is bookable whole, and the Window is inside the Booking horizon and before its Booking deadline.
 - It is not Blocked and not already Whole-sauna-booked.
 - The Seats booked in the Window, plus the Seats held once §4.11 exists, are no more than its Room ahead. An unreleased Whole-booking-only Sauna skips this test, because it holds no Seats.
-- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats `[ASSUMPTION: once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12]`.
+- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats. Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 (Lisa, 2026-10-30).
 
 **Consequences (testable):**
 - Take 20 Seats booked, with Sauna 1 full, Sauna 2 full and 3 Seats counted in Sauna 3:
@@ -683,7 +683,7 @@ An Administrator can Block one, several or all Saunas for a period, and can lift
   - each Guest chooses a refund or a Voucher, as in FR-42.
 - A Whole-sauna booking of a Blocked Sauna is cancelled regardless of its Cutoff, with the same choice (D4).
 - Lifting a Block counts Seats again so that INV-5 holds (D7).
-- A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating `[ASSUMPTION: Lisa to confirm this reading of F3]`.
+- A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating (this reading of F3 confirmed by Lisa, 2026-10-30).
 - When every Sauna is Blocked, the Window is not offered, and every Booking in it is cancelled as above (D6).
 
 #### FR-41: Whole-booking-only Saunas and the Release time
@@ -826,12 +826,12 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 - **NFR-3 Venue time.** All Windows, Booking deadlines, Cutoffs, Release times and Send times are in Venue time, including on the days when daylight saving time starts or ends `[ASSUMPTION: a Window keeps its local clock times across the change]`. Offsets (Booking horizon, Booking deadline, Cutoffs, Send time, Hold length and the 45-minute limit) are elapsed time from the Window's start or end. The Release time is a clock time on the date the Window starts. A Window belongs to the date it starts. A Window that would start or end in a skipped or repeated hour is refused.
 - **NFR-4 Money.** Prices are in NOK including VAT and come from seed data in the Core. A Booking keeps the price it was paid at.
 - **NFR-5 English.** The website and the emails are in English only.
-- **NFR-6 Test depth.** Each story includes its tests as part of being done. Concurrency, capacity, validation and SC1 are tested in depth; other features are tested for breadth `[ASSUMPTION: brainstorm proposal, not yet confirmed by Lisa]`. Concurrency tests run in parallel against the same kind of data store the platform uses, never against a mock. All tests run with one command.
+- **NFR-6 Test depth.** Each story includes its tests as part of being done. Concurrency, capacity, validation and SC1 are tested in depth; other features are tested for breadth (Lisa, 2026-10-30). Concurrency tests run in parallel against the same kind of data store the platform uses, never against a mock. All tests run with one command.
 - **NFR-7 No performance promise.** v1 states no throughput or latency target.
 - **NFR-8 Dependencies.** At the freeze, dependencies are current, and a dependency audit reports no known critical vulnerability `[ASSUMPTION: an audit tool is run at the freeze]`.
 - **NFR-9 Honest interface.** The interface has no dark patterns anywhere: no countdown timers, false scarcity, pre-ticked options or hidden fees (markedsføringsloven § 7; forskrift om urimelig handelspraksis § 1 nr. 7).
 - **NFR-10 Real data.** Windows, Capacity, prices, Bookings and the Outbox are stored in the data store and survive a restart. Nothing the product shows is faked (Lisa, brainstorm 2026-10-27: "the database tables cannot be fake").
-- **NFR-11 Time rules are checked, not scheduled.** The Release time, Booking deadline, Hold expiry, Cutoff and the 30-day remedy limit are conditions, evaluated against the data store's clock when a request is handled and after its lock is taken. No request relies on a timer having fired. Effects that need a timed action, such as counting Seats again at the Release time or making the default refund after 30 days without a choice, are caught up at the next start and by the next request that reads the affected Window or remedy, so a platform that was off at the time still reaches the right state. Tests control the clock and never wait in real time `[ASSUMPTION: timed effects are caught up at start and on the next request, and tests use a controlled clock]`.
+- **NFR-11 Time rules are checked, not scheduled.** The Release time, Booking deadline, Hold expiry, Cutoff and the 30-day remedy limit are conditions, evaluated against the data store's clock when a request is handled and after its lock is taken. No request relies on a timer having fired. Effects that need a timed action, such as counting Seats again at the Release time or making the default refund after 30 days without a choice, are caught up at the next start and by the next request that reads the affected Window or remedy, so a platform that was off at the time still reaches the right state. The platform runs no background job for this in v1. Tests control the clock and never wait in real time (Lisa, 2026-10-30).
 
 ## 6. Aesthetic and Tone
 - **Feel:** calm, honest and plain: the Finnish idea of *saunarauha*, the peace of the sauna. The site should be appealing and intuitive for a first-time Guest (Lisa, 2026-10-29), and unhurried: nothing on it pushes.
@@ -884,7 +884,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 ### 8.1 Delivery requirements (exam)
 - **DR-1 AI use and quality assurance.** Documentation shows:
   - how AI was used at each stage (planning with BMAD, implementation with Claude Code);
-  - how it was steered (session logs, and a token budget per story `[ASSUMPTION: brainstorm proposal, not yet confirmed by Lisa]`);
+  - how it was steered (session logs, and a token budget per story, which is only a proposal until §12 Q17 is decided);
   - how the result was checked (tests, reviews, manual checks), including where AI output was wrong or rejected and how that was found.
 - **DR-2 README.** The README covers:
   - how to install and start the backend and the frontend;
@@ -912,7 +912,7 @@ The part-1 assessment criteria map to this PRD as follows:
 - One person builds it, from 27 October to 15 December 2026, alongside two other exams on 16 November and 8 December.
 - Claude tokens and long-running tasks are a real limit. Frontend, design and extensive testing are the likeliest overruns.
 - Planning (PRD and architecture) takes 7–8 of the first 12 days.
-- 9–15 December is a freeze for tests, the README and the AI-use documentation. No new features are added `[ASSUMPTION: brainstorm proposal, not yet confirmed by Lisa]`.
+- 9–15 December is a freeze for tests, the README and the AI-use documentation. No new features are added. This is only a proposal until §12 Q17 is decided.
 - The backend is Python and the frontend JavaScript; the frameworks are an architecture decision. No paid services are used. The README already uses uv, so the architecture either keeps it or replaces it on purpose.
 
 ## 9. Non-Goals (Explicit)
@@ -961,7 +961,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - **Vision:** everything in §4.17.
 
 ### 10.3 Planning depth
-`[ASSUMPTION: brainstorm proposal, not yet confirmed by Lisa]` The architecture decides everything the Core needs, plus the If-time choices that shape the Core data model: Placement, the lock unit per Window, Holds stored as data, Manage-link tokens, and how the data store refuses over-capacity writes in every phase (FR-10). The payment model is already decided: synchronous in every phase (FR-6). Epics and stories are written in full for the Core. Each If-time item gets one epic, and its stories are written when it comes next in the order of §10.1. Step 2 and Vision get no stories in this round. Step 2 starts only when every v1 item built so far passes its tests.
+*Proposal until §12 Q17 is decided.* The architecture decides everything the Core needs, plus the If-time choices that shape the Core data model: Placement, the lock unit per Window, Holds stored as data, Manage-link tokens, and how the data store refuses over-capacity writes in every phase (FR-10). The payment model is already decided: synchronous in every phase (FR-6). Epics and stories are written in full for the Core. Each If-time item gets one epic, and its stories are written when it comes next in the order of §10.1. Step 2 and Vision get no stories in this round. Step 2 starts only when every v1 item built so far passes its tests.
 
 ## 11. Success Metrics
 *Success criteria SC1 to SC10 are the brief's. A criterion that is not reached is reported as not delivered (DR-2).*
@@ -1004,7 +1004,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 ## 12. Open Questions
 1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
 2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Owner: Lisa. Decide before the UX workflow.
-3. **Price model and seed data.** Is the price per Seat the same in every Window in v1, or does each Window have its own prices, as the brief's "set per time window" can be read? FR-26 assumes one price. Also open: opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
+3. **Price model and seed data.** Is the price per Seat the same in every Window in v1, or does each Window have its own prices, as the brief's "set per time window" can be read? Decided 2026-10-30 (Lisa): one price per Seat in every Window in v1 (FR-26). Still open: opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
 4. **Database engine.** An architecture decision, made before the first story. The examiner may be asked to install Docker (NFR-1, Lisa 2026-10-30), so PostgreSQL in a container is possible, and so is SQLite without Docker. The concurrency research covers PostgreSQL; the capacity research checked SQLite's transaction rules. The architecture weighs the extra install for the examiner against the engine's documented concurrency behaviour, and picks an engine for which the store-level refusal of FR-10 can be built in every phase.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
 6. **Order of If-time items 3 to 6.** It is still a proposal, and backcasting from 15 December has not been run. Owner: Lisa. Decide before sprint planning.
@@ -1018,6 +1018,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 14. **Lock unit.** Should Seat and Whole-sauna requests lock per Window, per Sauna, or through a queue per Sauna? An architecture decision, proven by the parallel tests of FR-32.
 15. **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
 16. **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
+17. **Coach proposals not yet confirmed.** Three proposals from the brainstorm stand in the PRD without Lisa's confirmation (she confirmed only tests in every story, NFR-6, on 2026-10-30): the 9–15 December freeze (§8.2), a token budget per story (DR-1), and the planning depth (§10.3). Owner: Lisa. Decide the planning depth before the architecture starts, and the freeze and the token budget before sprint planning.
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
@@ -1033,11 +1034,9 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-21: retention is 12 months after the Window, or until the last Voucher expires.
 - FR-22: "laptop screen" means 1366×768 and 1920×1080.
 - §4.8: moving Seats is built before the Voucher.
-- FR-26: one price per Seat in every Window, so a move costs nothing extra.
 - FR-27: a Voucher is worth the price paid for the Seats given up.
 - FR-28: Vouchers can be used in part and combined with payment, as Gift cards can.
 - FR-28: a Voucher returned in a refund keeps the earliest expiry of the Vouchers used.
-- FR-29: once a Window has started and has Seat bookings, no Sauna open for Seats can be booked whole.
 - FR-33: a move keeps the same Sauna unless the Guest picks another available one.
 - FR-34: the resend limit is 5 per hour per email address and per source address.
 - FR-35: Holds per source address are limited; the architecture sets the limit.
@@ -1045,7 +1044,6 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-39: changes to the Booking horizon, Booking deadline and Release time apply from the moment of the change.
 - FR-39: for a Window of another length, the earlier of the Booking deadline setting and 45 minutes before its end applies; the Booking horizon and Booking deadline apply to every way of taking capacity.
 - FR-40: a Block covers every overlapping Window; as many Bookings lose as needed.
-- FR-40: F3's "no moves after the start" applies only where Placement is visible to Guests.
 - FR-41: no release after the Booking deadline.
 - FR-42: a refund is made if the Guest has not chosen within 30 days.
 - FR-43: Gift cards carry a 14-day right of withdrawal (legal reading).
@@ -1054,8 +1052,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-49: H11 as recommended.
 - NFR-1: one command each to start the backend and frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
-- NFR-11: timed effects are caught up at start and on the next request, and tests use a controlled clock.
-- NFR-6, §8.2, DR-1, §10.3: brainstorm proposals not yet confirmed (tests in each story and the depth/breadth split, the freeze, a token budget per story, planning depth).
+- §8.2, DR-1, §10.3: brainstorm proposals not yet confirmed (the freeze, a token budget per story, planning depth); open as §12 Q17.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
 - §10.1: the order of If-time items 3 to 6.

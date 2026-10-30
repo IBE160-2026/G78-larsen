@@ -93,7 +93,7 @@ Only hashes of the Manage link and the Remedy link are stored.
 | D8, Whole-booking-only marked over Seats | Refused | Treat the mark as a Block |
 | F1, Capacity is lowered | Refused while a future Window would overflow. The research row says "needs a decision"; the brief addendum lists refusal first | Handle it like D3 and displace Guests |
 | F2, the Fill order changes | Applies to Windows that have not started | Apply only to Windows without Bookings, or to all Windows |
-| F3, a Window has started | No moves where Placement is visible to Guests, which is Vision only. In this PRD a Block in a started Window counts Seats again, and the Overbooking fallback applies only if Seats exceed the new capacity (FR-40; Lisa to confirm this reading) | Moves at any time, which would send people out of the sauna they are sitting in |
+| F3, a Window has started | No moves where Placement is visible to Guests, which is Vision only. In this PRD a Block in a started Window counts Seats again, and the Overbooking fallback applies only if Seats exceed the new capacity (FR-40; this reading confirmed by Lisa, 2026-10-30) | Moves at any time, which would send people out of the sauna they are sitting in |
 | H10, the Send time changes | Applies only to Windows whose email is unsent | Resend to everyone |
 | H12, a Whole-sauna booking after the Send time | Refused while Seat bookers hold the code | Accept it, and replace the code for the whole-sauna booker on online locks only |
 | H13, a Block after the Send time | Correction email, the code replaced where the lock allows it, and a "replaceable" mark per door | Correction email only |
