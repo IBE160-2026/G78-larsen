@@ -7,15 +7,16 @@ This file holds supporting material that does not belong in `prd.md`. The decisi
 **Check and reserve capacity.**
 - PostgreSQL: a conditional update under Read Committed (`… SET booked = booked + n WHERE booked + n <= capacity`). When two such updates race, PostgreSQL re-checks the condition against the newer row, so one wins and the other updates 0 rows. This behaviour is documented and verified; applying it to capacity is an inference (medium confidence).
 - Serializable isolation can act as a backstop. Retry SQLSTATE 40001 (serialization failure) and 40P01 (deadlock) a bounded number of times, and keep transactions short.
-- Never hold a lock across a payment step (low–medium confidence). In the Core this does not arise, because the Simulated payment is recorded inside the same transaction.
+- Never hold a lock across a payment step (low–medium confidence). This does not arise: the Simulated payment is synchronous in every phase and is recorded inside the same transaction as the Booking (FR-6).
 - SQLite: use `BEGIN IMMEDIATE` around check-and-reserve. This comes from the capacity research (sqlite.org, high confidence for the mechanism). The busy-timeout values are unsourced.
 - A request that touches several Windows, such as a Change between Windows or a Block across several Windows, locks them in one fixed order, for example by Window start time, to avoid deadlocks. (PostgreSQL docs: "high" in the report, unverified in the research memlog.)
 - Voucher and Gift-card balances use the same atomic conditional-update pattern as Seat capacity, so two simultaneous uses never overspend (FR-28, FR-44).
 - Every database claim is version-bound. Re-check them once an engine and version are chosen.
+- Docker is allowed for the examiner (NFR-1, decided 2026-10-30), so PostgreSQL in a container is possible. SQLite avoids the extra install. The architecture weighs the two against the store-level refusal of FR-10 in every phase.
 
-**The Core data-store guarantee (FR-10).**
+**The data-store guarantee (FR-10), in every phase.**
 - In the Core, Seat capacity per Window is fixed, so a seat counter with a CHECK constraint can refuse an over-capacity write at store level. (Inference; not in the research. The requirement itself comes from the brief.)
-- Once Whole-sauna bookings and Blocks change Seat capacity, the research found no store-level constraint. The check then runs inside one serialised transaction per Window (inference).
+- Once Whole-sauna bookings and Blocks change Seat capacity, the research found no store-level constraint. The requirement still holds in every phase (Lisa, 2026-10-30). One way to meet it: keep a Seat capacity per Window in the store, updated by the same transaction as every Whole-sauna booking, Block, mark and release, next to a CHECK on booked plus held Seats. The bypass test of FR-10 decides whether the store really refuses (inference).
 - The concurrency research assumed a capacity row per Sauna. With derived Placement, the Window is the natural lock unit for Seat bookings. This is still open.
 
 **Derived Placement** (recommended; low–medium confidence; no practitioner source).
@@ -28,17 +29,18 @@ This file holds supporting material that does not belong in `prd.md`. The decisi
 - Seat capacity = Σ Capacity of the Saunas open for Seats.
 - Seats left = Seat capacity − Seats booked − Seats held.
 - A Whole-sauna booking of S is allowed only if all of these hold:
-  - S is bookable whole;
+  - S is bookable whole, and the Window is inside the Booking horizon and before its Booking deadline;
   - S is not Blocked and not booked;
-  - Seats booked (plus Seats held, once Holds exist) ≤ Room ahead(S).
+  - Seats booked (plus Seats held, once Holds exist) ≤ Room ahead(S);
+  - the Window has not started, or it has no Seat booking, or S is not open for Seats (FR-29).
 - An unreleased Whole-booking-only Sauna is left out of Seat capacity. It skips the Room-ahead test, because it holds no Seats by definition.
 - The research formulas omitted held Seats and Whole-booking-only status; both are added here.
 
 **Holds are data** (low confidence: one weak source plus reasoning).
 - Store a row with `expires_at`, and filter on it whenever availability is read. A cleanup sweeper is optional; its 30-second interval is an example, not a measurement.
-- Payment confirmations are idempotent: deduplicate them by event ID. (Stripe docs: "high" in the report, unverified in the research memlog.)
-- The confirmation handler re-checks the Hold inside a transaction. No source states this; it is the project's own inference.
-- **WCAG 2.2.1 (adjustable time limits).** The Hold never discards entered data, because a payment after expiry still books if the Seats are free (FR-36). The 10 minutes therefore limit only the reservation, not the Guest's task.
+- The payment is synchronous (decided 2026-10-30), so there is no separate payment confirmation to deduplicate. A one-time key per review page stops repeats (FR-6). The research advice to deduplicate confirmations by event ID applies only if the payment model ever becomes asynchronous (Stripe docs: "high" in the report, unverified in the research memlog).
+- The Booking step re-checks the Hold, the Booking deadline and Seats left inside one transaction. No source states this; it is the project's own inference.
+- **WCAG 2.2.1 (adjustable time limits).** The Hold never discards entered data, because a payment after expiry still books if the Seats are free and the Booking deadline has not passed (FR-36). The 10 minutes therefore limit only the reservation, not the Guest's task.
 
 **Manage-link hardening** (W3C TAG on capability URLs; OWASP).
 - The token is at least 128 bits from a secure random generator, and only its hash is stored.
@@ -56,6 +58,11 @@ This file holds supporting material that does not belong in `prd.md`. The decisi
 - It deletes expired codes, and receives times explicitly in Venue time.
 - Locks that work only in whole hours make every overlap longer.
 
+**Time and in-flight state** (project inference, from the reviewer round of 2026-10-30).
+- Evaluate time rules (Release time, Booking deadline, Hold expiry, Cutoff, the 30-day remedy limit) on the data store's clock after the lock is taken (NFR-11). A stale application clock then cannot cause a capacity race.
+- Serialise Capacity, Fill order and Window edits, Blocks and marks through the same lock unit as Bookings (FR-32). Count held Seats in the F1 and D8 checks, and end Holds that no longer fit before judging Bookings (FR-40).
+- Give each review page and each confirming action a one-time key that returns the first outcome (FR-6, FR-25).
+
 **Test approach.**
 - Run catalogue group C as parallel tests, and use group H, without H19 to H23, as the acceptance cases for SC6.
 - Use group G and H19 to H23 (one-Sauna access) and group I (heating) only in Vision.
@@ -72,7 +79,7 @@ This file holds supporting material that does not belong in `prd.md`. The decisi
 | D8, Whole-booking-only marked over Seats | Refused | Treat the mark as a Block |
 | F1, Capacity is lowered | Refused while a future Window would overflow. The research row says "needs a decision"; the brief addendum lists refusal first | Handle it like D3 and displace Guests |
 | F2, the Fill order changes | Applies to Windows that have not started | Apply only to Windows without Bookings, or to all Windows |
-| F3, a Window has started | No moves; the Overbooking fallback applies | Moves at any time, which would send people out of the sauna they are sitting in |
+| F3, a Window has started | No moves where Placement is visible to Guests, which is Vision only. In this PRD a Block in a started Window counts Seats again, and the Overbooking fallback applies only if Seats exceed the new capacity (FR-40; Lisa to confirm this reading) | Moves at any time, which would send people out of the sauna they are sitting in |
 | H10, the Send time changes | Applies only to Windows whose email is unsent | Resend to everyone |
 | H12, a Whole-sauna booking after the Send time | Refused while Seat bookers hold the code | Accept it, and replace the code for the whole-sauna booker on online locks only |
 | H13, a Block after the Send time | Correction email, the code replaced where the lock allows it, and a "replaceable" mark per door | Correction email only |
@@ -259,6 +266,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - **Step 2 contents.** The Step 2 list in brief.md has no gradual opening or one-Sauna access, while the brief addendum puts them first in Step 2. The PRD treats Gradual opening as an optional mode within Door codes, and Lisa moved one-Sauna access to Vision on 2026-10-30. The brief and its addendum were aligned the same day.
 - **"Cancel" and "change" for Seats.** The brief, its addendum and its memlog use these words differently. The PRD defines Change in its Glossary.
 - **The overbooking remedy.** The brief addendum says refund only, while D3 says refund or Voucher. The PRD lets the Guest choose.
+- **Payment after a Hold expires (CT-5).** The brief expects a simulated refund. The PRD's payment is synchronous, so nothing is charged (section M).
 - **The research catalogue:**
   - D5 uses overlapping Windows, which contradicts E1.
   - H20 contradicts itself under H21.
@@ -299,7 +307,7 @@ The brief addendum's test tables are unnumbered, so these IDs follow row order. 
 | CT-2 | Two Guests confirm the last Seat: exactly one Booking; the other is not charged and gets no email | FR-11 | Core |
 | CT-3 | Seats left afterwards is 0, never negative; the Administrator sees one Booking | FR-11 | Core |
 | CT-4 | The first Hold expires; the second Guest books | FR-35 | If time 5 |
-| CT-5 | Payment after expiry with the Seat taken: no Booking, simulated refund | FR-36 | If time 5 |
+| CT-5 | Payment after expiry with the Seat taken: no Booking, not charged (the brief says simulated refund; see section M) | FR-36 | If time 5 |
 | IV-1 | Seat number zero, negative, fractional, not a number or above Seats left | FR-18 | Core |
 | IV-2 | Date or Window malformed, unknown, outside the horizon or past the deadline | FR-18 | Core |
 | IV-3 | Required field missing or unknown field sent | FR-18 | Core |
@@ -331,3 +339,15 @@ Lisa moved one-Sauna access from Step 2 to Vision on 2026-10-30. These are the r
 - Guests may not move between Saunas, so they are told their Sauna, as an exception to FR-4. The Door-code email names the Booking's Sauna and gives only its codes (H19). For a Sauna without a self-service lock, it names the Sauna without codes (H22).
 - Placement is frozen at the Send time, and F3's "no moves after the start" applies (FR-40). A Booking that would have to move after the Send time is cancelled with the remedy of FR-42, even when Seat capacity is not exceeded, and other Bookings are untouched. This follows the research recommendation; Lisa has not confirmed it.
 - The mode cannot be turned on while any future Window has a Booking split across Saunas. Turning it off applies only to Windows whose Door-code email has not been sent (H23).
+
+## M. Decisions from the reviewer round (Lisa, 2026-10-30)
+Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downstream.md`, `review-adversarial-rules.md` in the PRD folder). Lisa decided these points, with the alternative not taken. The review files hold the other findings.
+
+| Topic | PRD position | Alternative not taken |
+|---|---|---|
+| WCAG in the Core | WCAG 2.2 AA, with one stated exception: 1.4.10 Reflow waits for the mobile layout (FR-23, FR-51). The legal minimum, WCAG 2.0 AA, is met in full | A simple one-column layout in the Core; or aim for 2.0 AA in the Core and 2.2 AA with FR-51 |
+| Payment model | Synchronous in every phase. A late payment books or charges nothing, so CT-5 becomes "not charged" (FR-6, FR-36) | Charge before the check, with an immediate refund; or an asynchronous model like a real card flow, with refunds and out-of-order confirmations |
+| Emails a Guest sees | A Guest sees an email on the page of the action that sent it. The resend and remedy emails are visible only in the Outbox, because showing them would give access to a Booking (FR-17) | The Manage page also lists every email about the Booking; or no change, with only the Outbox |
+| Store-level refusal (FR-10) | The data store refuses over-capacity writes in every phase | Core only, with serialised requests as the guarantee afterwards |
+| "Latest" (D3, Overbooking fallback) | By Entry time, and only Seat bookings lose. A Whole-sauna booking is cancelled only when its own Sauna is Blocked (D4) | The most recently created Booking of any kind |
+| What the examiner installs | Python with uv, Node.js and Docker (NFR-1) | Python and Node.js only, which would mean SQLite; or leaving it to the architecture |
