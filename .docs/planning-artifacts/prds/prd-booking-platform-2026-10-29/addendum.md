@@ -277,7 +277,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - "Shower first" in "Before you come": replaced by two towels, one of them to sit on (Lisa, 2026-10-30).
 
 ## H. Source inconsistencies noticed (for upkeep, not PRD decisions)
-- **The 06:00 rule.** The brief addendum's rule text (L53) and settings row (L101) do not tie the rule to Whole-booking-only Saunas, but the brief memlog (L24, L30) does. Lisa confirmed the PRD reading on 2026-10-29; the brief addendum wording should be aligned.
+- **The 06:00 rule.** The brief addendum's rule text (L53) and settings row (L101) do not tie the rule to Whole-booking-only Saunas, but the brief memlog (L24, L30) does. Lisa confirmed the PRD reading on 2026-10-29; the brief addendum wording should be aligned. Lisa also decided on 2026-10-31 that the Release time can never be set later than a Window's Booking deadline (FR-39, FR-41); the brief addendum (L53, L101) now says so too.
 - **Step 2 contents.** The Step 2 list in brief.md has no gradual opening or one-Sauna access, while the brief addendum puts them first in Step 2. The PRD treats Gradual opening as an optional mode within Door codes, and Lisa moved one-Sauna access to Vision on 2026-10-30. The brief and its addendum were aligned the same day.
 - **"Cancel" and "change" for Seats.** The brief, its addendum and its memlog use these words differently. The PRD defines Change in its Glossary.
 - **The overbooking remedy.** The brief addendum says refund only, while D3 says refund or Voucher. The PRD lets the Guest choose.
