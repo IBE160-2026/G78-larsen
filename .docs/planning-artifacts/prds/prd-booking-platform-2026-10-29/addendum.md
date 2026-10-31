@@ -331,6 +331,7 @@ The brief addendum's test tables are unnumbered, so these IDs follow row order. 
 | PW-3 | Strong password accepted and hashed | FR-19, FR-37 | Core (Administrator), If time 6 |
 | PW-4 | No password readable; the same password gives different hashes | FR-19 | Core |
 | PW-5 | A wrong password gives an error that does not reveal whether the email exists | FR-15, FR-37 | Core |
+| PW-6 | After 5 failed sign-ins in a row for one email, further attempts are refused for 15 minutes, also with the correct password; a success resets the count; the refusal looks the same for unknown emails (added by the PRD) | FR-15, FR-37 | Core (Administrator), If time 6 |
 | RB-1 | Administrator function without sign-in: refused, nothing changes | FR-20 | Core |
 | RB-2 | Administrator function by a signed-in Guest: refused | FR-20, FR-37 | If time 6 |
 | RB-3 | Administrator function by a signed-in Administrator: allowed | FR-20 | Core |

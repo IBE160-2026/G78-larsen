@@ -18,7 +18,7 @@ It builds on these sources and does not repeat them:
 - the minimal-v1 brainstorm, `.docs/brainstorming/brainstorm-minste-v1-mvp-2026-10-27/`;
 - three research reports under `.docs/planning-artifacts/research/`: concurrency and seat holds (2026-10-27), the seat capacity model with its 85-example catalogue (2026-10-28), and smart-lock door codes (2026-10-28). Catalogue examples are cited by ID, for example A6, B1 or D3. The catalogue is in `.docs/planning-artifacts/research/technical-kapasitetsmodell-enkeltplasser-2026-10-28/research.md`, and the architecture and the stories need it as an input.
 
-The brief addendum's test tables are unnumbered. This PRD numbers their rows in order (IV-1 to IV-7, PW-1 to PW-5, RB-1 to RB-6, HT-1 to HT-4 and CT-1 to CT-5), and addendum K maps each test to its FR. Where this PRD and the brief addendum differ, this PRD rules for v1 (addendum H lists the differences).
+The brief addendum's test tables are unnumbered. This PRD numbers their rows in order (IV-1 to IV-7, PW-1 to PW-5, RB-1 to RB-6, HT-1 to HT-4 and CT-1 to CT-5). It adds PW-6, a test of sign-in throttling that the brief tables lack. Addendum K maps each test to its FR. Where this PRD and the brief addendum differ, this PRD rules for v1 (addendum H lists the differences).
 
 Supporting material is in `addendum.md` next to this file: technical direction for the architecture, the alternatives behind each research-based decision, legal notes, comparable services and aesthetic references.
 
@@ -332,7 +332,8 @@ An Administrator can sign in with email and password, and sign out. Nobody else 
 - A seeded Administrator account exists, and the README documents its login (DR-2).
 - Administrator accounts are created, and their passwords changed, only through the seed or a documented command. Both apply FR-19, so PW-1 to PW-3 can be tested on Administrator accounts in the Core. The API never returns a password.
 - A wrong email and a wrong password give the same message (brief test PW-5).
-- Repeated failed sign-ins are slowed or temporarily refused `[ASSUMPTION: the architecture sets the thresholds]`.
+- After 5 failed sign-ins in a row for the same email, further attempts for that email are refused for 15 minutes, also with the correct password. A successful sign-in resets the count (PW-6) `[ASSUMPTION: 5 attempts and 15 minutes are starting values the architecture may adjust; NIST SP 800-63B-4 allows at most 100 consecutive failures]`.
+- The count applies to any email, known or not, and the refusal gives the same message as a wrong password, so the throttling does not reveal whether an account exists (PW-5, PW-6).
 - After sign-out, the session no longer grants access.
 
 #### FR-16: Booking list
@@ -358,7 +359,7 @@ A signed-in Administrator can list every simulated email. Guests cannot. Realize
 - A Guest sees an email only on the page of the action that sent it: the confirmation page (FR-8) and the result pages of a Change (FR-26, FR-27, FR-33). The emails sent in answer to a request without a session, which are the new Manage link (FR-34) and the remedy emails (FR-40, FR-42), are visible only in the Outbox. Showing them on the page would give access to a Booking to anyone who knew a reference and an email. The README says where to find them (DR-2).
 
 ### 4.5 Security and personal data *[Core]*
-**Description:** The Core has three security measures, each with automated tests (success criterion SC9): server-side input validation, hashed passwords and role-based access. The fourth SC9 measure, HTTPS, is the first If-time item (§4.7). The test cases are in the brief addendum (IV-1 to IV-7, PW-1 to PW-5, RB-1 to RB-6); this section states the requirements. Personal data is limited to what a Booking needs, and a privacy notice describes it. Realizes UJ-1 and UJ-3.
+**Description:** The Core has three security measures, each with automated tests (success criterion SC9): server-side input validation, hashed passwords and role-based access. The fourth SC9 measure, HTTPS, is the first If-time item (§4.7). The test cases are in the brief addendum (IV-1 to IV-7, PW-1 to PW-6, RB-1 to RB-6); this section states the requirements. Protection against repeated sign-in attempts (FR-15) belongs to the password measure and is tested in PW-6. Personal data is limited to what a Booking needs, and a privacy notice describes it. Realizes UJ-1 and UJ-3.
 
 **Functional Requirements:**
 
@@ -623,7 +624,7 @@ A Guest can create an account, sign in and sign out, and see the Bookings made w
 
 **Consequences (testable):**
 - A Guest signs up with an email and a password that meets FR-19 `[ASSUMPTION: Guests sign in by email, as Administrators do]`.
-- Sign-in is throttled as in FR-15, and a wrong email or password gives the same message (PW-5). Sign-up does not reveal whether an email already has an account: the reply is the same, and the account is confirmed through a link emailed to the address (Outbox). A password is reset the same way, by an emailed link.
+- Sign-in is throttled as in FR-15 (PW-6), and a wrong email or password gives the same message (PW-5). Sign-up does not reveal whether an email already has an account: the reply is the same, and the account is confirmed through a link emailed to the address (Outbox). A password is reset the same way, by an emailed link.
 - The choice to sign in appears after **Book**. Continuing without an account is the default and the most prominent option.
 - A signed-in Guest:
   - sees only the Bookings made while signed in to that account (RB-4);
@@ -985,8 +986,8 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
   - The last-Seat race gives exactly one winner in every repetition, with zero over-capacity results.
   - Validates FR-1 to FR-17.
 - **SM-2: The security measures pass their tests, phase by phase.** This is SC9.
-  - Core: IV-1 to IV-7; PW-1 to PW-5 on Administrator accounts; RB-1, RB-3, and RB-4 for guessed Booking references.
-  - With §4.7: HT-1 to HT-4. With §4.8: RB-4 for guessed links, and RB-5. With §4.12: RB-2, RB-6, and PW-2 and PW-3 on Guest accounts.
+  - Core: IV-1 to IV-7; PW-1 to PW-6 on Administrator accounts; RB-1, RB-3, and RB-4 for guessed Booking references.
+  - With §4.7: HT-1 to HT-4. With §4.8: RB-4 for guessed links, and RB-5. With §4.12: RB-2, RB-6, and PW-2, PW-3 and PW-6 on Guest accounts.
   - Validates FR-15, FR-18 to FR-21, FR-24, FR-25 and FR-37.
 - **SM-3: The Core website works on a laptop and is accessible.** This is the laptop part of SC10: every Core page passes FR-22 and FR-23. Validates FR-1 to FR-4, FR-22 and FR-23.
 - **SM-4: The examiner can run and check it.** A fresh clone starts, and all its tests pass, by following the README alone, with no keys or paid services. DR-1 to DR-5 are complete at the freeze. Validates NFR-1 and DR-1 to DR-5.
@@ -1029,7 +1030,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-8: the confirmation page is tied to the paying browser session.
 - FR-13: the seed generates Windows from the run date; the schedule itself is open (Q3).
 - FR-11: 100 race repetitions per test run.
-- FR-15: the architecture sets the sign-in throttling thresholds.
+- FR-15: the sign-in throttling thresholds (5 failed attempts, 15 minutes) are starting values, and the architecture may adjust them.
 - FR-16: the booking list is grouped by date and Window, with totals.
 - FR-21: retention is 12 months after the Window, or until the last Voucher expires.
 - FR-22: "laptop screen" means 1366×768 and 1920×1080.
