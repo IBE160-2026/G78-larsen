@@ -256,7 +256,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - No alcohol: about 80 % of Finland's 30–40 yearly sauna heat deaths involved intoxication (Statistics Finland, 2011).
 - Swimwear rules vary between venues.
 - Children must be supervised.
-- Bathe with caution, and never take an ice bath alone (Lisa, 2026-10-30).
+- Bathe with caution, and never alone (Lisa, 2026-10-30).
 
 ## G. Rejected or replaced alternatives
 - Looking up a Booking by reference and email: replaced by resending the link only (2026-10-29).
