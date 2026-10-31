@@ -102,7 +102,7 @@ The core is done when the website is complete, the booking platform is connected
 
 What must be handed in with the exam submission, beyond the working product:
 
-1. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author. The venue name Saunalöyly was checked on 2026-10-21: no hit in EUIPO TMview, and navnesok.no shows the domain name and company name as free and the name as possibly free as a trademark.
+1. **Clean assets:** no licensed, trademarked or otherwise protected material; everything is AI-generated, freely licensed or checked by the author. The venue name Saunalöyly was checked on 2026-10-21: no hit in EUIPO TMview, and navnesok.no shows the domain name and company name as free and the name as possibly free as a trademark. A later check of "Löyly" on 2026-10-31 found filed or registered marks in several countries (Australia, Canada, Denmark, the EU, Finland, the UK, the US); the name is kept because the venue is fictional and not used in trade.
 2. **Assessment deliverable:** working code, with documentation of how AI was used and how the code was quality-assured.
 
 ## Vision

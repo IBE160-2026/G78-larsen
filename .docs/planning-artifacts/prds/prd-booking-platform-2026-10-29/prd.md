@@ -6,7 +6,7 @@ updated: 2026-10-30
 ---
 
 # PRD: Saunalöyly Booking Platform
-*Working title. On 2026-10-21 the venue name Saunalöyly had no hit in EUIPO TMview, and navnesok.no showed it as possibly free as a trademark. A check of existing "LÖYLY" marks is still open (§12, Q10).*
+*Working title. On 2026-10-21 the venue name Saunalöyly had no hit in EUIPO TMview, and navnesok.no showed it as possibly free as a trademark. A later check of "Löyly" found filed or registered marks in Australia (3), Canada (1), Denmark (1), the EU (1), Finland (1), the United Kingdom (1) and the United States (4), so the word is not free as a trademark. Lisa decided on 2026-10-31 to keep the name, because the Venue is fictional and not used in trade (§12, Q10).*
 
 ## 0. Document Purpose
 
@@ -892,7 +892,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
   - the Administrator test login and the seeded sample Bookings; once §4.8 is built, where to find a sample Manage link in the Outbox; once §4.12 is built, a Guest test account;
   - how to view the Outbox, which also holds the emails that Guests do not see on a page (FR-17);
   - which success criteria were not delivered.
-- **DR-3 Clean assets.** No licensed, trademarked or otherwise protected material is used. Every image, font, icon and text is AI-generated, freely licensed or checked by the author, and an asset register lists the source and licence of each. The trademark check of the Venue name is described under the title and is still open (§12 Q10).
+- **DR-3 Clean assets.** No licensed, trademarked or otherwise protected material is used. Every image, font, icon and text is AI-generated, freely licensed or checked by the author, and an asset register lists the source and licence of each. The Venue name is the one known exception: other parties hold marks for "Löyly", and the name is kept because the Venue is fictional and not used in trade (title note, §12 Q10).
 - **DR-4 Traceability.** The repository shows the path from plan to code: the planning documents, small descriptive commits and the session logs.
 - **DR-5 Tidy repository.** No secret is committed. Any secret, such as the session key, is generated on first start or read from a git-ignored local file, and an example file is committed instead. The seeded Administrator password is a documented local test value. Seed and sample data live in one named folder, tests in another, and planning documents in `.docs/`. The README names each location.
 
@@ -1011,7 +1011,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 7. **Administrator cancellation of a single Booking.** It is not in the sources. Is it needed? It is the only way some late-cancellation cases in the catalogue can arise.
 8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
 9. **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
-10. **Trademark.** Check existing "LÖYLY" marks (classes 43 and 44) before the name is treated as clean (DR-3).
+10. **Trademark.** Decided 2026-10-31 (Lisa): keep "Saunalöyly". A check of "Löyly" found filed or registered marks in Australia, Canada, Denmark, the EU, Finland, the UK and the US (counts only; owners, classes and the Norwegian register were not checked), but the Venue is fictional and not used in trade. If the platform is ever used commercially, check the owners and classes (43 and 44) and rename if needed.
 11. **Gift-card validity (Step 2).** One year is common practice, but a three-year limitation period may still apply to a paid card. This is a legal reading, not legal advice.
 12. **Gaps before any real launch.** Norwegian pre-contract information if the service is marketed to Norwegian consumers, and the organisation number and VAT details. These are out of scope for the fictional exam version.
 13. **Heating cases I11 to I23.** Vision.
