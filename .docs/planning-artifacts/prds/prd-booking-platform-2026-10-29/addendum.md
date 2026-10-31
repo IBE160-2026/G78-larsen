@@ -257,6 +257,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - Swimwear rules vary between venues.
 - Children must be supervised.
 - Bathe with caution, and never alone (Lisa, 2026-10-30).
+- Wording on the page (Lisa, 2026-10-31): etiquette says to ask the others before throwing water on the stones, follow the swimwear rule, and be considerate to people who like it quiet in the sauna; safety says that alcohol is forbidden at the venue.
 
 ## G. Rejected or replaced alternatives
 - Looking up a Booking by reference and email: replaced by resending the link only (2026-10-29).

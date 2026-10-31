@@ -174,8 +174,8 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - the **Book seats** action;
   - links to the terms and the privacy notice;
   - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
-    - etiquette: bring two towels, one of them to sit on; keep quiet; throw water on the stones with consideration for others; follow the swimwear rule;
-    - safety: bring water and drink plenty; no alcohol; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children are supervised by an adult;
+    - etiquette: bring two towels, one of them to sit on; ask the others before throwing water on the stones; follow the swimwear rule; be considerate to people who like it quiet in the sauna;
+    - safety: bring water and drink plenty; alcohol is forbidden at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children are supervised by an adult;
     - practical: changing time is part of the Window;
     - the section can be linked to directly (FR-8).
 - The website presents the Venue:
