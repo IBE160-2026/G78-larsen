@@ -40,5 +40,5 @@
 - [ ] 2026-10-31 [prd-utkast](993-2026-10-29-14-43-30-prd-utkast.md) — arkitektur: juster terskelen for innloggingssperre (5 forsøk, 15 minutter, FR-15/PW-6) og velg om telling også skjer per kilde-IP; unngå permanent kontolås
 - [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — arkitektur, UX (`bmad-ux`), epics og stories ikke startet; må på plass før første story og frontend
 - [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — ta i bruk gren + PR per story, issues for store punkter og FR-nummer i commit-meldinger (kriterium 1)
-- [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — medlemslisten i README har bare Lisa, men Bård Pettersen har 5 commits; avklar og rett
+- [x] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — medlemslisten i README har bare Lisa, men Bård Pettersen har 5 commits; avklar og rett (løst 2026-10-31: Bård er sensor, README er riktig)
 - [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — README må oppdateres og testes på ren klone når appen finnes (kriterium 6)

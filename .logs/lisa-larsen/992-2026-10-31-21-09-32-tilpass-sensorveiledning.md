@@ -16,9 +16,9 @@ Lisa ba om å tilpasse bookingplattformen til sensorveiledning del 1 for IBE160 
 - `.github/pull_request_template.md` lagt til: krav (FR/story), KI-bruk, kvalitetssikring, funn i KI-kode.
 - `.docs/sensorveiledning-kravsporing.md` lagt til: status, gjenstående og tidspunkt per kriterium, varseltegn, ventende beslutninger.
 - Endringene er ikke committet (ikke bedt om).
+- Rettelse: jeg trodde først at Bård Pettersen manglet i medlemslisten. Lisa er eneste student, og Bård er sensor; hans 5 commits er repo-oppsett, tilbakemelding på briefen og sesjonslogg-skillen. README er riktig.
 
 ### Åpne punkter
 - Arkitektur, UX (`bmad-ux`), epics og stories er ikke startet; de må på plass før første story og før frontend (kriterium 1, 4, 5).
 - Ta i bruk gren + PR per story og issues for store punkter, med FR-nummer i commit-meldinger (kriterium 1).
-- Medlemslisten i README har bare Lisa, men Bård Pettersen har 5 commits; rett listen hvis han er med i gruppen.
 - README må oppdateres og verifiseres på en ren klone når appen finnes (kriterium 6).
