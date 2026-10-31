@@ -2,7 +2,7 @@
 title: "Saunalöyly Booking Platform"
 status: draft
 created: 2026-10-29
-updated: 2026-10-30
+updated: 2026-10-31
 ---
 
 # PRD: Saunalöyly Booking Platform
@@ -659,13 +659,17 @@ An Administrator can change five Settings. Every other rule is fixed in v1.
 | Booking deadline | 5 minutes after the Window starts; may be set earlier (even before the start) or later | never later than 45 minutes before the Window ends |
 | Cutoff, Seat bookings | 12 hours before the start | not under 2 hours |
 | Cutoff, Whole-sauna bookings | 72 hours before the start | not under 2 hours |
-| Release time (06:00 rule) | 06:00 on the day of the Window; can be set to another time or turned off | — |
+| Release time (06:00 rule) | 06:00 on the day of the Window; can be set to another time or turned off | never later than the Booking deadline of the Window it applies to |
 
 **Consequences (testable):**
 - A changed Cutoff applies only to Bookings made after the change. Existing Bookings keep the Cutoff they were made under.
 - A changed Booking horizon, Booking deadline or Release time applies from the moment of the change to every Window it has not yet affected `[ASSUMPTION: these rules are applied when a booking or release happens, not stored per Booking]`.
 - The Booking horizon and Booking deadline apply to Seat bookings, Holds, Whole-sauna bookings and the target Window of every Change `[ASSUMPTION: as in the brief]`.
 - A change that sets the Booking deadline later than 45 minutes before the end of a standard 1 h 30 min Window, that is, more than 45 minutes after its start, is refused. For a Window of another length (FR-38), the earlier of the setting and 45 minutes before its end applies `[ASSUMPTION: rule for Windows of another length]`.
+- The Release time is never later than the Booking deadline of a Window with a Whole-booking-only Sauna that has not been released (FR-41). A Release time is a clock time and a Booking deadline belongs to a Window, so the limit is checked per Window `[ASSUMPTION: the limit is checked per Window, not as one global time]`:
+  - a change that sets the Release time later than such a Window's Booking deadline is refused, and the message names the Windows;
+  - a change that sets the Booking deadline earlier than the Release time of such a Window is refused in the same way;
+  - with the Release time turned off, the limit does not apply.
 - With the default Settings, SC1 to SC4 behave as this PRD describes, and so do SC5 and SC6 once Step 2 is built (SC8). The tests of §4.1 to §4.12 pass unchanged.
 
 #### FR-40: Blocks
@@ -692,10 +696,10 @@ An Administrator can mark a Sauna in a Window as Whole-booking-only, and remove 
 
 **Consequences (testable):**
 - While the Sauna is marked and not released, it is not open for Seats: it is left out of Seat capacity and Seats left, and it can be booked whole.
-- Marking is refused while Seats are placed in the Sauna in that Window, held Seats included (D8). Marking a Sauna that is not Bookable whole is refused.
+- Marking is refused while Seats are placed in the Sauna in that Window, held Seats included (D8). Marking a Sauna that is not Bookable whole is refused. Marking is also refused if the Release time (when on) is later than the Window's Booking deadline (FR-39).
 - At the Release time on the day of the Window, a marked Sauna that is not Whole-sauna-booked becomes open for Seats and takes its place in the Fill order. Seats are counted again so that INV-5 holds. The release is a condition checked against the data store's clock (NFR-11), so it takes effect even if the platform was off at the Release time.
 - With the Release time turned off, a marked Sauna is never released.
-- If the Release time falls after a Window's Booking deadline, the Sauna is not released for that Window `[ASSUMPTION: no release after the Booking deadline]`.
+- The Release time never falls after a Window's Booking deadline (FR-39), so a marked Sauna is always released while its Window can still be booked. Release is therefore never skipped for that reason (decided 2026-10-31, Lisa).
 
 #### FR-42: Overbooking fallback
 If the Seats booked in a Window ever exceed its Seat capacity, the Seat booking with the latest Entry time loses.
@@ -1045,7 +1049,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-39: changes to the Booking horizon, Booking deadline and Release time apply from the moment of the change.
 - FR-39: for a Window of another length, the earlier of the Booking deadline setting and 45 minutes before its end applies; the Booking horizon and Booking deadline apply to every way of taking capacity.
 - FR-40: a Block covers every overlapping Window; as many Bookings lose as needed.
-- FR-41: no release after the Booking deadline.
+- FR-39: the Release time limit (never later than the Booking deadline) is checked per Window, not as one global time.
 - FR-42: a refund is made if the Guest has not chosen within 30 days.
 - FR-43: Gift cards carry a 14-day right of withdrawal (legal reading).
 - FR-45: Administrator-entered codes can be changed until sent; every Sauna has a self-service lock in the seed data.
