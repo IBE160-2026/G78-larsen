@@ -42,3 +42,5 @@
 - [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — ta i bruk gren + PR per story, issues for store punkter og FR-nummer i commit-meldinger (kriterium 1)
 - [x] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — medlemslisten i README har bare Lisa, men Bård Pettersen har 5 commits; avklar og rett (løst 2026-10-31: Bård er sensor, README er riktig)
 - [ ] 2026-10-31 [tilpass-sensorveiledning](992-2026-10-31-21-09-32-tilpass-sensorveiledning.md) — README må oppdateres og testes på ren klone når appen finnes (kriterium 6)
+- [ ] 2026-10-31 [prd-release-time-grense](991-2026-10-31-21-22-08-prd-release-time-grense.md) — bekreft at grensen Release time ≤ Booking deadline sjekkes per vindu (FR-39, `[ASSUMPTION]`) og ikke som én global tid
+- [ ] 2026-10-31 [prd-release-time-grense](991-2026-10-31-21-22-08-prd-release-time-grense.md) — brief-addendum H nevner ikke den nye Release time-grensen; legg den inn der PRD og brief skiller seg
