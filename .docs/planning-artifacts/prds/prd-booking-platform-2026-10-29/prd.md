@@ -118,7 +118,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 
 - **Venue:** Saunalöyly, the one fictional sauna venue in v1. It has four or more Saunas.
 - **Venue time:** local time at the Venue (Europe/Oslo). All times in this PRD are in Venue time.
-- **Sauna:** one sauna room with a Capacity (changed only by an Administrator, FR-38) and one or more doors. All examples use this set: Sauna 1 = 7, Sauna 2 = 10, Sauna 3 = 12, Sauna 4 = 15 (44 in total).
+- **Sauna:** one sauna room with a Capacity (changed only by an Administrator, FR-38) and one or more doors. All examples use this set: Sauna 1 = 7, Sauna 2 = 10, Sauna 3 = 12, Sauna 4 = 15 (44 in total). The four Saunas are named, from smallest to largest, Rauha, Löyly, Kajo and Lumo (Lisa, 2026-10-31); they are Sauna 1 to 4 in the examples, and the Capacities remain example values.
 - **Capacity:** the number of Seats a Sauna holds.
 - **Window:** a bookable time slot that is the same for every Sauna in the Venue. The standard length is 1 h 30 min (for example 15:00–16:30). No two Windows overlap, and intervals are half-open, so 15:00–16:30 and 16:30–18:00 do not overlap. Identical and nested Windows overlap too.
 - **Seat:** one guest's place in a Window. Seats are identical, and in the guest's view a Seat is not tied to any Sauna.
@@ -1004,7 +1004,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 ## 12. Open Questions
 1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
 2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Owner: Lisa. Decide before the UX workflow.
-3. **Seed data.** The price per Seat is the same in every Window in v1 (decided 2026-10-30, Lisa; FR-26). Still open: opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
+3. **Seed data.** The price per Seat is the same in every Window in v1 (decided 2026-10-30, Lisa; FR-26). The Sauna names are decided (Rauha, Löyly, Kajo, Lumo; glossary). Still open: Capacities, opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
 4. **Database engine.** An architecture decision, made before the first story. The examiner may be asked to install Docker (NFR-1, Lisa 2026-10-30), so PostgreSQL in a container is possible, and so is SQLite without Docker. The concurrency research covers PostgreSQL; the capacity research checked SQLite's transaction rules. The architecture weighs the extra install for the examiner against the engine's documented concurrency behaviour, and picks an engine for which the store-level refusal of FR-10 can be built in every phase.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
 6. **Order of If-time items 3 to 6.** It is still a proposal, and backcasting from 15 December has not been run. Owner: Lisa. Decide before sprint planning.
