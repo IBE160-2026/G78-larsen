@@ -306,10 +306,14 @@ The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every st
   - Run mechanical tasks at lower effort.
   - Test concurrency, capacity, validation and SC1 in depth; give the rest breadth only.
 
-## J. Illustrative seed data (not decided; see PRD §12 Q3)
-- **Saunas:** 7, 10, 12 and 15 Seats, filled in the order 1 → 4.
-- **Prices:** NOK 250 per Seat, in line with Oslo drop-in prices of NOK 250–270.
-- **Private sauna prices:** to be set per Sauna. Oslo comparables range from NOK 1,125 to 2,900 for 6–8 seats.
+## J. Seed data (decided by Lisa on 2026-11-01; see PRD §12 Q3)
+- **Saunas:** Rauha 7, Löyly 10, Kajo 12 and Lumo 15 Seats (44 in total), filled in that order. The test catalogue's examples use these Capacities.
+- **Prices:** NOK 250 per Seat including VAT, the same in every Window. Illustrative, in line with Oslo drop-in prices of NOK 250–270.
+- **Opening hours and Windows:** every day 10:00–22:00 in Venue time, the same each day. Eight back-to-back Windows of 1 h 30 min start at 10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00 and 20:30; the last ends at 22:00. There is no changeover gap, so 352 Seats a day. The seed creates them from the run date through the Booking horizon, about 230 Windows. None touches the daylight-saving change (NFR-3).
+- **Settings:** the FR-39 defaults.
+- **Administrator:** `admin@saunaloyly.example`. The password is a documented local test value, chosen in the first Administrator story and written in the README (DR-5).
+- **Sample Bookings:** a few, given as offsets from the run date, including one Window with 42 of 44 Seats booked and one fully booked. The exact list goes in the story.
+- **Private sauna prices:** not set. They wait until §4.9 is planned. Oslo comparables range from NOK 1,125 to 2,900 for 6–8 seats.
 
 ## K. Test map: brief test IDs to PRD requirements
 The brief addendum's test tables are unnumbered, so these IDs follow row order. "Core (Administrator)" means the case runs on Administrator accounts until Guest accounts exist.

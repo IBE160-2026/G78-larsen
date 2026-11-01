@@ -52,7 +52,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Vision-only users:** members and period-card holders, children as a separate guest type, and other venues and websites.
 
 ### 2.3 Key User Journeys
-*Protagonist names are placeholders `[ASSUMPTION: no named personas exist in the sources; Lisa may replace them]`. Prices are illustrative: the seed prices are still open (§12, Q3).*
+*Protagonist names are placeholders `[ASSUMPTION: no named personas exist in the sources; Lisa may replace them]`. Prices are illustrative: the seed price is NOK 250 per Seat (§12, Q3).*
 
 - **UJ-1. Ingrid books two seats for Saturday afternoon.** *[Core]*
   - **Persona + context:** Ingrid has tried a public sauna once and wants to take a friend. She does not want to create an account.
@@ -118,7 +118,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 
 - **Venue:** Saunalöyly, the one fictional sauna venue in v1. It has four or more Saunas.
 - **Venue time:** local time at the Venue (Europe/Oslo). All times in this PRD are in Venue time.
-- **Sauna:** one sauna room with a Capacity (changed only by an Administrator, FR-38) and one or more doors. All examples use this set: Sauna 1 = 7, Sauna 2 = 10, Sauna 3 = 12, Sauna 4 = 15 (44 in total). The four Saunas are named, from smallest to largest, Rauha, Löyly, Kajo and Lumo (Lisa, 2026-10-31); they are Sauna 1 to 4 in the examples, and the Capacities remain example values.
+- **Sauna:** one sauna room with a Capacity (changed only by an Administrator, FR-38) and one or more doors. All examples use this set: Sauna 1 = 7, Sauna 2 = 10, Sauna 3 = 12, Sauna 4 = 15 (44 in total). The four Saunas are named, from smallest to largest, Rauha, Löyly, Kajo and Lumo (Lisa, 2026-10-31); they are Sauna 1 to 4 in the examples, and these Capacities are the seed values (§12 Q3).
 - **Capacity:** the number of Seats a Sauna holds.
 - **Window:** a bookable time slot that is the same for every Sauna in the Venue. The standard length is 1 h 30 min (for example 15:00–16:30). No two Windows overlap, and intervals are half-open, so 15:00–16:30 and 16:30–18:00 do not overlap. Identical and nested Windows overlap too.
 - **Seat:** one guest's place in a Window. Seats are identical, and in the guest's view a Seat is not tied to any Sauna.
@@ -305,7 +305,7 @@ Every Window applies to all Saunas, and no two Windows overlap. Realizes UJ-1.
 
 **Consequences (testable):**
 - Seed data or Administrator input with overlapping Windows is rejected: partly overlapping, identical and nested Windows alike. 15:00–16:30 and 16:30–18:00 are accepted (catalogue E1, E2).
-- The seed creates Windows from the day it runs through the end of the Booking horizon, following a schedule held in the seed data `[ASSUMPTION: the seed generates Windows from the run date; the schedule itself is open, Q3]`. Running it again adds only the missing Windows and creates no duplicates, so a fresh clone has bookable dates whenever it is started.
+- The seed creates Windows from the day it runs through the end of the Booking horizon, following a schedule held in the seed data `[ASSUMPTION: the seed generates Windows from the run date]`. The schedule is the eight Windows a day of §12 Q3. Running it again adds only the missing Windows and creates no duplicates, so a fresh clone has bookable dates whenever it is started.
 - A Sauna that is unavailable for part of a Window is expressed as a Block. It never gets a different Window of its own (E3).
 - Windows are independent: a booking, cancellation or Whole-sauna booking in one Window never changes another (E2, E4, E6).
 
@@ -1016,7 +1016,11 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 ## 12. Open Questions
 1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
 2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Owner: Lisa. Decide before the UX workflow.
-3. **Seed data.** The price per Seat is the same in every Window in v1 (decided 2026-10-30, Lisa; FR-26). The Sauna names are decided (Rauha, Löyly, Kajo, Lumo; glossary). Still open: Capacities, opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
+3. **Seed data.** Decided 2026-11-01 (Lisa); the values are in addendum J.
+   - The Saunas are Rauha 7, Löyly 10, Kajo 12 and Lumo 15 Seats, 44 in total, filled in that order.
+   - The price is NOK 250 per Seat including VAT, the same in every Window (FR-26). It is illustrative (§9).
+   - The Venue is open every day 10:00–22:00, with eight back-to-back Windows of 1 h 30 min starting at 10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00 and 20:30, and no changeover gap. Q1 therefore applies to Door codes in Step 2.
+   - Private sauna prices are not set; they wait until §4.9 is planned.
 4. **Database engine.** Decided 2026-11-01 (Lisa): SQLite, in WAL mode, with `BEGIN IMMEDIATE` around check-and-reserve. Basis: it needs no install beyond Python, all tests run with one command (NFR-1, NFR-6), and a spike showed that a CHECK constraint with a trigger refuses a raw over-capacity write (FR-10) and that 100 rounds of 8 parallel processes give exactly one winner (FR-11). The spike covered the Core only; whole-sauna bookings and Blocks (addendum A) are untested. PostgreSQL was the alternative, with real multi-writer contention in the race test but a Docker install for the examiner. The architecture keeps the SQL plain and the data access in one layer, and the README pins the Python version.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
 6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2).
@@ -1039,7 +1043,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-5: names are 1–100 characters, and emails at most 254.
 - FR-8: the Core confirmation has no Manage link.
 - FR-8: the confirmation page is tied to the paying browser session.
-- FR-13: the seed generates Windows from the run date; the schedule itself is open (Q3).
+- FR-13: the seed generates Windows from the run date.
 - FR-11: 100 race repetitions per test run.
 - FR-15: the sign-in throttling thresholds (5 failed attempts, 15 minutes) are starting values, and the architecture may adjust them.
 - FR-16: the booking list is grouped by date and Window, with totals.
