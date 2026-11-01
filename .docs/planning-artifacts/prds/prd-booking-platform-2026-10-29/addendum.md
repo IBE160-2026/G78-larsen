@@ -291,14 +291,14 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - **Concurrency research.** Its appendix labels some references "high" that its memlog lists as unverified.
 
 ## I. Build order and risk handling
-The brainstorm of 2026-10-27 proposed this; Lisa has not confirmed it.
+The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every story (2026-10-30), and the freeze and the work windows (2026-11-01); the rest is not confirmed.
 - **Planning** covers the Core first.
 - **Build:**
   - Start with the database engine, the schema and the capacity invariant.
   - Then build a thin end-to-end booking, so that an interruption always leaves a running app.
   - Each story includes its tests. The Administrator login and list come next.
-- **Freeze:** 9–15 December.
-- **Work windows:** 27 October to about 8 November, 17 November to about 1 December, then the freeze.
+- **Freeze:** feature cutoff 11 December, freeze 12–15 December; 9–11 December is buffer (Lisa, 2026-11-01).
+- **Work windows:** 27 October to about 8 November, 17 November to 4 December, then buffer and the freeze.
 - **Risk handling:**
   - Keep stories small, with a token budget per story logged in the session log.
   - Run mechanical tasks at lower effort.

@@ -917,7 +917,9 @@ The part-1 assessment criteria map to this PRD as follows:
 - One person builds it, from 27 October to 15 December 2026, alongside two other exams on 16 November and 8 December.
 - Claude tokens and long-running tasks are a real limit. Frontend, design and extensive testing are the likeliest overruns.
 - Planning (PRD and architecture) takes 7–8 of the first 12 days.
-- 9–15 December is a freeze for tests, the README and the AI-use documentation. No new features are added. This is only a proposal until §12 Q17 is decided.
+- Building may run to 4 December. 5–7 December is exam reading before the 8 December exam (Lisa, 2026-11-01).
+- The feature cutoff is Friday 11 December: the last pull request is merged and `main` is green. 9–11 December is buffer after the exam, with no committed stories.
+- 12–15 December is a freeze for the README, the AI-use documentation and the final checks: clean-clone run, dependency audit, secrets scan, asset register and the list of what is not delivered. Only documentation and fixes for failing tests are accepted. Each story already includes its tests (NFR-6). Decided by Lisa on 2026-11-01; see `backcasting-2026-11-01.md`.
 - The backend is Python and the frontend JavaScript; the frameworks are an architecture decision. No paid services are used. The README already uses uv, so the architecture either keeps it or replaces it on purpose.
 
 ## 9. Non-Goals (Explicit)
@@ -957,7 +959,7 @@ The part-1 assessment criteria map to this PRD as follows:
 6. Guest accounts (§4.12).
 7. Administrator tools and Venue rules (§4.13). All of v1 comes before Step 2, decided on 2026-10-29.
 
-The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: order of items 3 to 6]`. No backcasting from 15 December has been run.
+The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: order of items 3 to 6]`. Backcasting from 15 December was run on 2026-11-01 (`backcasting-2026-11-01.md`); Lisa accepted the Core plus HTTPS as the likely v1 (2026-11-01). The order of items 3 to 6 is decided when If-time 2 is merged (§12 Q6).
 
 `[NOTE FOR PM]` The Core is deliberately narrower than the teacher's suggested minimum, which was SC1 to SC4 with an Administrator view. The teacher rated time and scope a high risk, and two other exams fall inside the build period. Vouchers stay in v1 (If time 2), although the teacher suggested Step 2, because changing Seats depends on them.
 
@@ -1012,7 +1014,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 3. **Seed data.** The price per Seat is the same in every Window in v1 (decided 2026-10-30, Lisa; FR-26). The Sauna names are decided (Rauha, Löyly, Kajo, Lumo; glossary). Still open: Capacities, opening hours, the Window schedule (including whether there is a changeover gap between Windows, which also affects Q1), and the prices themselves. Owner: Lisa. Decide before the architecture seeds the data.
 4. **Database engine.** An architecture decision, made before the first story. The examiner may be asked to install Docker (NFR-1, Lisa 2026-10-30), so PostgreSQL in a container is possible, and so is SQLite without Docker. The concurrency research covers PostgreSQL; the capacity research checked SQLite's transaction rules. The architecture weighs the extra install for the examiner against the engine's documented concurrency behaviour, and picks an engine for which the store-level refusal of FR-10 can be built in every phase.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
-6. **Order of If-time items 3 to 6.** It is still a proposal, and backcasting from 15 December has not been run. Owner: Lisa. Decide before sprint planning.
+6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2).
 7. **Administrator cancellation of a single Booking.** It is not in the sources. Is it needed? It is the only way some late-cancellation cases in the catalogue can arise.
 8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
 9. **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
@@ -1023,7 +1025,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 14. **Lock unit.** Should Seat and Whole-sauna requests lock per Window, per Sauna, or through a queue per Sauna? An architecture decision, proven by the parallel tests of FR-32.
 15. **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
 16. **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
-17. **Coach proposals not yet confirmed.** Three proposals from the brainstorm stand in the PRD without Lisa's confirmation (she confirmed only tests in every story, NFR-6, on 2026-10-30): the 9–15 December freeze (§8.2), a token budget per story (DR-1), and the planning depth (§10.3). Owner: Lisa. Decide the planning depth before the architecture starts, and the freeze and the token budget before sprint planning.
+17. **Coach proposals not yet confirmed.** Two proposals from the brainstorm stand in the PRD without Lisa's confirmation: a token budget per story (DR-1) and the planning depth (§10.3). Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (cutoff 11 December, freeze 12–15 December, §8.2) on 2026-11-01. Owner: Lisa. Decide the planning depth before the architecture starts, and the token budget before sprint planning.
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
@@ -1057,7 +1059,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-49: H11 as recommended.
 - NFR-1: one command each to start the backend and frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
-- §8.2, DR-1, §10.3: brainstorm proposals not yet confirmed (the freeze, a token budget per story, planning depth); open as §12 Q17.
+- DR-1, §10.3: brainstorm proposals not yet confirmed (a token budget per story, planning depth); open as §12 Q17.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
 - §10.1: the order of If-time items 3 to 6.
