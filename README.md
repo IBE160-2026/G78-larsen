@@ -30,7 +30,7 @@ Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres n
 - [uv](https://docs.astral.sh/uv/) (installerer Python 3.12 etter behov, se `.python-version`)
 - Git
 
-Frontend (Node.js) og database (eventuelt Docker) bestemmes i arkitekturfasen og skrives inn her når de er valgt.
+Databasen er SQLite (en fil i prosjektet, følger med Python), så Docker trengs ikke (PRD §12 Q4, avgjort 2026-11-01). Frontend (Node.js) bestemmes i arkitekturfasen og skrives inn her når den er valgt.
 
 ## Kom i gang
 
