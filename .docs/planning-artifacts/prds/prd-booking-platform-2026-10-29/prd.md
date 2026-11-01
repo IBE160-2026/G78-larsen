@@ -968,7 +968,12 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - **Vision:** everything in §4.17.
 
 ### 10.3 Planning depth
-*Proposal until §12 Q17 is decided.* The architecture decides everything the Core needs, plus the If-time choices that shape the Core data model: Placement, the lock unit per Window, Holds stored as data, Manage-link tokens, and how the data store refuses over-capacity writes in every phase (FR-10). The payment model is already decided: synchronous in every phase (FR-6). Epics and stories are written in full for the Core. Each If-time item gets one epic, and its stories are written when it comes next in the order of §10.1. Step 2 and Vision get no stories in this round. Step 2 starts only when every v1 item built so far passes its tests.
+*Decided by Lisa on 2026-11-01, after backcasting from 15 December (`backcasting-2026-11-01.md`).* The likely v1 is the Core plus HTTPS, and the first building window is only 3–4 days, so planning is kept lean.
+- **Architecture.** It decides the Core in full. For later phases it records only what would force a Core rewrite: the per-Window capacity and booked columns, with the CHECK constraint and trigger that keep the store-level refusal of FR-10 extensible to Whole-sauna bookings and Blocks (addendum A). It adds one line each on derived Placement (Q5) and on Holds stored as data. The lock unit (Q14) is settled by SQLite, which takes one write lock for the whole database. Manage-link tokens are decided with the If-time 2 epic. The payment model is already decided: synchronous in every phase (FR-6).
+- **Core stories.** All are written, in two batches: the skeleton stories before about 5 November, and the rest before 17 November.
+- **If-time.** Only HTTPS (§4.7) and If-time 2 (§4.8) get an epic. Their stories are written when each comes next, and HTTPS comes first. If-time 3 to 7 get neither epics nor stories in this round.
+- **Outside this round.** FR-29 to FR-42 (If-time 3 to 7), FR-43 to FR-51 (Step 2) and §4.17 (Vision). The epics document lists them as not planned in this round, so the readiness check does not count them as orphans.
+- Step 2 starts only when every v1 item built so far passes its tests.
 
 ## 11. Success Metrics
 *Success criteria SC1 to SC10 are the brief's. A criterion that is not reached is reported as not delivered (DR-2).*
@@ -1022,10 +1027,10 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 11. **Gift-card validity (Step 2).** One year is common practice, but a three-year limitation period may still apply to a paid card. This is a legal reading, not legal advice.
 12. **Gaps before any real launch.** Norwegian pre-contract information if the service is marketed to Norwegian consumers, and the organisation number and VAT details. These are out of scope for the fictional exam version.
 13. **Heating cases I11 to I23.** Vision.
-14. **Lock unit.** Should Seat and Whole-sauna requests lock per Window, per Sauna, or through a queue per Sauna? An architecture decision, proven by the parallel tests of FR-32.
+14. **Lock unit.** Settled on 2026-11-01 by the choice of SQLite (Q4) and the planning depth (§10.3): `BEGIN IMMEDIATE` takes one write lock for the whole database, so there is no lock per Window or per Sauna. The parallel tests of FR-32 still run when Whole-sauna booking is built.
 15. **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
 16. **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
-17. **Coach proposals not yet confirmed.** Two proposals from the brainstorm stand in the PRD without Lisa's confirmation: a token budget per story (DR-1) and the planning depth (§10.3). Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (cutoff 11 December, freeze 12–15 December, §8.2) on 2026-11-01. Owner: Lisa. Decide the planning depth before the architecture starts, and the token budget before sprint planning.
+17. **Coach proposal not yet confirmed.** One proposal from the brainstorm stands in the PRD without Lisa's confirmation: a token budget per story (DR-1). Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (§8.2) and the planning depth (§10.3) on 2026-11-01. Owner: Lisa. Decide the token budget before sprint planning.
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
@@ -1059,7 +1064,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-49: H11 as recommended.
 - NFR-1: one command each to start the backend and frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
-- DR-1, §10.3: brainstorm proposals not yet confirmed (a token budget per story, planning depth); open as §12 Q17.
+- DR-1: a brainstorm proposal not yet confirmed (a token budget per story); open as §12 Q17.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
 - §10.1: the order of If-time items 3 to 6.

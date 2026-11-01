@@ -293,8 +293,8 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - **Concurrency research.** Its appendix labels some references "high" that its memlog lists as unverified.
 
 ## I. Build order and risk handling
-The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every story (2026-10-30), and the freeze and the work windows (2026-11-01); the rest is not confirmed.
-- **Planning** covers the Core first.
+The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every story (2026-10-30), and the freeze, the work windows and the planning depth (2026-11-01); the token budget is not confirmed.
+- **Planning** is lean (PRD §10.3): the architecture covers the Core and the hooks that would force a Core rewrite; Core stories come in two batches (before about 5 November and before 17 November); only HTTPS and If-time 2 get epics.
 - **Build:**
   - Start with the database engine, the schema and the capacity invariant.
   - Then build a thin end-to-end booking, so that an interruption always leaves a running app.
