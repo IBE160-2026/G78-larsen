@@ -52,4 +52,5 @@
 - [ ] 2026-11-01 [backcasting-fra-15-des](990-2026-11-01-22-17-30-backcasting-fra-15-des.md) — leveringstidspunktet 15.12 (klokkeslett) står ikke i repoet; finn det
 - [ ] 2026-11-01 [backcasting-fra-15-des](990-2026-11-01-22-17-30-backcasting-fra-15-des.md) — SQLite: bevis FR-10-bypass-testen for hel badstue og blokker (senere faser); spiken dekket bare Core
 - [ ] 2026-11-01 [backcasting-fra-15-des](990-2026-11-01-22-17-30-backcasting-fra-15-des.md) — SQLite: sjekk påstandene på SQLite-versjonen til pinnet Python, pin Python i README, og skriv at race-testen viser invarianten under serialiserte skrivere (ikke radnivå-konkurranse)
+- [ ] 2026-11-02 [q4-bytte-kostnad-postgresql](989-2026-11-02-23-56-00-q4-bytte-kostnad-postgresql.md) — arkitektur: hver skriveenhet låser berørte vinduer i starttidsrekkefølge, i én funksjon i datalaget, også på SQLite (PRD §12 Q4, «Switch cost»)
 - [ ] 2026-11-01 [backcasting-fra-15-des](990-2026-11-01-22-17-30-backcasting-fra-15-des.md) — epics-dokumentet må liste FR-29–FR-51 og visjon som ikke planlagt i denne runden (PRD §10.3), ellers flagges de som foreldreløse i beredskapssjekken
