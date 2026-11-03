@@ -284,9 +284,9 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - Rounds of 5–10 minutes, with plenty of water.
 - No alcohol: about 80 % of Finland's 30–40 yearly sauna heat deaths involved intoxication (Statistics Finland, 2011).
 - Swimwear rules vary between venues.
-- Children must be supervised.
+- Children must be supervised by an adult.
 - Bathe with caution, and never alone (Lisa, 2026-10-30).
-- Wording on the page (Lisa, 2026-10-31): etiquette says to ask the others before throwing water on the stones, follow the swimwear rule, and be considerate to people who like it quiet in the sauna; safety says that alcohol is forbidden at the venue.
+- Wording on the page (Lisa, 2026-10-31, changed 2026-11-03): etiquette says to ask the others before throwing water on the stones and follow the swimwear rule; safety says that alcohol is not allowed at the venue and that children must be supervised by an adult.
 
 ## G. Rejected or replaced alternatives
 - Looking up a Booking by reference and email: replaced by resending the link only (2026-10-29).

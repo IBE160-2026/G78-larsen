@@ -174,8 +174,8 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - the **Book seats** action;
   - links to the terms and the privacy notice;
   - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
-    - etiquette: bring two towels, one of them to sit on; ask the others before throwing water on the stones; follow the swimwear rule; be considerate to people who like it quiet in the sauna;
-    - safety: bring water and drink plenty; alcohol is forbidden at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children are supervised by an adult;
+    - etiquette: bring two towels, one of them to sit on; ask the others before throwing water on the stones; follow the swimwear rule;
+    - safety: bring water and drink plenty; alcohol is not allowed at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children must be supervised by an adult;
     - practical: changing time is part of the Window;
     - the section can be linked to directly (FR-8).
 - The website presents the Venue:
@@ -655,7 +655,7 @@ An Administrator can change five Settings. Every other rule is fixed in v1.
 
 | Setting | Default | Limit |
 |---|---|---|
-| Booking horizon | 4 weeks before the Window starts | — |
+| Booking horizon | 4 weeks before the Window starts | never more than 1 month |
 | Booking deadline | 5 minutes after the Window starts; may be set earlier (even before the start) or later | never later than 45 minutes before the Window ends |
 | Cutoff, Seat bookings | 12 hours before the start | not under 2 hours |
 | Cutoff, Whole-sauna bookings | 72 hours before the start | not under 2 hours |
@@ -665,6 +665,7 @@ An Administrator can change five Settings. Every other rule is fixed in v1.
 - A changed Cutoff applies only to Bookings made after the change. Existing Bookings keep the Cutoff they were made under.
 - A changed Booking horizon, Booking deadline or Release time applies from the moment of the change to every Window it has not yet affected `[ASSUMPTION: these rules are applied when a booking or release happens, not stored per Booking]`.
 - The Booking horizon and Booking deadline apply to Seat bookings, Holds, Whole-sauna bookings and the target Window of every Change `[ASSUMPTION: as in the brief]`.
+- A change that sets the Booking horizon to more than 1 month is refused (Lisa, 2026-11-03).
 - A change that sets the Booking deadline later than 45 minutes before the end of a standard 1 h 30 min Window, that is, more than 45 minutes after its start, is refused. For a Window of another length (FR-38), the earlier of the setting and 45 minutes before its end applies `[ASSUMPTION: rule for Windows of another length]`.
 - The Release time is never later than the Booking deadline of a Window with a Whole-booking-only Sauna that has not been released (FR-41). A Release time is a clock time and a Booking deadline belongs to a Window, so the limit is checked per Window `[ASSUMPTION: the limit is checked per Window, not as one global time]`:
   - a change that sets the Release time later than such a Window's Booking deadline is refused, and the message names the Windows;
