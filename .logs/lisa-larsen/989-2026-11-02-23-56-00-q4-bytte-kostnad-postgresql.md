@@ -77,3 +77,24 @@ Lisa ba om å bevise FR-10 for hel-badstue-bookinger og blokker på PostgreSQL (
 ### Åpne punkter
 - FR-10 for hold, markering/frigjøring, Release time og startede vinduer; bypass- og race-test mot ekte app-stack i Core-storyene.
 - Arkitektur: `lock_windows`-regelen og retry på 40P01/40001.
+
+## 2026-11-03 kl. 03:40 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bevise FR-10 for hold på PostgreSQL. Før dette er beviset for hel badstue og blokker committet og pushet (`c2efac7`).
+
+### Plan
+- Bygge videre på spike 2 (`fr10_holds.py` i scratchpad): `held`-teller og `CHECK (booked + held <= seat_capacity)`, `holds`-tabell med 10-minutters-CHECK, testklokke (`app_now()`), og gjenberegning av `held` fra ikke-utløpte rader under vindulåsen i hver skriving.
+- 52 gamle sjekker som regresjon, nye H-tester (rå skrivinger, utløp uten opprydding, forbruk av eget hold, endre størrelse, blokk, kapasitetsendring, tamper), hold-løp og stress med tikkende klokke.
+- Mutasjoner: `nohold`, `nofresh`, `nolock`, `noverify`, `nolock+noverify`.
+
+### Resultat
+- 108 av 108 sjekker bestått; stress ga 0 vranglåsretter og ingen inkonsistent snapshot.
+- Mutasjoner: uten `held` i CHECK feilet 25; hvis utløpte hold telles feilet 4 (ingen får siste plass i sen-betaling-løpet, 100 av 100); uten vindulås feilet 2 (falsk «full», ikke overselling); uten utsatt kontroll feilet 4 (bare tamper); uten begge solgte løpene over.
+- Regler funnet: vis ledige plasser fra radene, ikke telleren (kan være for høy etter utløp, trygt); frigjør hold før booking (samme transaksjon eller én CTE-setning), ellers avvises bookingen; hold + blokk i samme transaksjon.
+- Skrevet inn i `addendum.md` A og «Holds are data». Ikke committet. Containeren er fjernet; skriptene ligger i scratchpad, ikke i repoet.
+- Ikke dekket: bookingfrist i hold-levetid, én hold per økt, grense per kilde-adresse, markering/frigjøring og Release time, startede vinduer, FR-29 «Room ahead», ekte app-stack.
+
+### Åpne punkter
+- FR-10 for markering/frigjøring, Release time og startede vinduer; bypass- og race-test mot ekte app-stack i Core-storyene.
+- Hold-reglene til arkitekturen (se issues.md).
