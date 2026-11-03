@@ -117,3 +117,20 @@ Lisa ba om å bevise FR-10 for markering («kun hel booking») og frigjøring (R
 
 ### Åpne punkter
 - HR6-avviket; fullføre mutasjonskjøringene hvis Lisa vil; bypass- og race-test mot ekte app-stack; applikasjonsreglene og marks-reglene til arkitekturen (se issues.md).
+
+## 2026-11-03 kl. 07:25 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å fullføre mutasjonskjøringene som ikke var ferdige (Docker var lukket for å spare minne). Før dette er addendum-endringen for markering og frigjøring committet og pushet (`a47a426`).
+
+### Plan
+- Starte Docker Desktop og en `postgres:18`-container; kjøre de seks gjenstående variantene én om gangen: `nosettrig` (på nytt, den var avbrutt), `nolock`, `noverify`, `nolock+noverify`, `nohold`, `nofresh`; deretter fjerne containeren og stoppe Docker.
+
+### Resultat
+- Alle seks fullført. Feil per variant: `nosettrig` 1 (RL4b), `nolock` 3 (kun falske avvisninger, ingen overselling), `noverify` 4 (kun tamper), `nolock+noverify` 14 (overselling i løpene, 256 inkonsistente snapshots), `nohold` 22, `nofresh` 4. Tidligere: `noroom` 5, `norelease` 10.
+- HR6-avviket kom ikke tilbake: `nosettrig` gjentatt ga 167 av 168 (bare RL4b), og HR6 passerte i `noverify` og `nofresh`.
+- Funn: i `nolock+noverify` ble stressens sluttilstand likevel lik referansen fordi siste steg utleder alle vinduer på nytt; det er S2 (snapshot-monitoren) som fanger feilen der.
+- Skrevet inn i `addendum.md` A («Which layer does what» og HR6-avsnittet). Ikke committet. Containeren er fjernet og Docker Desktop stoppet (`docker desktop stop`); en WSL-prosess på ca. 1 GB står igjen og er ikke rørt.
+
+### Åpne punkter
+- Ingen nye. HR6-avviket og bypass-/race-test mot ekte app-stack står åpne i issues.md.
