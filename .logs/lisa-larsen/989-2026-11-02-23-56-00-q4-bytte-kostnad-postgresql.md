@@ -31,7 +31,7 @@ Lisa ba om å bytte databasemotor til PostgreSQL. (Commit og push av notatet fra
 - `addendum.md`: A (PostgreSQL valgt, SQLite kun til referanse, spiken merket som SQLite-spesifikk, FR-10-trigger må bevises på PostgreSQL, versjonspåstander) og M (installasjonsrad byttet om).
 - `.memlog.md`: beslutningsoppføring. `README.md`: Docker under forutsetninger, PostgreSQL i stedet for SQLite. `.docs/sensorveiledning-kravsporing.md`: beslutning 2 oppdatert.
 - Ikke committet (bare loggfilene committes her); ikke pushet. Ingen kode eller docker-compose laget.
-- Antakelse jeg la inn: Docker kjører PostgreSQL (Lisa sa ikke hvordan) og én kommando starter databasen (`[ASSUMPTION]` i NFR-1).
+- Antakelse jeg la inn: Docker kjører PostgreSQL. Bekreftet av Lisa samme dag (PRD Q4 oppdatert). Igjen som `[ASSUMPTION]` i NFR-1: én kommando per start (database, backend, frontend) og én for alle tester.
 
 ### Åpne punkter
 - Bevis FR-10 (CHECK + trigger) og FR-11 på PostgreSQL.
