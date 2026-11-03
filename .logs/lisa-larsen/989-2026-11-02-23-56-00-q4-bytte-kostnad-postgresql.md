@@ -134,3 +134,17 @@ Lisa ba om å fullføre mutasjonskjøringene som ikke var ferdige (Docker var lu
 
 ### Åpne punkter
 - Ingen nye. HR6-avviket og bypass-/race-test mot ekte app-stack står åpne i issues.md.
+
+## 2026-11-03 kl. 18:55 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å committe addendum-endringen med mutasjonsresultatene og pushe.
+
+### Plan
+- Committe kun `addendum.md`, deretter `git push`.
+
+### Resultat
+- Addendum A med de seks mutasjonsresultatene committet som `e8566c9` og pushet til `origin/main` (`a47a426..e8566c9`). Loggcommiten `0dcedf0` fulgte med i pushen. Arbeidskopien er ren og i takt med origin.
+
+### Åpne punkter
+- Ingen nye. Åpne punkter står uendret i issues.md.
