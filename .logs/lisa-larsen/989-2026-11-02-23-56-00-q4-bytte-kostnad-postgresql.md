@@ -173,3 +173,24 @@ Lisa ba om å bevise FR-10 mot den ekte applikasjonsstacken. Det fantes ingen st
 - Blokk som gir for lite kapasitet avvises (409) i stedet for overbooking-reserven; arkitekturen avgjør.
 - Foreløpige valg (FastAPI, psycopg-pool, port, passord, `schema.sql` uten migreringsverktøy) må bekreftes i arkitekturen.
 - Koden er skrevet, men ikke committet.
+
+## 2026-11-03 kl. 19:45 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å teste FR-14-retryen med en tvungen konflikt. Retryen (`db.run`, 5 forsøk, `TryAgain` → 503) var aldri kjørt i testene fordi testdatabasen ikke gav vranglåser.
+
+### Plan
+- Ingen testbryter fantes i koden. I stedet for å endre produksjonskoden: tvinge konflikten inne i PostgreSQL med en trigger i testdatabasen som kaster SQLSTATE 40001 eller 40P01, slik `conftest.py` allerede gjør mutasjoner. En sekvens teller forsøkene (sekvenser rulles ikke tilbake).
+- Kjøre mot ekte stack (uvicorn-prosess, ekte HTTP, ekte pool). Mutasjonssjekk av testene mot ødelagt `db.py`.
+- Docker var stoppet; starte Docker Desktop og `docker compose up -d db`.
+
+### Resultat
+- Ny fil `tests/test_fr14_retry.py`, 14 tester, alle bestått (ca. 9 s). **Ikke committet.** Ingen endring i `src/`.
+- Dekker: alle forsøk konflikter (40001 og 40P01) på `/bookings`, `/holds` og `/whole-bookings` gir 503 `try_again`, nøyaktig `db.RETRIES` forsøk og ingen rader skrevet; mislykket booking lar gjestens hold stå urørt (slettingen rulles tilbake); konflikt som forsvinner etter 1, 2 eller RETRIES−1 feil gir 201 med nøyaktig én booking og riktige seter igjen; RETRIES feil gir 503; 409 `no_seat_free` og 503 `try_again` er ulike svar; en ikke-midlertidig feil (23514) prøves bare én gang; tjenesten fungerer igjen når konflikten opphører.
+- Mutasjonssjekk: `_TEMPORARY = ()` (ingen retry) gir 13 feil av 14; `RETRIES` 5 → 7 gir 0 feil fordi testene leser `db.RETRIES` (testene viser at grensen er endelig og holdes, ikke at den er 5). `db.py` er tilbakestilt med `git checkout`.
+- Lukker punktet «FR-14-retry er aldri kjørt» i issues.md.
+- Docker Desktop og containeren `g78-larsen-db-1` ble startet i denne økten.
+
+### Åpne punkter
+- PRD FR-14 sier «en testbryter kan få hver forsøk til å konflikte»; løst her som trigger i testdatabasen, ikke som bryter i applikasjonen. Avgjør om det oppfyller kravet eller om arkitekturen vil ha en ekte bryter.
+- «Gjesten får en tydelig melding» (FR-14) er bare testet som 503 `try_again`; gjestevendt tekst finnes ikke før frontend.
