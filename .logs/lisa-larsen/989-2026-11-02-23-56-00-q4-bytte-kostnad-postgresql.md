@@ -148,3 +148,28 @@ Lisa ba om å committe addendum-endringen med mutasjonsresultatene og pushe.
 
 ### Åpne punkter
 - Ingen nye. Åpne punkter står uendret i issues.md.
+
+## 2026-11-03 kl. 19:15 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bevise FR-10 mot den ekte applikasjonsstacken. Det fantes ingen stack (`src/booking_platform/` var bare et oppstartspunkt), så hun valgte «bygg en tynn Core-skive».
+
+### Plan
+- Flytte spike-skjemaet inn i repoet som `schema.sql` (uten mutasjonsbrytere), med faktiske felt: `session_id` på hold (unik per økt og vindu), `guest`, vinduer uten overlapp, innstillingen `booking_deadline_minutes`.
+- Bygge et FastAPI-API (psycopg 3-pool, bounded retry av 40P01/40001) med seter igjen, hold, booking, hel badstue, blokk, markering og innstillinger; applikasjonsregler: bookingfrist, hold-levetid = tidligste av 10 min og fristen, ett hold per økt og vindu med resize, Release time ≤ bookingfrist.
+- Skrive pytest-tester som starter API-et som egen uvicorn-prosess og sender ekte HTTP fra parallelle tråder, pluss bypass-tester som skriver rett til PostgreSQL mens API-et kjører.
+- Kjøre suiten med ett lag av butikken slått av om gangen (`BP_TEST_MUTATE`) for å vise at testene biter. Stoppe Docker etterpå.
+
+### Resultat
+- Nye filer: `src/booking_platform/{schema.sql,db.py,app.py}`, `docker-compose.yml`, `tests/{conftest.py,test_fr10_through_the_api.py,test_fr10_bypass.py,test_application_rules.py}`; endret `README.md`, `pyproject.toml`/`uv.lock` (fastapi, uvicorn, psycopg[binary,pool], pytest, httpx), `src/booking_platform/__init__.py`, addendum A («Real stack run» med tre punkter). **Ikke committet.**
+- 28 av 28 tester passerer, i fire rene kjøringer på rad (ca. 37 s hver; én på 65 s). Dekker 12 parallelle forespørsler om 60 plasser (20 runder), siste-plass-kappløp (100 runder), 42 av 44 + forespørsel om 3, hold-kappløp (50), sen betaling mot annen gjests hold (50), 800 blandede forespørsler med klokke i bevegelse og REPEATABLE READ-monitor, 10 bypass-tester og 10 applikasjonsregeltester.
+- Mutasjonskjøringer av hele suiten: uten CHECK 18 feil, uten triggere 17, uten `held` i CHECK 6, uten utløpsfilter 3, uten COMMIT-sjekk 1 (kun tukling), uten vindulås 4 (feilaktige avvisninger, ingen overselling), uten lås og COMMIT-sjekk 8 (overselling).
+- Feil underveis: skjemaet definerte `app_now()` etter første bruk (flyttet opp); DSN fra `pg.info.dsn` mistet passordet, og monitor-tråden døde stille så testen passerte uten monitor (nå feiler testen hvis monitoren krasjer eller ser færre enn 20 ganger); én testregnefeil (hold 30 → 36).
+- Docker-containeren er tatt ned og Docker Desktop stoppet.
+
+### Åpne punkter
+- FR-14-retry er aldri kjørt (0 vranglåser); trenger testbryter.
+- Skiven mangler horisont, cutoff, per-kilde-grense, innlogging, betaling, e-post, frontend.
+- Blokk som gir for lite kapasitet avvises (409) i stedet for overbooking-reserven; arkitekturen avgjør.
+- Foreløpige valg (FastAPI, psycopg-pool, port, passord, `schema.sql` uten migreringsverktøy) må bekreftes i arkitekturen.
+- Koden er skrevet, men ikke committet.
