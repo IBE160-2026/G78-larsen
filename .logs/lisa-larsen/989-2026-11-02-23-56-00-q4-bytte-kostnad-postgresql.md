@@ -16,3 +16,25 @@ Lisa spurte om det er mulig å bytte fra SQLite til PostgreSQL etter at kjernen 
 
 ### Åpne punkter
 - Arkitekturen må ta inn regelen fra notatet: hver skriveenhet låser vinduene den berører i starttidsrekkefølge, i én funksjon i datalaget, også på SQLite, så et senere bytte ikke skjuler racer.
+
+## 2026-11-03 kl. 00:15 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bytte databasemotor til PostgreSQL. (Commit og push av notatet fra 2026-11-02 skjedde før dette: `8add5b5`, pushet.)
+
+### Plan
+- Finne alle levende dokumenter som sier SQLite/ingen Docker, og oppdatere dem konsistent; la historiske filer (reconcile-*, review-*, prd-v0, forskning) stå.
+- Ingen kode finnes ennå, så byttet er en dokumentendring.
+
+### Resultat
+- `prd.md`: NFR-1 (Docker tilbake), §10.3 (låseenhet avgjøres i arkitekturen), §12 Q4 (omskrevet: PostgreSQL i Docker, avgjort 2026-11-03, grunn ikke oppgitt, konsekvenser; «switch cost»-notatet erstattet av én linje), Q14 (åpnet igjen, anbefaling vindusrader med `SELECT … FOR UPDATE`).
+- `addendum.md`: A (PostgreSQL valgt, SQLite kun til referanse, spiken merket som SQLite-spesifikk, FR-10-trigger må bevises på PostgreSQL, versjonspåstander) og M (installasjonsrad byttet om).
+- `.memlog.md`: beslutningsoppføring. `README.md`: Docker under forutsetninger, PostgreSQL i stedet for SQLite. `.docs/sensorveiledning-kravsporing.md`: beslutning 2 oppdatert.
+- Ikke committet (bare loggfilene committes her); ikke pushet. Ingen kode eller docker-compose laget.
+- Antakelse jeg la inn: Docker kjører PostgreSQL (Lisa sa ikke hvordan) og én kommando starter databasen (`[ASSUMPTION]` i NFR-1).
+
+### Åpne punkter
+- Bevis FR-10 (CHECK + trigger) og FR-11 på PostgreSQL.
+- Pin PostgreSQL-hovedversjon i README, legg inn startkommando, test ren klone med Docker.
+- Q14 låseenhet er åpen igjen; arkitekturen avgjør.
+- Grunnen til byttet er ikke oppgitt.
