@@ -3,7 +3,7 @@
 ## 2026-11-03 kl. 20:00 — Lisa Larsen
 
 ### Oppgave
-Lisa ba om tre tekstendringer i «Before you come» og en grense på Booking horizon på 1 år.
+Lisa ba om tre tekstendringer i «Before you come» og en grense på Booking horizon (først 1 år, deretter rettet til 1 måned).
 
 ### Plan
 - Finne alle forekomster i PRD og addendum (`grep`), endre bare der teksten faktisk står.
@@ -11,9 +11,9 @@ Lisa ba om tre tekstendringer i «Before you come» og en grense på Booking hor
 
 ### Resultat
 - `prd.md` (landingssiden, FR-1/«Before you come»): «alcohol is forbidden at the venue» → «alcohol is not allowed at the venue»; «be considerate to people who like it quiet in the sauna» fjernet; «children are supervised by an adult» → «children must be supervised by an adult».
-- `prd.md` FR-39: Limit for Booking horizon «never more than 1 year», og ny testbar linje: en endring som setter horisonten over 1 år avvises.
+- `prd.md` FR-39: Limit for Booking horizon «never more than 1 month» (Lisa bad først om 1 år og rettet det til 1 måned samme dag), og ny testbar linje: en endring som setter horisonten over 1 måned avvises.
 - `addendum.md` F («For "Before you come"»): kildenotatet og «Wording on the page»-linjen oppdatert tilsvarende.
 - Ikke endret: `review-*.md`, `reconcile-*.md`, `prd-v0.md` (historiske arbeidsfiler). **Endringene er ikke committet.**
 
 ### Åpne punkter
-- Seed-teksten i addendum J sier «about 230 Windows» (4 uker). Tallet gjelder standardhorisonten og er uendret, men grensen på 1 år gir opptil ca. 2 900 vinduer hvis Administrator setter den høyt; sjekk at seed og vindu-listen tåler det i arkitekturen.
+Ingen. (Punktet om ca. 2 900 vinduer gjaldt grensen på 1 år og er lukket etter rettelsen til 1 måned: ca. 250 vinduer, på størrelse med seedens ca. 230.)
