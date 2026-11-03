@@ -98,3 +98,22 @@ Lisa ba om å bevise FR-10 for hold på PostgreSQL. Før dette er beviset for he
 ### Åpne punkter
 - FR-10 for markering/frigjøring, Release time og startede vinduer; bypass- og race-test mot ekte app-stack i Core-storyene.
 - Hold-reglene til arkitekturen (se issues.md).
+
+## 2026-11-03 kl. 06:10 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bevise FR-10 for markering («kun hel booking») og frigjøring (Release time) på PostgreSQL. Før dette er hold-beviset committet og pushet (`4ef2b4a`).
+
+### Plan
+- Ny spike (`fr10_marks.py` i scratchpad) oppå hold-spiken: `marks`, `settings` (Release time på/av, Europa/Oslo), `releases` (adskilt fra `marks`), kapasitet utledet av klokka, Room ahead-sjekker for hel booking og markering (D8, B1–B3), regelen for startede vinduer (FR-29), og catch-up av forfalte frigjøringer når Release time endres.
+- 108 gamle sjekker som regresjon, nye MK-/RL-tester, løp (MR1–MR3), stress med klokke som passerer Release time, mutasjoner.
+
+### Resultat
+- 168 av 168 sjekker bestått i flere hele kjøringer; stress med 8 gjenværende markeringer og 8 registrerte frigjøringer, 0 vranglåsretter, ingen inkonsistent snapshot.
+- Egen feil funnet og rettet underveis: `seats_left()` leste lagret kapasitet og skjulte en forfalt frigjøring (RL2, RL5d); nå utledet fra radene. Stressen nådde først ikke Release time (klokka endte 04:43Z) og hadde ingen markeringer igjen; rettet med større klokkesteg, utsådde markeringer og færre unmark.
+- Mutasjoner fullført: `noroom` (5 feil), `norelease` (10 feil). `nosettrig` avbrutt (RL4b feilet som forventet). Resten ikke kjørt: systemet stoppet bakgrunnsjobben pga. lite minne, og jeg startet den ikke på nytt.
+- Uforklart: HR6 feilet i 1 av 100 runder i `nosettrig`-kjøringen; ikke gjenskapt (400 av 400 alene; åtte andre hele kjøringer rene). Ført åpent i addendum A og issues.md.
+- Skrevet inn i `addendum.md` A. Ikke committet. Containeren er fjernet; Docker Desktop står fortsatt åpen (bruker ca. 2 GB). Skriptene ligger i scratchpad, ikke i repoet.
+
+### Åpne punkter
+- HR6-avviket; fullføre mutasjonskjøringene hvis Lisa vil; bypass- og race-test mot ekte app-stack; applikasjonsreglene og marks-reglene til arkitekturen (se issues.md).
