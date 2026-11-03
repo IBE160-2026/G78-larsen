@@ -1,0 +1,13 @@
+# The data store (PRD §12 Q4, NFR-1). Start it with:  docker compose up -d db
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: booking
+      POSTGRES_DB: booking
+    ports:
+      - "55432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql
+volumes:
+  dbdata:

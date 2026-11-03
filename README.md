@@ -20,8 +20,8 @@ Det vanskelige er kapasiteten: plasser og hele badstuer trekker på de samme rom
 | Research (samtidighet, kapasitetsmodell, dørkoder) | Ferdig |
 | PRD | Utkast, kjerne (Core) og «hvis tid» er beskrevet, `status: draft` |
 | UX, arkitektur, epics og stories | Ikke startet |
-| Applikasjon | **Ikke bygget.** `src/booking_platform/` inneholder bare et oppstartspunkt som skriver én linje |
-| Automatiserte tester | Ingen ennå. De kommer sammen med hver story (PRD NFR-6) |
+| Applikasjon | **Tynn Core-skive (2026-11-03).** `src/booking_platform/` har PostgreSQL-skjema og et FastAPI-API for plasser, hold, bookinger, hele badstuer, blokker, markeringer og innstillinger. Ingen innlogging, betaling, e-post eller frontend ennå. Bygget for å kjøre FR-10-testene mot ekte stack |
+| Automatiserte tester | 28 tester for FR-10/11/12/14/35/36/41 og tre applikasjonsregler (`tests/`). Resten kommer sammen med hver story (PRD NFR-6) |
 
 Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres når appen finnes: installasjon, testbrukere, miljøvariabler og skjermbilder legges til da.
 
@@ -31,7 +31,7 @@ Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres n
 - Git
 - [Docker](https://www.docker.com/) (kjører databasen)
 
-Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Kommandoen for å starte den skrives inn her når appen finnes. Frontend (Node.js) bestemmes i arkitekturfasen og skrives inn her når den er valgt.
+Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Start den med `docker compose up -d db` (port 55432). Frontend (Node.js) bestemmes i arkitekturfasen og skrives inn her når den er valgt.
 
 ## Kom i gang
 
@@ -39,12 +39,20 @@ Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; 
 git clone https://github.com/IBE160-2026/G78-larsen.git
 cd G78-larsen
 uv sync                  # installerer Python og avhengigheter i .venv
-uv run booking-platform  # skriver «Hello from booking-platform!» (plassholder)
+docker compose up -d db  # starter PostgreSQL 18 i en container (port 55432)
+uv run booking-platform  # starter API-et på http://127.0.0.1:8000 og installerer skjemaet første gang
 ```
+
+Standard database-URL er `postgresql://postgres:booking@localhost:55432/booking`; sett `BP_DATABASE_URL` for en annen.
 
 ### Tester
 
-Ingen tester finnes ennå. Når de kommer, kjøres de med `uv run pytest`, og kommandoen oppdateres her.
+```sh
+docker compose up -d db  # databasen må kjøre
+uv run pytest            # oppretter databasen booking_test på nytt og starter API-et som en egen prosess
+```
+
+Testene sender ekte HTTP-forespørsler til en ekte uvicorn-prosess mot ekte PostgreSQL, og skriver også rett til databasen for å omgå API-et (FR-10). Hele settet tar ca. 40 sekunder.
 
 ### Hverdagskommandoer
 
