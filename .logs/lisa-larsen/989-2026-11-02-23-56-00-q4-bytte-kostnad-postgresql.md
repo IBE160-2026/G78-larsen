@@ -57,3 +57,23 @@ Lisa ba om å bevise FR-10 på PostgreSQL (SQLite-spiken gjaldt ikke lenger). F�
 
 ### Åpne punkter
 - Bevis FR-10 for hel badstue, blokker og hold; skriv bypass- og race-test mot ekte app-stack i Core-storyene; vurder vern mot nedskriving av `booked`.
+
+## 2026-11-03 kl. 02:10 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bevise FR-10 for hel-badstue-bookinger og blokker på PostgreSQL (kapasiteten endrer seg; Core-spiken dekket bare fast kapasitet). Før dette er Core-beviset committet og pushet (`b562695`).
+
+### Plan
+- Ny spike i scratchpad (`fr10_whole_blocks.py`) på `postgres:18`: `saunas`, `windows(seat_capacity, booked)` + CHECK, `bookings`, `whole_bookings`, `blocks(tstzrange)`; triggere som utleder tallene per vindu fra kilderadene, vindusrad låst først, og en utsatt kontrolltrigger ved COMMIT.
+- Deterministiske råskrivinger utenom appen, løp (C2, C6), firerløp, stresstest mot en uavhengig Python-referanse, og mutasjonskjøringer som slår av ett lag om gangen.
+
+### Resultat
+- 52 av 52 sjekker bestått (hel badstue, blokker over flere vinduer alt-eller-ingenting, F1, D1/D5/D7, dobbelt utelukking, `booked`/`seat_capacity` kan ikke skrives for hånd, 100 runder C2 og C6 med ekte konkurranse, firerløp, stress 6×150 mot brute-force-referanse, ingen inkonsistent snapshot).
+- Funn: første kjøring ga 773 vranglåser fordi fremmednøkkelsjekken tar delt lås på vindusraden før AFTER-triggeren; BEFORE-triggere som låser i id-rekkefølge ga 0. Flersetnings-enheter må låse alle vinduer i id-rekkefølge før første skriving (20 av 20 vranglåste uten, 0 av 20 med).
+- Mutasjon: uten vindulås men med utsatt kontroll ingen overselling, men falsk «full» i 100 av 100 runder der begge forespørsler passet; uten begge lag solgte løpene over i 100 av 100; uten bare den utsatte kontrollen ble løpene trygge, men tamper-testene feilet.
+- Skrevet inn i `addendum.md` A (FR-10, linje 26 ff.) og `prd.md` Q14. Ikke committet. Containeren er fjernet; skriptene ligger i scratchpad, ikke i repoet.
+- Ikke dekket: hold, markering/frigjøring og Release time, startede vinduer, FR-29 «Room ahead» (applikasjonsregel), ekte app-stack.
+
+### Åpne punkter
+- FR-10 for hold, markering/frigjøring, Release time og startede vinduer; bypass- og race-test mot ekte app-stack i Core-storyene.
+- Arkitektur: `lock_windows`-regelen og retry på 40P01/40001.
