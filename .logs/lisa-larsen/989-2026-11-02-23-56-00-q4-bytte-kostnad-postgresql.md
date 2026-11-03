@@ -34,7 +34,26 @@ Lisa ba om å bytte databasemotor til PostgreSQL. (Commit og push av notatet fra
 - Antakelse jeg la inn: Docker kjører PostgreSQL. Bekreftet av Lisa samme dag (PRD Q4 oppdatert). Igjen som `[ASSUMPTION]` i NFR-1: én kommando per start (database, backend, frontend) og én for alle tester.
 
 ### Åpne punkter
-- Bevis FR-10 (CHECK + trigger) og FR-11 på PostgreSQL.
+- Bevis FR-10 for hel badstue, blokker og hold; spiken (se under) dekket bare Core.
 - Pin PostgreSQL-hovedversjon i README, legg inn startkommando, test ren klone med Docker.
 - Q14 låseenhet er åpen igjen; arkitekturen avgjør.
 - Grunnen til byttet er ikke oppgitt.
+
+## 2026-11-03 kl. 00:50 — Lisa Larsen
+
+### Oppgave
+Lisa ba om å bevise FR-10 på PostgreSQL (SQLite-spiken gjaldt ikke lenger). Før dette: doc-endringene fra byttet er committet og pushet (`f3daa4c`).
+
+### Plan
+- Starte Docker Desktop (daemonen ssto av) og en `postgres:18`-container.
+- Spike i scratchpad: schema med `windows(seat_capacity, booked)` + CHECK, `bookings` og en rad-trigger; råe skrivinger utenom appen, deretter parallelle skrivere på Read Committed uten eksplisitt lås.
+- Mutasjonssjekk uten triggeren, så testene ikke er tomme.
+
+### Resultat
+- PostgreSQL 18.6: 17 av 17 sjekker bestått (råinsert over kapasitet, multi-rad, oppdatering, flytting, kapasitetsreduksjon avvist med SQLSTATE 23514 og ingenting skrevet; 100 runder × 8 parallelle for siste plass ga nøyaktig én vinner; 50 × 12 blandede størrelser aldri over kapasitet; naiv sjekk-så-insert solgte aldri for mye). Uten triggeren feilet 15 av 17.
+- Skrevet inn i `addendum.md` A (FR-10-avsnittet), med begrensninger. Ikke committet.
+- Begrensning funnet: `windows.booked` kan skrives ned direkte, og da aksepteres en senere insert over kapasitet.
+- Skriptet ligger i scratchpad (`fr10_spike.py`), ikke i repoet. Containeren er fjernet; Docker Desktop startet jeg og lot stå.
+
+### Åpne punkter
+- Bevis FR-10 for hel badstue, blokker og hold; skriv bypass- og race-test mot ekte app-stack i Core-storyene; vurder vern mot nedskriving av `booked`.
