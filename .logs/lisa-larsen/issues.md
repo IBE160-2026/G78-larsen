@@ -72,3 +72,4 @@
 - [ ] 2026-11-01 [backcasting-fra-15-des](990-2026-11-01-22-17-30-backcasting-fra-15-des.md) — epics-dokumentet må liste FR-29–FR-51 og visjon som ikke planlagt i denne runden (PRD §10.3), ellers flagges de som foreldreløse i beredskapssjekken
 - [ ] 2026-11-03 [q4-bytte-kostnad-postgresql](989-2026-11-02-23-56-00-q4-bytte-kostnad-postgresql.md) — FR-14 sier «en testbryter kan få hvert forsøk til å konflikte»; testene bruker en trigger i testdatabasen, ikke en bryter i appen. Avgjør om det oppfyller kravet
 - [ ] 2026-11-03 [q4-bytte-kostnad-postgresql](989-2026-11-02-23-56-00-q4-bytte-kostnad-postgresql.md) — FR-14 «tydelig melding til gjesten» er bare testet som 503 `try_again`; gjestevendt tekst kommer med frontend
+- [ ] 2026-11-03 [prd-before-you-come-og-horisont](988-2026-11-03-20-16-08-prd-before-you-come-og-horisont.md) — Booking horizon kan nå settes opp til 1 år (ca. 2 900 vinduer); sjekk at seed og vindu-listen tåler det i arkitekturen
