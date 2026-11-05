@@ -573,7 +573,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 ### PRD impact
 
-Items 1 to 6, 8 to 12 and 15 were applied to the PRD on 2026-11-05. Item 7 needed no change. Items 13 and 14 belong to the architecture spine and have not been made.
+Items 1 to 6, 8 to 12 and 15 were applied to the PRD on 2026-11-05. Item 7 needed no change. Items 13 and 14 were applied to the architecture spine (AD-16 and AD-12) on 2026-11-05.
 
 1. **Q2 closed by Lisa:** intuitiveness has no separate measure. FR-22 and FR-23 are the only checks. Close §12 Q2 with this answer.
 2. **Reception is a new fact.** The Venue has a reception in Core, and the Guest gives the Booking reference there. Add to FR-8 ("what happens next") and to §3 or §2. Reception staff are not an actor in the PRD; the assumption is that they use the Administrator Booking list.

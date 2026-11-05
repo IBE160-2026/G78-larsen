@@ -7,7 +7,7 @@ paradigm: 'Layered (api → services → db) around a database-enforced invarian
 scope: 'v1: the Core in full (PRD §4.1–4.6); later phases only where a Core choice would otherwise force a rewrite (PRD §10.3)'
 status: final
 created: '2026-11-03'
-updated: '2026-11-03'
+updated: '2026-11-05'
 binds: [FR-1..FR-23, NFR-1..NFR-11, DR-1..DR-5; shape-only for FR-24..FR-42]
 sources:
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md
@@ -167,6 +167,7 @@ flowchart LR
   - **Format:** bodies are plain English text, built in `services`.
   - **Links:** links are absolute, built from the configured base URL. Paths and anchors are constants in `config.links`.
   - **Shared text:** text that appears both on a page and in an email (the booking terms, "what happens next") lives once in `content/`, and both the SPA build and `services` read it from there.
+  - **UI word:** all text that people read, in `content/`, email bodies and the SPA, says "session" for a Window (PRD §3). Code, API fields and the store keep Window.
   - **Guest read:** the only Guest-facing Outbox read is `GET /api/bookings/{reference}/confirmation`. It is checked against the paying session (404 otherwise) and returns the Booking facts plus the stored email. The SPA route is `/confirmation/:reference`.
   - **Administrator read:** only the Administrator API lists the Outbox.
   - **Retention:** retention clears the recipient and body of emails linked to an anonymised Booking.
@@ -206,10 +207,12 @@ flowchart LR
 
 ### AD-16: The server returns codes and facts; the SPA owns page copy [ADOPTED]
 
-- **Binds:** FR-3, FR-12, FR-14, FR-18, FR-22, NFR-5, NFR-9
+- **Binds:** FR-2, FR-3, FR-11, FR-12, FR-14, FR-18, FR-22, NFR-5, NFR-9
 - **Prevents:** one refusal with two codes or two statuses, and the same refusal worded differently on different pages.
 - **Rule:**
   - **Code table:** every refusal code is declared once in `api/errors.py`, with its status and facts, and the SPA mirrors that table. The table starts with the slice's codes.
+  - **Refusals on Review:** `no_seat_free` carries `seats_left`. At 0 the SPA says "No seat free", and above 0 it states the true number. A Window past its Booking deadline is refused with `deadline_passed`.
+  - **Time facts:** the SPA may not use the browser clock (AD-4), so listings send what the pages show. Each Window carries `already_started`, and each listing carries `horizon_end` (a Venue date) and `horizon_days`. All three come from the AD-4 predicates and `settings`, and the SPA never computes them.
   - **Status codes:** 422 is used only for shape errors from Pydantic. Every rule judged against the store or the clock (horizon, deadline, capacity, Cutoff) is a 409 from `services` after the lock.
   - **Envelope:** refusals use the envelope from the Conventions. Its `message` is optional, is meant for developers, and never contains store text.
   - **Success bodies:** successful responses are bare JSON objects.
