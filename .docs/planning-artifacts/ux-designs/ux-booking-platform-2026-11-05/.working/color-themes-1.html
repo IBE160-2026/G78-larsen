@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colour Themes</title>
+<style>
+/*
+Pine Bench: leads with Light wood (pine). Warm and unhurried, like settling onto the bench.
+  Page background:   #EFE5D3
+  Surface:           #FBF7EE
+  Text:              #2F312B
+  Muted text:        #5A5A4E
+  Primary action:    #C9AE80
+  Text on primary:   #26281F
+  Link:              #2F5540
+  Border:            #877C60
+  Focus ring:        #2F5540
+  Unavailable:       #E6DCC9
+  Error:             #7F3A28
+  Success:           #2F5F43
+*/
+.t1{--page:#EFE5D3;--surface:#FBF7EE;--text:#2F312B;--muted:#5A5A4E;--primary:#C9AE80;--on-primary:#26281F;--link:#2F5540;--border:#877C60;--focus:#2F5540;--unavailable:#E6DCC9;--error:#7F3A28;--success:#2F5F43;--edge:#2F312B}
+
+/*
+Spruce Shade: leads with Deep forest green. Grounded and sure, like walking in under tall spruce.
+  Page background:   #F5F3EB
+  Surface:           #FFFEFA
+  Text:              #18261E
+  Muted text:        #46524A
+  Primary action:    #1F3F2E
+  Text on primary:   #FBF9F2
+  Link:              #23573E
+  Border:            #7E887E
+  Focus ring:        #3A5F74
+  Unavailable:       #E9E8DF
+  Error:             #7F3628
+  Success:           #2E6144
+*/
+.t2{--page:#F5F3EB;--surface:#FFFEFA;--text:#18261E;--muted:#46524A;--primary:#1F3F2E;--on-primary:#FBF9F2;--link:#23573E;--border:#7E887E;--focus:#3A5F74;--unavailable:#E9E8DF;--error:#7F3628;--success:#2E6144;--edge:#1F3F2E}
+
+/*
+Wet Granite: leads with Granite grey. Sober and plain: cool stone with nothing to sell.
+  Page background:   #E4E5E2
+  Surface:           #F5F5F2
+  Text:              #25282A
+  Muted text:        #4F5457
+  Primary action:    #43494C
+  Text on primary:   #F8F8F5
+  Link:              #2F5265
+  Border:            #797E80
+  Focus ring:        #2F5265
+  Unavailable:       #DADBD8
+  Error:             #7D3A2C
+  Success:           #2F5B45
+*/
+.t3{--page:#E4E5E2;--surface:#F5F5F2;--text:#25282A;--muted:#4F5457;--primary:#43494C;--on-primary:#F8F8F5;--link:#2F5265;--border:#797E80;--focus:#2F5265;--unavailable:#DADBD8;--error:#7D3A2C;--success:#2F5B45;--edge:#43494C}
+
+/*
+Still Lake: leads with Grey sea-blue. Quiet and cool: the pause by the water between rounds.
+  Page background:   #E6EDEF
+  Surface:           #F7F9F8
+  Text:              #1F2E36
+  Muted text:        #47585F
+  Primary action:    #3B5A69
+  Text on primary:   #F8FAF9
+  Link:              #2C5870
+  Border:            #74858D
+  Focus ring:        #2C5A45
+  Unavailable:       #DCE4E6
+  Error:             #7D3A2E
+  Success:           #2B5C45
+*/
+.t4{--page:#E6EDEF;--surface:#F7F9F8;--text:#1F2E36;--muted:#47585F;--primary:#3B5A69;--on-primary:#F8FAF9;--link:#2C5870;--border:#74858D;--focus:#2C5A45;--unavailable:#DCE4E6;--error:#7D3A2E;--success:#2B5C45;--edge:#3B5A69}
+
+/*
+Clear Morning: leads with Sky blue. Light and open: cold air and pale sky after the sauna.
+  Page background:   #E5F0F5
+  Surface:           #FDFCF7
+  Text:              #26353D
+  Muted text:        #4C5D66
+  Primary action:    #B5D2E1
+  Text on primary:   #1E2D35
+  Link:              #2F5A71
+  Border:            #6F8693
+  Focus ring:        #2F5A71
+  Unavailable:       #E4EBEC
+  Error:             #7F3C2E
+  Success:           #2E6047
+*/
+.t5{--page:#E5F0F5;--surface:#FDFCF7;--text:#26353D;--muted:#4C5D66;--primary:#B5D2E1;--on-primary:#1E2D35;--link:#2F5A71;--border:#6F8693;--focus:#2F5A71;--unavailable:#E4EBEC;--error:#7F3C2E;--success:#2E6047;--edge:#26353D}
+
+
+*{box-sizing:border-box}
+body{margin:0;background:#FAFAF7;color:#26282A;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+h1,h2,h3,h4,p{margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+.intro{padding:32px 0 24px}
+.intro h1{font-size:28px;line-height:1.25;font-weight:650}
+.intro p{max-width:72ch;margin-top:8px;color:#55585A}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:20px}
+.mini{display:block;padding:12px;background:var(--page);color:var(--text);border:1px solid var(--border);border-radius:4px}
+.mini strong{display:block;font-weight:600}
+.mini span{display:block;color:var(--muted);font-size:14px}
+.mini i{display:block;font-style:normal;margin-top:10px;padding:5px 10px;border-radius:4px;border:1.5px solid var(--edge);background:var(--primary);color:var(--on-primary);font-size:14px;font-weight:600;text-align:center}
+.band{margin-top:20px;padding:28px 0 24px;background:var(--page);color:var(--text);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.band-head h2{font-size:24px;line-height:1.25;font-weight:650}
+.band-head p{margin-top:2px}
+.band-head .facts{color:var(--muted);font-size:15px}
+.band-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start;margin-top:20px}
+.band-grid h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;margin:0 0 16px;padding:0;list-style:none}
+.chip b{display:block;height:40px;border:1px solid var(--border);border-radius:4px;margin-bottom:4px}
+.chip span{display:block;font-size:14px;line-height:1.3}
+.chip .hex{color:var(--muted);font-variant-numeric:tabular-nums}
+.specimen{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 20px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-size:15px}
+.specimen .m{color:var(--muted)}.specimen a{color:var(--link)}.specimen .e{color:var(--error)}.specimen .s{color:var(--success)}
+table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.3;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:600;padding:4px 8px 4px 0;border-bottom:1px solid var(--border)}
+td{padding:3px 8px 3px 0;border-bottom:1px solid var(--border)}
+td.num,th.num{text-align:right;padding-right:0;white-space:nowrap}
+.low{margin-top:8px;font-size:14px;font-weight:600}
+.snippet{background:var(--surface);border:1px solid var(--border);border-radius:4px;min-width:0}
+.bar{padding:10px 20px;background:var(--primary);color:var(--on-primary);font-weight:600;border-radius:3px 3px 0 0}
+.body{padding:20px}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:14px}
+.head h4{font-size:24px;line-height:1.2;font-weight:650}
+.head span{color:var(--muted)}
+.list{display:grid;gap:8px;margin-bottom:16px}
+.win{display:grid;grid-template-columns:18px 7rem minmax(0,1fr);gap:12px;align-items:center;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:4px;background:var(--surface)}
+label.win{cursor:pointer}
+.win .time{font-weight:600;font-variant-numeric:tabular-nums}
+.win.off{background:var(--unavailable);border-color:var(--unavailable)}
+.win.off .state{color:var(--muted)}
+.win input{appearance:none;-webkit-appearance:none;display:inline-grid;place-content:center;width:18px;height:18px;margin:0;border:2px solid var(--muted);border-radius:50%;background:var(--surface)}
+.win input:checked::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--text)}
+.win input:disabled{border-style:dashed;background:transparent}
+.win.is-focus,.win:has(input:focus-visible),.btn:focus-visible,.field input:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn{font:inherit;font-weight:600;min-height:44px;padding:8px 20px;border:1.5px solid var(--edge);border-radius:4px;background:var(--primary);color:var(--on-primary);cursor:pointer}
+.part{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.field{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 14px;align-items:center}
+.field label{grid-column:1 / -1;font-weight:600}
+.field input{font:inherit;width:100%;min-height:44px;padding:8px 10px;background:var(--surface);color:var(--text);border:2px solid var(--error);border-radius:4px}
+.field .msg{color:var(--error)}
+.review{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin-bottom:12px}
+.review a{color:var(--link)}
+.pay{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.pay span{color:var(--muted)}
+.note{margin-top:8px;color:var(--muted);font-size:14px}
+.top{margin-top:14px;font-size:14px}
+.top a{color:var(--link)}
+.foot{padding:20px 0 36px;color:#55585A;font-size:14px;max-width:80ch}
+@media (max-width:980px){.band-grid{grid-template-columns:minmax(0,1fr)}.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.wrap{padding:0 16px}.chips{grid-template-columns:repeat(2,minmax(0,1fr))}.field{grid-template-columns:minmax(0,1fr)}.win{grid-template-columns:18px minmax(0,1fr)}.win .state{grid-column:2}}
+
+</style>
+</head>
+<body id="top">
+<div class="wrap">
+  <header class="intro">
+    <h1>Saunalöyly colour themes</h1>
+    <p>Five light themes from the PRD palette, with the same booking content in each. The order carries no ranking. Pick the one that feels most like the sauna.</p>
+    <nav class="strip" aria-label="Themes">
+<a class="mini t1" href="#t1"><strong>Pine Bench</strong><span>Light wood (pine)</span><i>Book seats</i></a>
+<a class="mini t2" href="#t2"><strong>Spruce Shade</strong><span>Deep forest green</span><i>Book seats</i></a>
+<a class="mini t3" href="#t3"><strong>Wet Granite</strong><span>Granite grey</span><i>Book seats</i></a>
+<a class="mini t4" href="#t4"><strong>Still Lake</strong><span>Grey sea-blue</span><i>Book seats</i></a>
+<a class="mini t5" href="#t5"><strong>Clear Morning</strong><span>Sky blue</span><i>Book seats</i></a>
+    </nav>
+  </header>
+</div>
+
+<section class="band t1" id="t1" aria-labelledby="t1-name">
+<div class="wrap">
+  <div class="band-head">
+    <h2 id="t1-name">1. Pine Bench</h2>
+    <p>Warm and unhurried, like settling onto the bench.</p>
+    <p class="facts">Leads with light wood (pine) · Temperature: warm · Contrast feel: soft</p>
+  </div>
+  <div class="band-grid">
+    <div>
+      <h3>Tokens</h3>
+      <ul class="chips">
+<li class="chip"><b style="background:#EFE5D3"></b><span>Page background</span><span class="hex">#EFE5D3</span></li>
+<li class="chip"><b style="background:#FBF7EE"></b><span>Surface</span><span class="hex">#FBF7EE</span></li>
+<li class="chip"><b style="background:#2F312B"></b><span>Text</span><span class="hex">#2F312B</span></li>
+<li class="chip"><b style="background:#5A5A4E"></b><span>Muted text</span><span class="hex">#5A5A4E</span></li>
+<li class="chip"><b style="background:#C9AE80"></b><span>Primary action</span><span class="hex">#C9AE80</span></li>
+<li class="chip"><b style="background:#26281F"></b><span>Text on primary</span><span class="hex">#26281F</span></li>
+<li class="chip"><b style="background:#2F5540"></b><span>Link</span><span class="hex">#2F5540</span></li>
+<li class="chip"><b style="background:#877C60"></b><span>Border</span><span class="hex">#877C60</span></li>
+<li class="chip"><b style="background:#2F5540"></b><span>Focus ring</span><span class="hex">#2F5540</span></li>
+<li class="chip"><b style="background:#E6DCC9"></b><span>Unavailable</span><span class="hex">#E6DCC9</span></li>
+<li class="chip"><b style="background:#7F3A28"></b><span>Error</span><span class="hex">#7F3A28</span></li>
+<li class="chip"><b style="background:#2F5F43"></b><span>Success</span><span class="hex">#2F5F43</span></li>
+      </ul>
+      <p class="specimen"><span>Text</span><span class="m">Muted text</span><a href="#t1">Link</a><span class="e">Error</span><span class="s">Success</span></p>
+      <h3>Contrast, computed (WCAG 2.2 AA)</h3>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Ratio</th><th class="num">Needs</th></tr></thead>
+        <tbody>
+<tr><td>Text on page</td><td class="num">10.54:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on surface</td><td class="num">12.31:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on unavailable</td><td class="num">9.68:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on page</td><td class="num">5.59:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on surface</td><td class="num">6.53:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on unavailable</td><td class="num">5.13:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on primary, on primary</td><td class="num">7.00:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on page</td><td class="num">6.74:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on surface</td><td class="num">7.87:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Error on surface</td><td class="num">7.73:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Success on surface</td><td class="num">6.91:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Focus ring on surface</td><td class="num">7.87:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on page</td><td class="num">6.74:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on unavailable</td><td class="num">6.19:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on surface</td><td class="num">3.86:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on page</td><td class="num">3.30:1</td><td class="num">3:1</td></tr>
+        </tbody>
+      </table>
+      <p class="low">Lowest text pair: 5.13:1. Lowest non-text pair: 3.30:1.</p>
+    </div>
+    <div>
+      <h3>UI snippet</h3>
+      <div class="snippet">
+        <div class="bar">Saunalöyly</div>
+        <div class="body">
+          <div class="head"><h4>Saturday</h4><span>2 seats</span></div>
+          <div class="list" role="radiogroup" aria-label="Windows on Saturday for 2 seats">
+            <label class="win"><input type="radio" name="t1-window" checked><span class="time">13:00–14:30</span><span class="state">12 seats left · NOK 500</span></label>
+            <div class="win off"><input type="radio" name="t1-window" disabled aria-label="14:30–16:00, unavailable"><span class="time">14:30–16:00</span><span class="state">1 seat left · Unavailable for 2 seats</span></div>
+            <div class="win off"><input type="radio" name="t1-window" disabled aria-label="16:00–17:30, sold out"><span class="time">16:00–17:30</span><span class="state">Sold out</span></div>
+            <label class="win is-focus"><input type="radio" name="t1-window"><span class="time">17:30–19:00</span><span class="state">9 seats left · NOK 500</span></label>
+          </div>
+          <button type="button" class="btn">Book seats</button>
+          <div class="part field">
+            <label for="t1-email">Email</label>
+            <input id="t1-email" type="text" value="ingrid@" aria-invalid="true" aria-describedby="t1-email-error">
+            <span class="msg" id="t1-email-error">Enter a valid email address</span>
+          </div>
+          <div class="part">
+            <p class="review"><span>Saturday 13:00–14:30 · 2 seats · NOK 500 incl. VAT</span><a href="#t1">Booking terms</a></p>
+            <div class="pay"><button type="button" class="btn">Pay NOK 500</button><span>Simulated payment: no money moves</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The 17:30–19:00 Window is shown with its focus ring. The ring sits 2 px clear of the control, so it meets the surface, never the control's own fill.</p>
+      <p class="top"><a href="#top">Back to overview</a></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="band t2" id="t2" aria-labelledby="t2-name">
+<div class="wrap">
+  <div class="band-head">
+    <h2 id="t2-name">2. Spruce Shade</h2>
+    <p>Grounded and sure, like walking in under tall spruce.</p>
+    <p class="facts">Leads with deep forest green · Temperature: neutral · Contrast feel: firm</p>
+  </div>
+  <div class="band-grid">
+    <div>
+      <h3>Tokens</h3>
+      <ul class="chips">
+<li class="chip"><b style="background:#F5F3EB"></b><span>Page background</span><span class="hex">#F5F3EB</span></li>
+<li class="chip"><b style="background:#FFFEFA"></b><span>Surface</span><span class="hex">#FFFEFA</span></li>
+<li class="chip"><b style="background:#18261E"></b><span>Text</span><span class="hex">#18261E</span></li>
+<li class="chip"><b style="background:#46524A"></b><span>Muted text</span><span class="hex">#46524A</span></li>
+<li class="chip"><b style="background:#1F3F2E"></b><span>Primary action</span><span class="hex">#1F3F2E</span></li>
+<li class="chip"><b style="background:#FBF9F2"></b><span>Text on primary</span><span class="hex">#FBF9F2</span></li>
+<li class="chip"><b style="background:#23573E"></b><span>Link</span><span class="hex">#23573E</span></li>
+<li class="chip"><b style="background:#7E887E"></b><span>Border</span><span class="hex">#7E887E</span></li>
+<li class="chip"><b style="background:#3A5F74"></b><span>Focus ring</span><span class="hex">#3A5F74</span></li>
+<li class="chip"><b style="background:#E9E8DF"></b><span>Unavailable</span><span class="hex">#E9E8DF</span></li>
+<li class="chip"><b style="background:#7F3628"></b><span>Error</span><span class="hex">#7F3628</span></li>
+<li class="chip"><b style="background:#2E6144"></b><span>Success</span><span class="hex">#2E6144</span></li>
+      </ul>
+      <p class="specimen"><span>Text</span><span class="m">Muted text</span><a href="#t2">Link</a><span class="e">Error</span><span class="s">Success</span></p>
+      <h3>Contrast, computed (WCAG 2.2 AA)</h3>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Ratio</th><th class="num">Needs</th></tr></thead>
+        <tbody>
+<tr><td>Text on page</td><td class="num">14.16:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on surface</td><td class="num">15.58:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on unavailable</td><td class="num">12.79:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on page</td><td class="num">7.36:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on surface</td><td class="num">8.10:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on unavailable</td><td class="num">6.65:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on primary, on primary</td><td class="num">11.02:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on page</td><td class="num">7.54:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on surface</td><td class="num">8.30:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Error on surface</td><td class="num">8.45:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Success on surface</td><td class="num">7.15:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Focus ring on surface</td><td class="num">6.78:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on page</td><td class="num">6.15:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on unavailable</td><td class="num">5.56:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on surface</td><td class="num">3.64:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on page</td><td class="num">3.31:1</td><td class="num">3:1</td></tr>
+        </tbody>
+      </table>
+      <p class="low">Lowest text pair: 6.65:1. Lowest non-text pair: 3.31:1.</p>
+    </div>
+    <div>
+      <h3>UI snippet</h3>
+      <div class="snippet">
+        <div class="bar">Saunalöyly</div>
+        <div class="body">
+          <div class="head"><h4>Saturday</h4><span>2 seats</span></div>
+          <div class="list" role="radiogroup" aria-label="Windows on Saturday for 2 seats">
+            <label class="win"><input type="radio" name="t2-window" checked><span class="time">13:00–14:30</span><span class="state">12 seats left · NOK 500</span></label>
+            <div class="win off"><input type="radio" name="t2-window" disabled aria-label="14:30–16:00, unavailable"><span class="time">14:30–16:00</span><span class="state">1 seat left · Unavailable for 2 seats</span></div>
+            <div class="win off"><input type="radio" name="t2-window" disabled aria-label="16:00–17:30, sold out"><span class="time">16:00–17:30</span><span class="state">Sold out</span></div>
+            <label class="win is-focus"><input type="radio" name="t2-window"><span class="time">17:30–19:00</span><span class="state">9 seats left · NOK 500</span></label>
+          </div>
+          <button type="button" class="btn">Book seats</button>
+          <div class="part field">
+            <label for="t2-email">Email</label>
+            <input id="t2-email" type="text" value="ingrid@" aria-invalid="true" aria-describedby="t2-email-error">
+            <span class="msg" id="t2-email-error">Enter a valid email address</span>
+          </div>
+          <div class="part">
+            <p class="review"><span>Saturday 13:00–14:30 · 2 seats · NOK 500 incl. VAT</span><a href="#t2">Booking terms</a></p>
+            <div class="pay"><button type="button" class="btn">Pay NOK 500</button><span>Simulated payment: no money moves</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The 17:30–19:00 Window is shown with its focus ring. The ring sits 2 px clear of the control, so it meets the surface, never the control's own fill.</p>
+      <p class="top"><a href="#top">Back to overview</a></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="band t3" id="t3" aria-labelledby="t3-name">
+<div class="wrap">
+  <div class="band-head">
+    <h2 id="t3-name">3. Wet Granite</h2>
+    <p>Sober and plain: cool stone with nothing to sell.</p>
+    <p class="facts">Leads with granite grey · Temperature: cool neutral · Contrast feel: firm</p>
+  </div>
+  <div class="band-grid">
+    <div>
+      <h3>Tokens</h3>
+      <ul class="chips">
+<li class="chip"><b style="background:#E4E5E2"></b><span>Page background</span><span class="hex">#E4E5E2</span></li>
+<li class="chip"><b style="background:#F5F5F2"></b><span>Surface</span><span class="hex">#F5F5F2</span></li>
+<li class="chip"><b style="background:#25282A"></b><span>Text</span><span class="hex">#25282A</span></li>
+<li class="chip"><b style="background:#4F5457"></b><span>Muted text</span><span class="hex">#4F5457</span></li>
+<li class="chip"><b style="background:#43494C"></b><span>Primary action</span><span class="hex">#43494C</span></li>
+<li class="chip"><b style="background:#F8F8F5"></b><span>Text on primary</span><span class="hex">#F8F8F5</span></li>
+<li class="chip"><b style="background:#2F5265"></b><span>Link</span><span class="hex">#2F5265</span></li>
+<li class="chip"><b style="background:#797E80"></b><span>Border</span><span class="hex">#797E80</span></li>
+<li class="chip"><b style="background:#2F5265"></b><span>Focus ring</span><span class="hex">#2F5265</span></li>
+<li class="chip"><b style="background:#DADBD8"></b><span>Unavailable</span><span class="hex">#DADBD8</span></li>
+<li class="chip"><b style="background:#7D3A2C"></b><span>Error</span><span class="hex">#7D3A2C</span></li>
+<li class="chip"><b style="background:#2F5B45"></b><span>Success</span><span class="hex">#2F5B45</span></li>
+      </ul>
+      <p class="specimen"><span>Text</span><span class="m">Muted text</span><a href="#t3">Link</a><span class="e">Error</span><span class="s">Success</span></p>
+      <h3>Contrast, computed (WCAG 2.2 AA)</h3>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Ratio</th><th class="num">Needs</th></tr></thead>
+        <tbody>
+<tr><td>Text on page</td><td class="num">11.72:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on surface</td><td class="num">13.58:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on unavailable</td><td class="num">10.67:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on page</td><td class="num">6.06:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on surface</td><td class="num">7.02:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on unavailable</td><td class="num">5.51:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on primary, on primary</td><td class="num">8.59:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on page</td><td class="num">6.60:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on surface</td><td class="num">7.64:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Error on surface</td><td class="num">7.64:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Success on surface</td><td class="num">7.11:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Focus ring on surface</td><td class="num">7.64:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on page</td><td class="num">6.60:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on unavailable</td><td class="num">6.00:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on surface</td><td class="num">3.76:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on page</td><td class="num">3.25:1</td><td class="num">3:1</td></tr>
+        </tbody>
+      </table>
+      <p class="low">Lowest text pair: 5.51:1. Lowest non-text pair: 3.25:1.</p>
+    </div>
+    <div>
+      <h3>UI snippet</h3>
+      <div class="snippet">
+        <div class="bar">Saunalöyly</div>
+        <div class="body">
+          <div class="head"><h4>Saturday</h4><span>2 seats</span></div>
+          <div class="list" role="radiogroup" aria-label="Windows on Saturday for 2 seats">
+            <label class="win"><input type="radio" name="t3-window" checked><span class="time">13:00–14:30</span><span class="state">12 seats left · NOK 500</span></label>
+            <div class="win off"><input type="radio" name="t3-window" disabled aria-label="14:30–16:00, unavailable"><span class="time">14:30–16:00</span><span class="state">1 seat left · Unavailable for 2 seats</span></div>
+            <div class="win off"><input type="radio" name="t3-window" disabled aria-label="16:00–17:30, sold out"><span class="time">16:00–17:30</span><span class="state">Sold out</span></div>
+            <label class="win is-focus"><input type="radio" name="t3-window"><span class="time">17:30–19:00</span><span class="state">9 seats left · NOK 500</span></label>
+          </div>
+          <button type="button" class="btn">Book seats</button>
+          <div class="part field">
+            <label for="t3-email">Email</label>
+            <input id="t3-email" type="text" value="ingrid@" aria-invalid="true" aria-describedby="t3-email-error">
+            <span class="msg" id="t3-email-error">Enter a valid email address</span>
+          </div>
+          <div class="part">
+            <p class="review"><span>Saturday 13:00–14:30 · 2 seats · NOK 500 incl. VAT</span><a href="#t3">Booking terms</a></p>
+            <div class="pay"><button type="button" class="btn">Pay NOK 500</button><span>Simulated payment: no money moves</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The 17:30–19:00 Window is shown with its focus ring. The ring sits 2 px clear of the control, so it meets the surface, never the control's own fill.</p>
+      <p class="top"><a href="#top">Back to overview</a></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="band t4" id="t4" aria-labelledby="t4-name">
+<div class="wrap">
+  <div class="band-head">
+    <h2 id="t4-name">4. Still Lake</h2>
+    <p>Quiet and cool: the pause by the water between rounds.</p>
+    <p class="facts">Leads with grey sea-blue · Temperature: cool · Contrast feel: medium</p>
+  </div>
+  <div class="band-grid">
+    <div>
+      <h3>Tokens</h3>
+      <ul class="chips">
+<li class="chip"><b style="background:#E6EDEF"></b><span>Page background</span><span class="hex">#E6EDEF</span></li>
+<li class="chip"><b style="background:#F7F9F8"></b><span>Surface</span><span class="hex">#F7F9F8</span></li>
+<li class="chip"><b style="background:#1F2E36"></b><span>Text</span><span class="hex">#1F2E36</span></li>
+<li class="chip"><b style="background:#47585F"></b><span>Muted text</span><span class="hex">#47585F</span></li>
+<li class="chip"><b style="background:#3B5A69"></b><span>Primary action</span><span class="hex">#3B5A69</span></li>
+<li class="chip"><b style="background:#F8FAF9"></b><span>Text on primary</span><span class="hex">#F8FAF9</span></li>
+<li class="chip"><b style="background:#2C5870"></b><span>Link</span><span class="hex">#2C5870</span></li>
+<li class="chip"><b style="background:#74858D"></b><span>Border</span><span class="hex">#74858D</span></li>
+<li class="chip"><b style="background:#2C5A45"></b><span>Focus ring</span><span class="hex">#2C5A45</span></li>
+<li class="chip"><b style="background:#DCE4E6"></b><span>Unavailable</span><span class="hex">#DCE4E6</span></li>
+<li class="chip"><b style="background:#7D3A2E"></b><span>Error</span><span class="hex">#7D3A2E</span></li>
+<li class="chip"><b style="background:#2B5C45"></b><span>Success</span><span class="hex">#2B5C45</span></li>
+      </ul>
+      <p class="specimen"><span>Text</span><span class="m">Muted text</span><a href="#t4">Link</a><span class="e">Error</span><span class="s">Success</span></p>
+      <h3>Contrast, computed (WCAG 2.2 AA)</h3>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Ratio</th><th class="num">Needs</th></tr></thead>
+        <tbody>
+<tr><td>Text on page</td><td class="num">11.79:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on surface</td><td class="num">13.21:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on unavailable</td><td class="num">10.83:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on page</td><td class="num">6.26:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on surface</td><td class="num">7.02:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on unavailable</td><td class="num">5.75:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on primary, on primary</td><td class="num">7.02:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on page</td><td class="num">6.47:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on surface</td><td class="num">7.25:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Error on surface</td><td class="num">7.89:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Success on surface</td><td class="num">7.30:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Focus ring on surface</td><td class="num">7.47:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on page</td><td class="num">6.67:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on unavailable</td><td class="num">6.13:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on surface</td><td class="num">3.62:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on page</td><td class="num">3.23:1</td><td class="num">3:1</td></tr>
+        </tbody>
+      </table>
+      <p class="low">Lowest text pair: 5.75:1. Lowest non-text pair: 3.23:1.</p>
+    </div>
+    <div>
+      <h3>UI snippet</h3>
+      <div class="snippet">
+        <div class="bar">Saunalöyly</div>
+        <div class="body">
+          <div class="head"><h4>Saturday</h4><span>2 seats</span></div>
+          <div class="list" role="radiogroup" aria-label="Windows on Saturday for 2 seats">
+            <label class="win"><input type="radio" name="t4-window" checked><span class="time">13:00–14:30</span><span class="state">12 seats left · NOK 500</span></label>
+            <div class="win off"><input type="radio" name="t4-window" disabled aria-label="14:30–16:00, unavailable"><span class="time">14:30–16:00</span><span class="state">1 seat left · Unavailable for 2 seats</span></div>
+            <div class="win off"><input type="radio" name="t4-window" disabled aria-label="16:00–17:30, sold out"><span class="time">16:00–17:30</span><span class="state">Sold out</span></div>
+            <label class="win is-focus"><input type="radio" name="t4-window"><span class="time">17:30–19:00</span><span class="state">9 seats left · NOK 500</span></label>
+          </div>
+          <button type="button" class="btn">Book seats</button>
+          <div class="part field">
+            <label for="t4-email">Email</label>
+            <input id="t4-email" type="text" value="ingrid@" aria-invalid="true" aria-describedby="t4-email-error">
+            <span class="msg" id="t4-email-error">Enter a valid email address</span>
+          </div>
+          <div class="part">
+            <p class="review"><span>Saturday 13:00–14:30 · 2 seats · NOK 500 incl. VAT</span><a href="#t4">Booking terms</a></p>
+            <div class="pay"><button type="button" class="btn">Pay NOK 500</button><span>Simulated payment: no money moves</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The 17:30–19:00 Window is shown with its focus ring. The ring sits 2 px clear of the control, so it meets the surface, never the control's own fill.</p>
+      <p class="top"><a href="#top">Back to overview</a></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="band t5" id="t5" aria-labelledby="t5-name">
+<div class="wrap">
+  <div class="band-head">
+    <h2 id="t5-name">5. Clear Morning</h2>
+    <p>Light and open: cold air and pale sky after the sauna.</p>
+    <p class="facts">Leads with sky blue · Temperature: cool, airy · Contrast feel: soft</p>
+  </div>
+  <div class="band-grid">
+    <div>
+      <h3>Tokens</h3>
+      <ul class="chips">
+<li class="chip"><b style="background:#E5F0F5"></b><span>Page background</span><span class="hex">#E5F0F5</span></li>
+<li class="chip"><b style="background:#FDFCF7"></b><span>Surface</span><span class="hex">#FDFCF7</span></li>
+<li class="chip"><b style="background:#26353D"></b><span>Text</span><span class="hex">#26353D</span></li>
+<li class="chip"><b style="background:#4C5D66"></b><span>Muted text</span><span class="hex">#4C5D66</span></li>
+<li class="chip"><b style="background:#B5D2E1"></b><span>Primary action</span><span class="hex">#B5D2E1</span></li>
+<li class="chip"><b style="background:#1E2D35"></b><span>Text on primary</span><span class="hex">#1E2D35</span></li>
+<li class="chip"><b style="background:#2F5A71"></b><span>Link</span><span class="hex">#2F5A71</span></li>
+<li class="chip"><b style="background:#6F8693"></b><span>Border</span><span class="hex">#6F8693</span></li>
+<li class="chip"><b style="background:#2F5A71"></b><span>Focus ring</span><span class="hex">#2F5A71</span></li>
+<li class="chip"><b style="background:#E4EBEC"></b><span>Unavailable</span><span class="hex">#E4EBEC</span></li>
+<li class="chip"><b style="background:#7F3C2E"></b><span>Error</span><span class="hex">#7F3C2E</span></li>
+<li class="chip"><b style="background:#2E6047"></b><span>Success</span><span class="hex">#2E6047</span></li>
+      </ul>
+      <p class="specimen"><span>Text</span><span class="m">Muted text</span><a href="#t5">Link</a><span class="e">Error</span><span class="s">Success</span></p>
+      <h3>Contrast, computed (WCAG 2.2 AA)</h3>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Ratio</th><th class="num">Needs</th></tr></thead>
+        <tbody>
+<tr><td>Text on page</td><td class="num">10.91:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on surface</td><td class="num">12.32:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on unavailable</td><td class="num">10.48:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on page</td><td class="num">5.91:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on surface</td><td class="num">6.67:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Muted on unavailable</td><td class="num">5.67:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Text on primary, on primary</td><td class="num">8.95:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on page</td><td class="num">6.41:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Link on surface</td><td class="num">7.24:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Error on surface</td><td class="num">7.89:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Success on surface</td><td class="num">7.09:1</td><td class="num">4.5:1</td></tr>
+<tr><td>Focus ring on surface</td><td class="num">7.24:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on page</td><td class="num">6.41:1</td><td class="num">3:1</td></tr>
+<tr><td>Focus ring on unavailable</td><td class="num">6.16:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on surface</td><td class="num">3.71:1</td><td class="num">3:1</td></tr>
+<tr><td>Border on page</td><td class="num">3.28:1</td><td class="num">3:1</td></tr>
+        </tbody>
+      </table>
+      <p class="low">Lowest text pair: 5.67:1. Lowest non-text pair: 3.28:1.</p>
+    </div>
+    <div>
+      <h3>UI snippet</h3>
+      <div class="snippet">
+        <div class="bar">Saunalöyly</div>
+        <div class="body">
+          <div class="head"><h4>Saturday</h4><span>2 seats</span></div>
+          <div class="list" role="radiogroup" aria-label="Windows on Saturday for 2 seats">
+            <label class="win"><input type="radio" name="t5-window" checked><span class="time">13:00–14:30</span><span class="state">12 seats left · NOK 500</span></label>
+            <div class="win off"><input type="radio" name="t5-window" disabled aria-label="14:30–16:00, unavailable"><span class="time">14:30–16:00</span><span class="state">1 seat left · Unavailable for 2 seats</span></div>
+            <div class="win off"><input type="radio" name="t5-window" disabled aria-label="16:00–17:30, sold out"><span class="time">16:00–17:30</span><span class="state">Sold out</span></div>
+            <label class="win is-focus"><input type="radio" name="t5-window"><span class="time">17:30–19:00</span><span class="state">9 seats left · NOK 500</span></label>
+          </div>
+          <button type="button" class="btn">Book seats</button>
+          <div class="part field">
+            <label for="t5-email">Email</label>
+            <input id="t5-email" type="text" value="ingrid@" aria-invalid="true" aria-describedby="t5-email-error">
+            <span class="msg" id="t5-email-error">Enter a valid email address</span>
+          </div>
+          <div class="part">
+            <p class="review"><span>Saturday 13:00–14:30 · 2 seats · NOK 500 incl. VAT</span><a href="#t5">Booking terms</a></p>
+            <div class="pay"><button type="button" class="btn">Pay NOK 500</button><span>Simulated payment: no money moves</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The 17:30–19:00 Window is shown with its focus ring. The ring sits 2 px clear of the control, so it meets the surface, never the control's own fill.</p>
+      <p class="top"><a href="#top">Back to overview</a></p>
+    </div>
+  </div>
+</div>
+</section>
+<div class="wrap">
+  <p class="foot">Light mode only. Availability is always stated in words: the unavailable fill never carries the meaning alone. "Sold out" uses the same plain treatment as other availability information, not the error colour. Text in these previews uses the system font; the product will use Finlandica and Source Sans 3.</p>
+</div>
+</body>
+</html>

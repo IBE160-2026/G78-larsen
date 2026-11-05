@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Directions</title><style>
+/*
+  Fixed colour tokens (decided, identical in all four directions)
+  page #F5F3EB   surface #FDFCF7   text #26353D   muted #4C5D66
+  primary and bar #B5D2E1   text on primary #1E2D35   button edge #26353D
+  link and focus #2F5A71   border #6F8693   unavailable #E4EBEC
+  error #7F3C2E   success #2E6047
+
+  Image stand-ins only (muted PRD palette, caption contrast checked by script)
+  forest #3F5A4C with #FDFCF7 = 7.36
+  granite #5F6C70 with #FDFCF7 = 5.29
+  light wood #D8C6A5 with #26353D = 7.56
+  pine #C9AE84 with #26353D = 5.95
+  birch #E9E1CF with #26353D = 9.73
+  sea-blue #9DB5C0 with #26353D = 5.91
+
+  Muted #4C5D66 on the bar #B5D2E1 is 4.33 and fails AA, so text on the bar is always #1E2D35.
+  Fonts: system stack stands in for Finlandica (headings) and Source Sans 3 (text).
+*/
+:root{--page:#F5F3EB;--surface:#FDFCF7;--text:#26353D;--muted:#4C5D66;--primary:#B5D2E1;--on-primary:#1E2D35;--edge:#26353D;--link:#2F5A71;--border:#6F8693;--unavail:#E4EBEC;--error:#7F3C2E;--success:#2E6047;--font:system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5}
+h1,h2,h3,h4,p,ul,ol,dl,dd,figure{margin:0;padding:0}
+ul,ol{list-style:none}
+table{border-collapse:collapse;width:100%}
+a{color:var(--link)}
+a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.wrap{width:min(1320px,calc(100% - 32px));margin-inline:auto}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+/* page around the mockups */
+.top{padding:40px 0 24px}
+.top h1{font-size:34px;line-height:1.2;font-weight:650}
+.top .sub{color:var(--muted);margin-top:4px}
+.top .say{max-width:760px;margin-top:14px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.cards a{display:block;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);text-decoration:none}
+.cards a b{display:block;color:var(--link);font-size:18px;text-decoration:underline}
+.cards a span{font-size:15px}
+.cmp{margin-top:20px;background:var(--surface);border:1px solid var(--border);font-size:15px;line-height:1.35}
+.cmp th,.cmp td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--border)}
+.cmp thead th{background:var(--unavail);font-weight:600}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}
+.keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 28px;margin-top:18px;font-size:15px}
+.keys b{display:block}
+.dir{padding:44px 0 12px;border-top:1px solid var(--border);margin-top:32px}
+.dir>h2{font-size:30px;line-height:1.2;font-weight:650}
+.dir .why{max-width:820px;margin:10px 0 22px}
+.flabel{font-weight:600;margin:22px 0 8px}
+.back{margin-top:12px;font-size:15px}
+
+/* browser frame */
+.frame{border:1px solid var(--border);border-radius:6px;background:var(--page)}
+.chrome{display:flex;align-items:center;gap:14px;padding:7px 14px;background:var(--unavail);border-bottom:1px solid var(--border);border-radius:6px 6px 0 0;font-size:13px;color:var(--muted)}
+.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid var(--border);margin-right:5px}
+.url{flex:0 1 460px;background:var(--surface);padding:2px 12px;border-radius:3px}
+.vp{position:relative;overflow:clip;background:var(--page);color:var(--text);border-radius:0 0 6px 6px}
+.fold{position:absolute;left:0;right:0;top:620px;border-top:1px dashed var(--link);z-index:4;pointer-events:none}
+.fold span{position:absolute;right:10px;top:-11px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.3;padding:1px 7px;border-radius:3px}
+
+/* shared parts inside mockups */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 22px;background:var(--primary);color:var(--on-primary);border:1.5px solid var(--edge);border-radius:4px;font-weight:600;text-decoration:none;white-space:nowrap}
+.btn.wide{display:flex;width:100%}
+.ph{font-style:italic;border-bottom:1px dashed currentColor}
+.img{display:flex;align-items:flex-end;padding:12px 14px;font-size:13px;line-height:1.35}
+.img.tr{align-items:flex-start;justify-content:flex-end;text-align:right}
+.i-forest{background:#3F5A4C;color:#FDFCF7}
+.i-granite{background:#5F6C70;color:#FDFCF7}
+.i-wood{background:#D8C6A5;color:#26353D}
+.i-pine{background:#C9AE84;color:#26353D}
+.i-birch{background:#E9E1CF;color:#26353D}
+.i-sea{background:#9DB5C0;color:#26353D}
+.f label{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+.f input,.f select{font:inherit;color:var(--text);background:var(--surface);height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:3px;width:100%}
+.f .hint{display:block;font-size:14px;color:var(--muted);margin-top:3px}
+input[type=radio]{accent-color:var(--link);width:20px;height:20px;margin:0;flex:none}
+.lnk{color:var(--link);text-decoration:underline}
+.vp nav a{padding:2px 0}
+.lk .lnk{margin-right:18px}
+
+/* 1 Long Look: full-bleed, stacked, light large type, a lot of air */
+.d1{font-size:17px;line-height:1.6}
+.d1 .btn{border-radius:0}
+.d1 .hdr{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 48px}
+.d1 .mark{font-size:24px;font-weight:300;letter-spacing:.02em;color:var(--text);text-decoration:none}
+.d1 nav{display:flex;align-items:center;gap:32px}
+.d1 .hero{position:relative;height:548px}
+.d1 .hero>.img{position:absolute;inset:0}
+.d1 .panel{position:absolute;left:48px;bottom:40px;width:520px;background:var(--surface);padding:32px 36px}
+.d1 .panel h3{font-size:68px;line-height:1.05;font-weight:300;letter-spacing:-.01em}
+.d1 .panel>p{margin-top:12px}
+.d1 .act{display:flex;align-items:center;gap:24px;margin-top:22px}
+.d1 .act p{font-size:15px;line-height:1.45;color:var(--muted)}
+.d1 .sec{padding:112px 48px}
+.d1 .intro{max-width:640px;margin-bottom:56px}
+.d1 .intro h3{font-size:48px;line-height:1.1;font-weight:300}
+.d1 .intro p{margin-top:12px}
+.d1 .rooms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:64px 48px}
+.d1 .room:nth-child(even){margin-top:96px}
+.d1 .room .img{height:420px}
+.d1 .room h4{font-size:32px;font-weight:300;margin-top:14px;line-height:1.2}
+.d1 .meta{color:var(--muted)}
+.d1 .band{height:420px}
+.d1 .band.small{height:280px}
+.d1 .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:56px}
+.d1 .bg h4{font-size:24px;font-weight:300;margin-bottom:10px}
+.d1 .bg li{padding:8px 0;border-top:1px solid var(--border)}
+.d1 .times{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 48px}
+.d1 .times li{color:var(--muted)}
+.d1 .times b{display:block;font-size:34px;line-height:1.2;font-weight:300;color:var(--text);font-variant-numeric:tabular-nums}
+.d1 .pricerow{display:flex;align-items:center;gap:32px;margin-top:56px}
+.d1 .price{font-size:30px;font-weight:300}
+.d1 .ftr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;padding:36px 48px;border-top:1px solid var(--border);font-size:15px}
+.d1 .ftr.short{display:block;padding:18px 48px}
+.d1 .strip{height:96px}
+.d1 .col{width:820px;max-width:100%;margin:0 auto;padding:44px 0 64px}
+.d1 .col h3{font-size:52px;line-height:1.1;font-weight:300}
+.d1 .lead{margin-top:10px}
+.d1 .pick{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:24px;margin-top:28px}
+.d1 .col h4{font-size:26px;font-weight:300;margin-top:40px;line-height:1.2}
+.d1 .sub{color:var(--muted)}
+.d1 .rows{margin-top:14px;border-bottom:1px solid var(--border)}
+.d1 .row{display:grid;grid-template-columns:32px 220px 1fr auto;align-items:center;gap:8px;padding:18px 16px;border-top:1px solid var(--border);cursor:pointer}
+.d1 .row .t{font-size:24px;font-weight:300;font-variant-numeric:tabular-nums}
+.d1 .row.sel{background:var(--surface);box-shadow:inset 3px 0 0 var(--edge)}
+.d1 .row.off{background:var(--unavail);cursor:default}
+.d1 .go{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:28px}
+
+/* 2 Timetable: compact, ruled, facts in columns */
+.d2{font-size:15px;line-height:1.4}
+.d2 .btn{border-radius:2px;min-height:40px;padding:6px 16px}
+.d2 .bar{display:flex;align-items:center;gap:30px;height:50px;padding:0 28px;background:var(--primary);color:var(--on-primary);font-weight:600}
+.d2 .bar a{color:var(--on-primary)}
+.d2 .bar .mark{font-size:19px;font-weight:700;text-decoration:none}
+.d2 .bar nav{margin-left:auto;display:flex;align-items:center;gap:20px}
+.d2 h3{font-size:19px;font-weight:700;line-height:1.25}
+.d2 .board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:2px solid var(--edge);margin:0 28px}
+.d2 .c{padding:16px 24px 16px;border-left:1px solid var(--border)}
+.d2 .c:first-child{padding-left:0;border-left:0}
+.d2 .c:last-child{padding-right:0}
+.d2 .c>p{margin-top:4px}
+.d2 .c .btn{margin-top:10px}
+.d2 dl{display:grid;grid-template-columns:72px minmax(0,1fr);margin-top:12px;border-top:1px solid var(--border)}
+.d2 dt,.d2 dd{padding:3px 0;border-bottom:1px solid var(--border)}
+.d2 dt{font-weight:600}
+.d2 .c .lk{margin-top:10px}
+.d2 table{font-variant-numeric:tabular-nums}
+.d2 .c table{margin-top:10px;border-top:2px solid var(--edge)}
+.d2 th{text-align:left;font-weight:600}
+.d2 .c th,.d2 .c td{padding:4px 8px 4px 0;border-bottom:1px solid var(--border)}
+.d2 .bg{margin-top:8px}
+.d2 .bg h4{font-size:15px;font-weight:700}
+.d2 .bg li{padding-left:14px;position:relative}
+.d2 .bg li::before{content:"–";position:absolute;left:0}
+.d2 .strip{display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;padding:12px 28px 18px}
+.d2 .sh p{margin-top:4px}
+.d2 .rooms{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.d2 .room .img{height:96px;padding:8px 10px}
+.d2 .room p{margin-top:4px}
+.d2 .room b{font-size:16px}
+.d2 .bk{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;padding:16px 28px 24px}
+.d2 .tool{display:grid;grid-template-columns:150px 240px auto 110px;gap:16px;align-items:start;padding-bottom:12px}
+.d2 .tool h3{font-size:24px;line-height:1.2;padding-top:22px}
+.d2 .dayjump{display:flex;gap:14px;padding-top:34px}
+.d2 .wins{border-top:2px solid var(--edge)}
+.d2 .wins th,.d2 .wins td{padding:0 12px 0 0;height:40px;border-bottom:1px solid var(--border)}
+.d2 .wins .r{padding-left:10px;width:42px}
+.d2 .wins .r input{display:block}
+.d2 .wins .off{background:var(--unavail)}
+.d2 .wins .sel{background:var(--surface);font-weight:600}
+.d2 .foot{margin-top:10px;color:var(--muted)}
+.d2 .sum{background:var(--surface);border:1px solid var(--border);padding:14px 16px;align-self:start}
+.d2 .sum h4{font-size:19px;font-weight:700}
+.d2 .sum dl{grid-template-columns:110px minmax(0,1fr);margin-bottom:12px}
+.d2 .sum .lk{margin-top:10px}
+
+/* 3 Leaflet: rail plus reading column with images in the margin */
+.d3{display:grid;grid-template-columns:300px minmax(0,1fr);font-size:18px;line-height:1.6}
+.d3 .rail{background:var(--surface);border-right:1px solid var(--border)}
+.d3 .stick{position:sticky;top:0;padding:30px 26px;font-size:16px;line-height:1.45}
+.d3 .mark{display:block;font-size:27px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:18px}
+.d3 .fact{margin-top:14px}
+.d3 .stick nav{margin-top:22px;padding-top:14px;border-top:1px solid var(--border)}
+.d3 .stick nav a{display:block;padding:4px 0}
+.d3 .stick dl{display:grid;grid-template-columns:70px minmax(0,1fr);gap:4px 8px;margin:8px 0 18px}
+.d3 .stick dt{color:var(--muted)}
+.d3 .stick h4{font-size:19px;font-weight:600}
+.d3 .note{margin-top:14px;color:var(--muted)}
+.d3 .stick .lk{margin-top:16px}
+.d3 .read{padding:55px 56px 56px;min-width:0}
+.d3 .read.bookread{padding-top:22px;padding-bottom:18px}
+.d3 .s{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:44px;padding-bottom:44px}
+.d3 .s.wide{display:block}
+.d3 h3{font-size:34px;line-height:1.2;font-weight:600}
+.d3 .tx>p{margin-top:10px}
+.d3 .bg{margin-top:14px}
+.d3 .bg h4{font-size:19px;font-weight:600}
+.d3 .bg ul{list-style:disc;padding-left:22px}
+.d3 .img.side{height:210px;margin-top:8px}
+.d3 .img.side.tall{height:276px}
+.d3 .rooms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 36px;margin-top:20px}
+.d3 .room{display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:start}
+.d3 .room .img{height:150px;padding:9px 11px}
+.d3 .room h4{font-size:22px;font-weight:600;line-height:1.25}
+.d3 .meta{color:var(--muted)}
+.d3 .sched{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 16px;margin-top:12px;font-variant-numeric:tabular-nums}
+.d3 .bookread h3{font-size:30px}
+.d3 .two{display:grid;grid-template-columns:330px minmax(0,1fr);gap:44px;margin-top:10px}
+.d3 .two h4,.d3 .mt{font-size:21px;font-weight:600;line-height:1.3;margin-bottom:6px}
+.d3 .mt{margin-top:16px;margin-bottom:0}
+.d3 .bookread .meta{font-size:16px;line-height:1.4}
+.d3 .f input{font-size:16px}
+.d3 .cal{table-layout:fixed;margin-top:10px;font-size:15px;line-height:1.3;text-align:center;font-variant-numeric:tabular-nums}
+.d3 .cal caption{font-weight:600;text-align:left;padding-bottom:4px}
+.d3 .cal th{font-weight:600;padding:3px 0}
+.d3 .cal td{height:30px;padding:0;border:1px solid var(--surface)}
+.d3 .cal .no{background:var(--unavail);color:var(--muted)}
+.d3 .cal .on{background:var(--primary);color:var(--on-primary);font-weight:700;outline:1.5px solid var(--edge);outline-offset:-1.5px}
+.d3 .seatpick{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;margin-top:8px}
+.d3 .seatpick label{position:relative;display:block;cursor:pointer}
+.d3 .seatpick input{position:absolute;opacity:0}
+.d3 .seatpick span{display:flex;align-items:center;justify-content:center;height:44px;border:1px solid var(--border);border-radius:4px;background:var(--surface);font-size:16px}
+.d3 .seatpick input:checked+span{background:var(--primary);color:var(--on-primary);border:1.5px solid var(--edge);font-weight:700}
+.d3 .seatpick input:focus-visible+span{outline:3px solid var(--link);outline-offset:2px}
+.d3 .list{display:grid;gap:5px;margin-top:8px}
+.d3 .row{display:grid;grid-template-columns:22px 108px 96px minmax(0,1fr);gap:8px;align-items:center;min-height:38px;padding:3px 12px;border:1px solid var(--border);border-radius:4px;background:var(--surface);font-size:15.5px;line-height:1.3;cursor:pointer}
+.d3 .row b{font-size:16.5px;font-variant-numeric:tabular-nums}
+.d3 .row .p{text-align:right}
+.d3 .row.sel{border:1.5px solid var(--edge)}
+.d3 .row.off{background:var(--unavail);border-color:var(--unavail);cursor:default}
+
+/* 4 Four Rooms: heavy sign type, room columns, booking bar */
+.d4{font-size:16px;line-height:1.45}
+.d4 .btn{border-radius:0;border-width:2px;font-weight:800}
+.d4 .hdr{display:flex;align-items:center;gap:28px;height:64px;padding:0 32px}
+.d4 .mark{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--text);text-decoration:none}
+.d4 .hdr nav{margin-left:auto;display:flex;gap:24px;font-weight:600}
+.d4 .bbar{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:230px 110px auto minmax(0,1fr);gap:16px;align-items:end;padding:10px 32px 12px;background:var(--primary);color:var(--on-primary)}
+.d4 .bbar .f input,.d4 .bbar .f select{border-color:var(--edge)}
+.d4 .bbar.bb{grid-template-columns:230px 110px minmax(0,1fr) auto}
+.d4 .bbar p{justify-self:end;text-align:right;font-weight:600;line-height:1.3}
+.d4 .bbar .f label{font-weight:800}
+.d4 .rooms{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.d4 .room .img{height:292px}
+.d4 .tag{padding:10px 18px 12px;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border);height:112px}
+.d4 .room:last-child .tag{border-right:0}
+.d4 .tag h4{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.d4 .tag p{font-size:15px;line-height:1.35}
+.d4 .line{padding:9px 32px;font-weight:600;font-size:17px}
+.d4 .nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;padding:30px 32px 24px}
+.d4 .big{font-size:48px;line-height:1.05;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.d4 h3{font-size:34px;line-height:1.15;font-weight:800;letter-spacing:-.02em}
+.d4 .sched{padding:16px 32px 34px}
+.d4 .sched ul{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-top:12px}
+.d4 .sched li{background:var(--surface);border:1px solid var(--border);padding:8px 12px;color:var(--muted)}
+.d4 .sched b{display:block;font-size:24px;line-height:1.15;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.d4 .before{padding:30px 32px 36px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.d4 .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-top:14px}
+.d4 .bg h4{font-size:22px;font-weight:800;margin-bottom:4px}
+.d4 .bg li{padding:3px 0}
+.d4 .wall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.d4 .wall .img{height:260px}
+.d4 .ftr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;padding:22px 32px;background:var(--surface);font-weight:600}
+.d4 .ftr.short{display:block;padding:14px 32px;background:none}
+.d4 .bbar .tot{font-size:16px;justify-self:start;text-align:left;align-self:center;padding-top:20px}
+.d4 .bbar .tot b{font-size:26px;font-weight:800;margin-right:6px}
+.d4 .bk{padding:18px 32px 24px}
+.d4 .bh{display:flex;align-items:baseline;gap:20px}
+.d4 .days{display:grid;grid-template-columns:repeat(7,76px) auto;gap:6px;margin-top:14px;align-items:center}
+.d4 .day{display:block;text-align:center;padding:4px 0 5px;background:var(--surface);border:1px solid var(--border);line-height:1.2;font-size:14px;color:var(--text)}
+.d4 .day b{display:block;font-size:22px;font-weight:800}
+.d4 .day.on{background:var(--primary);color:var(--on-primary);border:2px solid var(--edge)}
+.d4 .mo{padding-left:12px;font-weight:600}
+.d4 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.d4 .tile{position:relative;display:block;padding:12px 16px;background:var(--surface);border:1px solid var(--border);cursor:pointer}
+.d4 .tile input{position:absolute;right:14px;top:14px}
+.d4 .tile .s{display:block}
+.d4 .tile .s b{font-size:36px;line-height:1.1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.d4 .tile .l{display:block;font-weight:600;font-size:17px;margin-top:2px}
+.d4 .tile.sel{border:2px solid var(--edge);background:var(--primary);color:var(--on-primary)}
+.d4 .tile.off{background:var(--unavail);border-color:var(--unavail);cursor:default}
+</style></head>
+<body><div class="wrap top" id="top-note">
+<h1>Four design directions</h1><p class="sub">Saunalöyly Booking Platform, UX run of 5 November 2026</p>
+<p class="say">The same Landing page and Book seats page in four personalities. The colours are decided and identical in all four, so compare how the page is built, not its palette. Pick one, or name the parts you want to blend.</p>
+<div class="cards"><a href="#d1"><b>1. Long Look</b><span>The place first. Images take most of the page, and the facts wait below.</span></a><a href="#d2"><b>2. Timetable</b><span>The facts first. The whole page fits on one laptop screen.</span></a><a href="#d3"><b>3. Leaflet</b><span>The explanation first. A reading column, with Book seats always in the side rail.</span></a><a href="#d4"><b>4. Four Rooms</b><span>The rooms and a booking bar share the first view.</span></a></div>
+<table class="cmp"><thead><tr><th>Direction</th><th>What comes first</th><th>Imagery</th><th>Density</th><th>Type</th><th>First view</th></tr></thead><tbody><tr><th scope="row">1. Long Look</th><td>The place</td><td>Most of the page, large and full width</td><td>Very open</td><td>Very large and light</td><td>A full-width image and one small panel with Book seats, hours and price</td></tr><tr><th scope="row">2. Timetable</th><td>The facts</td><td>Small thumbnails only</td><td>Very dense</td><td>Small and semibold, numbers in columns</td><td>Hours, price, all Windows and Before you come in three ruled columns</td></tr><tr><th scope="row">3. Leaflet</th><td>What to expect</td><td>Medium, in the margin of the text</td><td>Medium</td><td>Regular, larger body text for reading</td><td>Before you come starts in the reading column; side rail holds Book seats, hours and price</td></tr><tr><th scope="row">4. Four Rooms</th><td>The rooms and the booking</td><td>Large, four tall columns side by side</td><td>Full but orderly</td><td>Heavy, sign-like, big numbers</td><td>All four Saunas under a bar with date, Seats and Book seats</td></tr></tbody></table>
+<div class="keys">
+<p><b>Image blocks are stand-ins</b>Real images do not exist yet. Each flat block names its intended subject from PRD section 6. These tones appear only in the stand-ins.</p>
+<p><b><span class="ph">[Square brackets]</span> mark placeholder copy</b>The venue description, the line for each Sauna, the swimwear rule, the address and the contact details are still to be written.</p>
+<p><b>Fonts stand in</b>Finlandica and Source Sans 3 are not installed here. The system font stands in for both, so letter shapes will change while size and weight still show the idea.</p>
+<p><b>The dashed line</b>marks roughly where the first view ends on a 1366 × 768 laptop, after the browser and taskbar. It is a note on the mockup, not part of the design.</p>
+<p><b>Sample availability</b>Saturday 14 November, 2 seats. Hours, Windows, price and Sauna sizes are the seed data. The Seats left numbers are made up for this mockup, each out of 44.</p>
+<p><b>Links and fields</b>Book seats jumps to that direction's Book seats mockup, and Window choices can be clicked, but totals do not recalculate.</p>
+</div></div>
+<section class="dir" id="d1"><div class="wrap"><h2>1. Long Look</h2><p class="why">The place does the persuading. A wide image fills almost the whole first view, and the page then moves slowly through large pictures of the Saunas with a lot of empty space around them. A regular still finds Book seats, the hours and the price in one small panel, while everything else waits further down.</p>
+<p class="flabel">Landing page, 1366 px laptop width.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/</span></div><div class="vp d1"><header class="hdr"><a class="mark" href="#d1">Saunalöyly</a><nav><a href="#d1-saunas">Saunas</a><a href="#d1-before">Before you come</a><a href="#d1-hours">Hours and price</a></nav></header>
+<div class="hero"><div class="img i-forest tr">Image: sauna from outside at the water, forest behind, dim indirect light</div>
+<div class="panel"><h3>Saunalöyly</h3><p><span class="ph">[Short venue description, a few lines, to be written]</span></p><div class="act"><a class="btn" href="#d1-book">Book seats</a>
+<p>Open every day 10:00–22:00<br>NOK 250 per seat incl. VAT</p></div></div></div>
+<section class="sec" id="d1-saunas"><div class="intro"><h3>Four Saunas</h3><p>A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p></div><div class="rooms"><div class="room"><div class="img i-forest ">Image: Rauha, lauteet in dim indirect light</div><h4>Rauha</h4><p class="meta">7 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-granite ">Image: Löyly, kiuas and stones, dim indirect light</div><h4>Löyly</h4><p class="meta">10 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-wood ">Image: Kajo, kiulu and kauha on the lauteet</div><h4>Kajo</h4><p class="meta">12 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-sea ">Image: Lumo from outside, forest in view</div><h4>Lumo</h4><p class="meta">15 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div></section>
+<div class="img i-wood band">Image: kiuas and stones, kiulu and kauha beside them, dim indirect light</div>
+<section class="sec" id="d1-before"><div class="intro"><h3>Before you come</h3></div><div class="three"><div class="bg "><h4>Etiquette</h4><ul><li>Bring two towels, one of them to sit on.</li><li>Ask the others before throwing water on the stones.</li><li>Follow the swimwear rule. <span class="ph">[Rule to be written]</span></li></ul></div><div class="bg "><h4>Safety</h4><ul><li>Bring water and drink plenty.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds to 5–10 minutes, and leave the sauna if you feel unwell.</li><li>Bathe with caution, and never alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg "><h4>Practical</h4><ul><li>Changing time is part of the Window.</li></ul></div></div></section>
+<div class="img i-granite band small">Image: vihta hanging on a wooden wall</div>
+<section class="sec" id="d1-hours"><div class="intro"><h3>Hours and price</h3><p>Open every day 10:00–22:00. Each Window is 1&nbsp;h&nbsp;30&nbsp;min.</p></div>
+<ul class="times"><li><b>10:00</b> to 11:30</li><li><b>11:30</b> to 13:00</li><li><b>13:00</b> to 14:30</li><li><b>14:30</b> to 16:00</li><li><b>16:00</b> to 17:30</li><li><b>17:30</b> to 19:00</li><li><b>19:00</b> to 20:30</li><li><b>20:30</b> to 22:00</li></ul><div class="pricerow"><p class="price">NOK 250 per seat incl. VAT</p><a class="btn" href="#d1-book">Book seats</a></div></section>
+<footer class="ftr"><div><b>Saunalöyly</b><br><span class="ph">[Fictional street address, to be written]</span></div><div><span class="ph">[Phone number, to be written]</span><br><span class="ph">[Contact email, to be written]</span></div><div class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></div></footer><div class="fold"><span>First view ends here at 1366 × 768</span></div></div></figure>
+<div id="d1-book"><p class="flabel">Book seats page (Saturday, 2 seats).</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/book</span></div><div class="vp d1"><header class="hdr"><a class="mark" href="#d1">Saunalöyly</a><nav><a href="#d1-saunas">Saunas</a><a href="#d1-before">Before you come</a><a href="#d1-hours">Hours and price</a></nav></header>
+<div class="img i-wood strip">Image: lauteet seen from the door, dim indirect light</div>
+<div class="col"><h3>Book seats</h3><p class="lead">A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p>
+<div class="pick"><div class="f"><label for="d1-date">Date</label><input id="d1-date" type="text" value="Saturday 14 November 2026"><span class="hint">Type a date or pick one</span></div><div class="f"><label for="d1-seats">Seats</label><select id="d1-seats"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select><span class="hint">1 to 10</span></div></div>
+<h4>Windows on Saturday 14 November</h4>
+<p class="sub">Total for 2 seats at NOK 250 per seat, incl. VAT</p>
+<div class="rows"><label class="row"><input type="radio" name="d1w" aria-label="10:00 to 11:30"><span class="t">10:00–11:30</span><span class="l">31 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d1w" aria-label="11:30 to 13:00"><span class="t">11:30–13:00</span><span class="l">18 seats left</span><span class="p">NOK 500</span></label><label class="row sel"><input type="radio" name="d1w" checked aria-label="13:00 to 14:30"><span class="t">13:00–14:30</span><span class="l">12 seats left</span><span class="p">NOK 500</span></label><label class="row off"><input type="radio" name="d1w" disabled aria-label="14:30 to 16:00"><span class="t">14:30–16:00</span><span class="l">1 seat left</span><span class="p">Unavailable for 2 seats</span></label><label class="row off"><input type="radio" name="d1w" disabled aria-label="16:00 to 17:30"><span class="t">16:00–17:30</span><span class="l">Sold out</span><span class="p">No seats in this Window</span></label><label class="row"><input type="radio" name="d1w" aria-label="17:30 to 19:00"><span class="t">17:30–19:00</span><span class="l">9 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d1w" aria-label="19:00 to 20:30"><span class="t">19:00–20:30</span><span class="l">22 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d1w" aria-label="20:30 to 22:00"><span class="t">20:30–22:00</span><span class="l">27 seats left</span><span class="p">NOK 500</span></label></div>
+<div class="go"><p>13:00–14:30, 2 seats, NOK 500 incl. VAT</p><a class="btn" href="#d1-book">Continue to your details</a></div></div>
+<footer class="ftr short"><div class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></div></footer><div class="fold"><span>First view ends here at 1366 × 768</span></div></div></figure></div>
+<p class="back"><a href="#top-note">Back to the overview</a></p></div></section><section class="dir" id="d2"><div class="wrap"><h2>2. Timetable</h2><p class="why">This treats the website like the timetable on the wall of a public bath. Hours, price, every Window and the full Before you come text sit in the first view in small, tight type with thin rules, and the images stay small. Everything is answered at once, and the sense of the place comes from a short row of pictures.</p>
+<p class="flabel">Landing page, 1366 px laptop width. All of it fits in the first view at 1366 × 768.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/</span></div><div class="vp d2"><header class="bar"><a class="mark" href="#d2">Saunalöyly</a><span>Open every day 10:00–22:00</span><span>NOK 250 per seat incl. VAT</span><nav><a href="#d2-saunas">Saunas</a><a href="#d2-before">Before you come</a></nav></header>
+<div class="board">
+<div class="c"><h3>Saunalöyly</h3><p><span class="ph">[Short venue description, a few lines, to be written]</span></p><a class="btn wide" href="#d2-book">Book seats</a>
+<dl><dt>Open</dt><dd>Every day 10:00–22:00</dd><dt>Price</dt><dd>NOK 250 per seat incl. VAT</dd>
+<dt>Saunas</dt><dd>4, with 44 seats together</dd><dt>Address</dt><dd><span class="ph">[Fictional street address, to be written]</span></dd><dt>Phone</dt><dd><span class="ph">[Phone number, to be written]</span></dd><dt>Email</dt><dd><span class="ph">[Contact email, to be written]</span></dd></dl>
+<p class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></p></div>
+<div class="c"><h3>Window schedule</h3><p>The same every day. Changing time is part of the Window.</p>
+<table><thead><tr><th>No.</th><th>Start</th><th>End</th><th>Length</th></tr></thead><tbody><tr><td>1</td><td>10:00</td><td>11:30</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>2</td><td>11:30</td><td>13:00</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>3</td><td>13:00</td><td>14:30</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>4</td><td>14:30</td><td>16:00</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>5</td><td>16:00</td><td>17:30</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>6</td><td>17:30</td><td>19:00</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>7</td><td>19:00</td><td>20:30</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr><tr><td>8</td><td>20:30</td><td>22:00</td><td>1&nbsp;h&nbsp;30&nbsp;min</td></tr></tbody></table></div>
+<div class="c" id="d2-before"><h3>Before you come</h3><div class="bg "><h4>Etiquette</h4><ul><li>Bring two towels, one of them to sit on.</li><li>Ask the others before throwing water on the stones.</li><li>Follow the swimwear rule. <span class="ph">[Rule to be written]</span></li></ul></div><div class="bg "><h4>Safety</h4><ul><li>Bring water and drink plenty.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds to 5–10 minutes, and leave the sauna if you feel unwell.</li><li>Bathe with caution, and never alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg "><h4>Practical</h4><ul><li>Changing time is part of the Window.</li></ul></div></div>
+</div>
+<section class="strip" id="d2-saunas"><div class="sh"><h3>Saunas</h3><p>A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p></div><div class="rooms"><div class="room"><div class="img i-forest ">Image: Rauha, lauteet in dim indirect light</div><p><b>Rauha</b> 7 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-granite ">Image: Löyly, kiuas and stones, dim indirect light</div><p><b>Löyly</b> 10 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-wood ">Image: Kajo, kiulu and kauha on the lauteet</div><p><b>Kajo</b> 12 seats</p><p><span class="ph">[One line, to be written]</span></p></div><div class="room"><div class="img i-sea ">Image: Lumo from outside, forest in view</div><p><b>Lumo</b> 15 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div></section></div></figure>
+<div id="d2-book"><p class="flabel">Book seats page (Saturday, 2 seats). All of it fits in the first view at 1366 × 768.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/book</span></div><div class="vp d2"><header class="bar"><a class="mark" href="#d2">Saunalöyly</a><span>Open every day 10:00–22:00</span><span>NOK 250 per seat incl. VAT</span><nav><a href="#d2-saunas">Saunas</a><a href="#d2-before">Before you come</a></nav></header>
+<div class="bk"><div class="m"><div class="tool"><h3>Book seats</h3><div class="f"><label for="d2-date">Date</label><input id="d2-date" type="text" value="Sat 14 Nov 2026"><span class="hint">Type a date or pick one</span></div><p class="dayjump"><span class="lnk">Previous day</span><span class="lnk">Next day</span></p><div class="f"><label for="d2-seats">Seats</label><select id="d2-seats"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select><span class="hint">1 to 10</span></div></div>
+<table class="wins"><thead><tr><th><span class="vh">Choose</span></th><th>Window</th><th>Seats left</th><th>Total for 2 seats</th><th>Status</th></tr></thead><tbody><tr><td class="r"><input type="radio" name="d2w" aria-label="10:00 to 11:30"></td><td><b>10:00–11:30</b></td><td>31 seats left</td><td>NOK 500</td><td>Available</td></tr><tr><td class="r"><input type="radio" name="d2w" aria-label="11:30 to 13:00"></td><td><b>11:30–13:00</b></td><td>18 seats left</td><td>NOK 500</td><td>Available</td></tr><tr class="sel"><td class="r"><input type="radio" name="d2w" checked aria-label="13:00 to 14:30"></td><td><b>13:00–14:30</b></td><td>12 seats left</td><td>NOK 500</td><td>Selected</td></tr><tr class="off"><td class="r"><input type="radio" name="d2w" disabled aria-label="14:30 to 16:00"></td><td><b>14:30–16:00</b></td><td>1 seat left</td><td>–</td><td>Unavailable for 2 seats</td></tr><tr class="off"><td class="r"><input type="radio" name="d2w" disabled aria-label="16:00 to 17:30"></td><td><b>16:00–17:30</b></td><td>0 seats left</td><td>–</td><td>Sold out</td></tr><tr><td class="r"><input type="radio" name="d2w" aria-label="17:30 to 19:00"></td><td><b>17:30–19:00</b></td><td>9 seats left</td><td>NOK 500</td><td>Available</td></tr><tr><td class="r"><input type="radio" name="d2w" aria-label="19:00 to 20:30"></td><td><b>19:00–20:30</b></td><td>22 seats left</td><td>NOK 500</td><td>Available</td></tr><tr><td class="r"><input type="radio" name="d2w" aria-label="20:30 to 22:00"></td><td><b>20:30–22:00</b></td><td>27 seats left</td><td>NOK 500</td><td>Available</td></tr></tbody></table>
+<p class="foot">All prices in NOK incl. VAT. A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p></div>
+<aside class="sum"><h4>Your choice</h4><dl><dt>Date</dt><dd>Sat 14 Nov 2026</dd><dt>Window</dt><dd>13:00–14:30</dd><dt>Seats</dt><dd>2</dd><dt>Price per seat</dt><dd>NOK 250</dd><dt>Total</dt><dd><b>NOK 500</b></dd></dl>
+<a class="btn wide" href="#d2-book">Continue to your details</a><p class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></p></aside></div></div></figure></div>
+<p class="back"><a href="#top-note">Back to the overview</a></p></div></section><section class="dir" id="d3"><div class="wrap"><h2>3. Leaflet</h2><p class="why">This reads like the leaflet you are handed on a first visit. A calm reading column opens with what to expect and Before you come, with images in the margin, while a side rail with Book seats, hours and price stays in view as you scroll. The first-time Guest is spoken to first, and the regular never has to look for the button.</p>
+<p class="flabel">Landing page, 1366 px laptop width.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/</span></div><div class="vp d3"><aside class="rail"><div class="stick"><a class="mark" href="#d3">Saunalöyly</a>
+<a class="btn wide" href="#d3-book">Book seats</a>
+<p class="fact"><b>Open every day</b><br>10:00–22:00</p><p class="fact"><b>Price</b><br>NOK 250 per seat incl. VAT</p><p class="fact"><b>Each Window</b><br>1&nbsp;h&nbsp;30&nbsp;min</p>
+<nav><a href="#d3-before">Before you come</a><a href="#d3-saunas">The Saunas</a><a href="#d3-hours">Hours and Windows</a><a href="#d3-find">Find us</a></nav>
+</div></aside>
+<div class="read">
+<section class="s"><div class="tx"><h3>What to expect at Saunalöyly</h3><p><span class="ph">[Short venue description, a few lines, to be written]</span></p>
+<p>A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p></div><div class="img i-wood side">Image: kiuas and stones, dim indirect light</div></section>
+<section class="s" id="d3-before"><div class="tx"><h3>Before you come</h3><div class="bg "><h4>Etiquette</h4><ul><li>Bring two towels, one of them to sit on.</li><li>Ask the others before throwing water on the stones.</li><li>Follow the swimwear rule. <span class="ph">[Rule to be written]</span></li></ul></div><div class="bg "><h4>Safety</h4><ul><li>Bring water and drink plenty.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds to 5–10 minutes, and leave the sauna if you feel unwell.</li><li>Bathe with caution, and never alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg "><h4>Practical</h4><ul><li>Changing time is part of the Window.</li></ul></div></div><div class="img i-birch side tall">Image: two towels folded on the lauteet, kiulu and kauha beside them</div></section>
+<section class="s wide" id="d3-saunas"><div class="tx"><h3>The Saunas</h3><p>There are four, from 7 to 15 seats.</p></div><div class="rooms"><div class="room"><div class="img i-forest ">Image: Rauha, lauteet in dim indirect light</div><div><h4>Rauha</h4><p class="meta">7 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-granite ">Image: Löyly, kiuas and stones, dim indirect light</div><div><h4>Löyly</h4><p class="meta">10 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-wood ">Image: Kajo, kiulu and kauha on the lauteet</div><div><h4>Kajo</h4><p class="meta">12 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-sea ">Image: Lumo from outside, forest in view</div><div><h4>Lumo</h4><p class="meta">15 seats</p><p><span class="ph">[One line, to be written]</span></p></div></div></div></section>
+<section class="s" id="d3-hours"><div class="tx"><h3>Hours and Windows</h3><p>Open every day 10:00–22:00. Every day has the same eight Windows of 1&nbsp;h&nbsp;30&nbsp;min.</p><ol class="sched"><li>10:00–11:30</li><li>11:30–13:00</li><li>13:00–14:30</li><li>14:30–16:00</li><li>16:00–17:30</li><li>17:30–19:00</li><li>19:00–20:30</li><li>20:30–22:00</li></ol>
+<p>NOK 250 per seat incl. VAT, the same in every Window.</p></div><div class="img i-forest side">Image: forest path to the sauna door</div></section>
+<section class="s" id="d3-find"><div class="tx"><h3>Find us</h3><p><span class="ph">[Fictional street address, to be written]</span><br><span class="ph">[Phone number, to be written]</span><br><span class="ph">[Contact email, to be written]</span></p><p class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></p></div></section>
+</div><div class="fold"><span>First view ends here at 1366 × 768</span></div></div></figure>
+<div id="d3-book"><p class="flabel">Book seats page (Saturday, 2 seats). All of it fits in the first view at 1366 × 768.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/book</span></div><div class="vp d3"><aside class="rail"><div class="stick"><a class="mark" href="#d3">Saunalöyly</a>
+<h4>Your booking</h4><dl><dt>Date</dt><dd>Saturday 14 November</dd><dt>Seats</dt><dd>2</dd><dt>Window</dt><dd>13:00–14:30</dd><dt>Total</dt><dd><b>NOK 500</b> incl. VAT</dd></dl>
+<a class="btn wide" href="#d3-book">Continue to your details</a>
+<p class="note">A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p><p class="note">Changing time is part of the Window.</p><p class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></p></div></aside>
+<div class="read bookread"><h3>Book seats</h3>
+<div class="two"><div><h4>1. Choose a date</h4><div class="f"><label for="d3-date">Date</label><input id="d3-date" type="text" value="Sat 14 Nov 2026"><span class="hint">Type a date, or pick one in the calendar</span></div><table class="cal"><caption>November 2026</caption><thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="no">1</td></tr><tr><td class="no">2</td><td class="no">3</td><td class="no">4</td><td><span class="lnk">5</span></td><td><span class="lnk">6</span></td><td><span class="lnk">7</span></td><td><span class="lnk">8</span></td></tr><tr><td><span class="lnk">9</span></td><td><span class="lnk">10</span></td><td><span class="lnk">11</span></td><td><span class="lnk">12</span></td><td><span class="lnk">13</span></td><td class="on">14</td><td><span class="lnk">15</span></td></tr><tr><td><span class="lnk">16</span></td><td><span class="lnk">17</span></td><td><span class="lnk">18</span></td><td><span class="lnk">19</span></td><td><span class="lnk">20</span></td><td><span class="lnk">21</span></td><td><span class="lnk">22</span></td></tr><tr><td><span class="lnk">23</span></td><td><span class="lnk">24</span></td><td><span class="lnk">25</span></td><td><span class="lnk">26</span></td><td><span class="lnk">27</span></td><td><span class="lnk">28</span></td><td><span class="lnk">29</span></td></tr><tr><td><span class="lnk">30</span></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<div><h4>2. How many seats?</h4><p class="meta">NOK 250 per seat incl. VAT. Up to 10 seats in one booking.</p><div class="seatpick"><label><input type="radio" name="d3s"><span>1</span></label><label><input type="radio" name="d3s" checked><span>2</span></label><label><input type="radio" name="d3s"><span>3</span></label><label><input type="radio" name="d3s"><span>4</span></label><label><input type="radio" name="d3s"><span>5</span></label><label><input type="radio" name="d3s"><span>6</span></label><label><input type="radio" name="d3s"><span>7</span></label><label><input type="radio" name="d3s"><span>8</span></label><label><input type="radio" name="d3s"><span>9</span></label><label><input type="radio" name="d3s"><span>10</span></label></div>
+<h4 class="mt">3. Choose a Window</h4><p class="meta">Saturday 14 November. Total shown for 2 seats.</p><div class="list"><label class="row"><input type="radio" name="d3w" aria-label="10:00 to 11:30"><b>10:00–11:30</b><span>31 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d3w" aria-label="11:30 to 13:00"><b>11:30–13:00</b><span>18 seats left</span><span class="p">NOK 500</span></label><label class="row sel"><input type="radio" name="d3w" checked aria-label="13:00 to 14:30"><b>13:00–14:30</b><span>12 seats left</span><span class="p">NOK 500</span></label><label class="row off"><input type="radio" name="d3w" disabled aria-label="14:30 to 16:00"><b>14:30–16:00</b><span>1 seat left</span><span class="p">Unavailable for 2 seats</span></label><label class="row off"><input type="radio" name="d3w" disabled aria-label="16:00 to 17:30"><b>16:00–17:30</b><span>Sold out</span><span class="p">No seats in this Window</span></label><label class="row"><input type="radio" name="d3w" aria-label="17:30 to 19:00"><b>17:30–19:00</b><span>9 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d3w" aria-label="19:00 to 20:30"><b>19:00–20:30</b><span>22 seats left</span><span class="p">NOK 500</span></label><label class="row"><input type="radio" name="d3w" aria-label="20:30 to 22:00"><b>20:30–22:00</b><span>27 seats left</span><span class="p">NOK 500</span></label></div></div></div></div></div></figure></div>
+<p class="back"><a href="#top-note">Back to the overview</a></p></div></section><section class="dir" id="d4"><div class="wrap"><h2>4. Four Rooms</h2><p class="why">The four Saunas stand side by side like signed doors along a corridor, under a bar where date and Seats can be set at once. Heavy, sign-like type and big numbers give it the firmest voice of the four, while the wording stays plain. A sentence directly under the rooms says that a booking gives Seats in the shared Saunas, not one room.</p>
+<p class="flabel">Landing page, 1366 px laptop width.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/</span></div><div class="vp d4"><header class="hdr"><a class="mark" href="#d4">Saunalöyly</a><p><span class="ph">[Short venue description, a few lines, to be written]</span></p><nav><a href="#d4-hours">Hours and price</a><a href="#d4-before">Before you come</a></nav></header>
+<div class="bbar"><div class="f"><label for="d4a-date">Date</label><input id="d4a-date" type="text" value="Sat 14 Nov 2026"></div><div class="f"><label for="d4a-seats">Seats</label><select id="d4a-seats"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div><a class="btn" href="#d4-book">Book seats</a><p>Open every day 10:00–22:00<br>NOK 250 per seat incl. VAT</p></div>
+<div class="rooms"><div class="room"><div class="img i-forest ">Image: Rauha, lauteet in dim indirect light</div><div class="tag"><h4>Rauha</h4><p><b>7 seats</b></p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-granite ">Image: Löyly, kiuas and stones, dim indirect light</div><div class="tag"><h4>Löyly</h4><p><b>10 seats</b></p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-wood ">Image: Kajo, kiulu and kauha on the lauteet</div><div class="tag"><h4>Kajo</h4><p><b>12 seats</b></p><p><span class="ph">[One line, to be written]</span></p></div></div><div class="room"><div class="img i-sea ">Image: Lumo from outside, forest in view</div><div class="tag"><h4>Lumo</h4><p><b>15 seats</b></p><p><span class="ph">[One line, to be written]</span></p></div></div></div>
+<p class="line">A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p>
+<section class="nums" id="d4-hours"><div><p class="big">NOK 250</p><p>per seat incl. VAT</p></div><div><p class="big">10:00–22:00</p><p>open every day</p></div><div><p class="big">1&nbsp;h&nbsp;30&nbsp;min</p><p>each Window</p></div></section>
+<section class="sched"><h3>Window schedule</h3><ul><li><b>10:00</b>to 11:30</li><li><b>11:30</b>to 13:00</li><li><b>13:00</b>to 14:30</li><li><b>14:30</b>to 16:00</li><li><b>16:00</b>to 17:30</li><li><b>17:30</b>to 19:00</li><li><b>19:00</b>to 20:30</li><li><b>20:30</b>to 22:00</li></ul></section>
+<section class="before" id="d4-before"><h3>Before you come</h3><div class="three"><div class="bg "><h4>Etiquette</h4><ul><li>Bring two towels, one of them to sit on.</li><li>Ask the others before throwing water on the stones.</li><li>Follow the swimwear rule. <span class="ph">[Rule to be written]</span></li></ul></div><div class="bg "><h4>Safety</h4><ul><li>Bring water and drink plenty.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds to 5–10 minutes, and leave the sauna if you feel unwell.</li><li>Bathe with caution, and never alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg "><h4>Practical</h4><ul><li>Changing time is part of the Window.</li></ul></div></div></section>
+<div class="wall"><div class="img i-pine ">Image: kiuas and stones, dim indirect light</div><div class="img i-birch ">Image: kiulu and kauha on the lauteet</div><div class="img i-granite ">Image: vihta on a wooden wall</div></div>
+<footer class="ftr"><div><b>Saunalöyly</b><br><span class="ph">[Fictional street address, to be written]</span></div><div><span class="ph">[Phone number, to be written]</span><br><span class="ph">[Contact email, to be written]</span></div><div class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></div></footer><div class="fold"><span>First view ends here at 1366 × 768</span></div></div></figure>
+<div id="d4-book"><p class="flabel">Book seats page (Saturday, 2 seats). All of it fits in the first view at 1366 × 768.</p><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">saunaloyly.example/book</span></div><div class="vp d4"><header class="hdr"><a class="mark" href="#d4">Saunalöyly</a><p><span class="ph">[Short venue description, a few lines, to be written]</span></p><nav><a href="#d4-hours">Hours and price</a><a href="#d4-before">Before you come</a></nav></header>
+<div class="bbar bb"><div class="f"><label for="d4b-date">Date</label><input id="d4b-date" type="text" value="Sat 14 Nov 2026"></div><div class="f"><label for="d4b-seats">Seats</label><select id="d4b-seats"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div><p class="tot"><b>NOK 500</b> for 2 seats at NOK 250 incl. VAT</p><a class="btn" href="#d4-book">Continue to your details</a></div>
+<div class="bk"><div class="bh"><h3>Book seats</h3><p>A booking gives you Seats in the shared Saunas open during your Window. On site you can move freely between them.</p></div>
+<div class="days" aria-label="Pick a day"><span class="day">Thu<b>12</b></span><span class="day">Fri<b>13</b></span><span class="day on">Sat<b>14</b></span><span class="day">Sun<b>15</b></span><span class="day">Mon<b>16</b></span><span class="day">Tue<b>17</b></span><span class="day">Wed<b>18</b></span><span class="mo">November 2026</span></div>
+<div class="tiles"><label class="tile"><input type="radio" name="d4w" aria-label="10:00 to 11:30"><span class="s"><b>10:00</b> to 11:30</span><span class="l">31 seats left</span><span class="p">NOK 500</span></label><label class="tile"><input type="radio" name="d4w" aria-label="11:30 to 13:00"><span class="s"><b>11:30</b> to 13:00</span><span class="l">18 seats left</span><span class="p">NOK 500</span></label><label class="tile sel"><input type="radio" name="d4w" checked aria-label="13:00 to 14:30"><span class="s"><b>13:00</b> to 14:30</span><span class="l">12 seats left</span><span class="p">NOK 500, selected</span></label><label class="tile off"><input type="radio" name="d4w" disabled aria-label="14:30 to 16:00"><span class="s"><b>14:30</b> to 16:00</span><span class="l">1 seat left</span><span class="p">Unavailable for 2 seats</span></label><label class="tile off"><input type="radio" name="d4w" disabled aria-label="16:00 to 17:30"><span class="s"><b>16:00</b> to 17:30</span><span class="l">Sold out</span><span class="p">No seats in this Window</span></label><label class="tile"><input type="radio" name="d4w" aria-label="17:30 to 19:00"><span class="s"><b>17:30</b> to 19:00</span><span class="l">9 seats left</span><span class="p">NOK 500</span></label><label class="tile"><input type="radio" name="d4w" aria-label="19:00 to 20:30"><span class="s"><b>19:00</b> to 20:30</span><span class="l">22 seats left</span><span class="p">NOK 500</span></label><label class="tile"><input type="radio" name="d4w" aria-label="20:30 to 22:00"><span class="s"><b>20:30</b> to 22:00</span><span class="l">27 seats left</span><span class="p">NOK 500</span></label></div></div>
+<footer class="ftr short"><div class="lk"><span class="lnk">Terms</span><span class="lnk">Privacy notice</span></div></footer></div></figure></div>
+<p class="back"><a href="#top-note">Back to the overview</a></p></div></section>
+<div class="wrap" style="height:40px"></div>
+</body></html>
