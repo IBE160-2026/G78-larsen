@@ -78,3 +78,11 @@
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — den første skjelett-storyen må gjennomføre AD-21: skiva og 42 tester flyttes til `/api`, server-sesjoner, Seats 1–10 og migreringsrunneren, uten å løse opp noen regel
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — endre spinen (Manage-link og vouchersaldo) før første story i hvis-tid 2 skrives
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — NFR-3 (vindu i hoppet/gjentatt sommertidstime avvises) er ikke eksplisitt i spinen; dekk det i seed- eller FR-13-storyen
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gjennomgang av `DESIGN.md` og `EXPERIENCE.md` er utsatt av Lisa; anbefalt innhold og tilgjengelighet
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — 15 punkter under PRD impact i `EXPERIENCE.md` er ikke ført inn i PRD/arkitektur (blant dem Q2, Q7, reception, Session, to sider for Details og Review)
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — innhold mangler før Core er komplett: Venue-tekst, Sauna-linjer, swimwear-regel, adresse/kontakt, Terms, Privacy notice, bilder, alt-tekst, logo og favicon
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — vilkårsteksten på Review må holde seg på rundt seks linjer, ellers havner Pay under første skjermbilde
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — tastaturrekkefølge på Book seats må testes mot WCAG 2.4.3
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — oppførsel uten JavaScript er ikke spesifisert (addendum E)
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — antakelsene i UX-dokumentene (40 + 9) gjelder som arbeidsvalg til Lisa bekrefter eller endrer dem
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Wordmark (240,2 px i 240 px rail) må sjekkes med ekte Finlandica; base-URL for e-postlenker er ikke satt
