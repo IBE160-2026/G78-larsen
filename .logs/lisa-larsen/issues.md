@@ -86,4 +86,5 @@
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — oppførsel uten JavaScript er ikke spesifisert (addendum E)
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — antakelsene i UX-dokumentene (40 + 9) gjelder som arbeidsvalg til Lisa bekrefter eller endrer dem
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Wordmark (240,2 px i 240 px rail) må sjekkes med ekte Finlandica; base-URL for e-postlenker er ikke satt
-- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — arkitekturspinen mangler UX-punkt 13 og 14: serveren må melde "already started" og horisonten, feilkoder for frist og for få Seats, og `content/`-teksten må bruke session
+- [x] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — arkitekturspinen mangler UX-punkt 13 og 14 (løst 2026-11-05: ført inn i AD-16 og AD-12)
+- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — koden må bygge det AD-16 nå krever: `seats_left` på `no_seat_free`, `deadline_passed`, `already_started`, `horizon_end` og `horizon_days`
