@@ -2,7 +2,7 @@
 title: "Saunalöyly Booking Platform"
 status: draft
 created: 2026-10-29
-updated: 2026-10-31
+updated: 2026-11-05
 ---
 
 # PRD: Saunalöyly Booking Platform
@@ -60,7 +60,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
   - **Path:**
     1. She chooses **Book seats**, picks Saturday and sets 2 seats.
     2. The page lists Saturday's Windows with the Seats left in each and the total for 2 seats. A Window with only 1 seat left is shown as unavailable, labelled "1 seat left".
-    3. She picks 15:00–16:30 and enters her name and email.
+    3. She picks 14:30–16:00 and enters her name and email.
     4. A review page repeats the Window, the seats and the total (NOK 500 at an example price of NOK 250 per seat) and says that a booking for a fixed date cannot be withdrawn.
     5. She accepts the terms and presses **Pay NOK 500**.
   - **Climax:** The confirmation page shows her Booking reference, the Window, 2 seats, the total, and the confirmation email exactly as it was sent.
@@ -68,7 +68,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
   - **Edge case:** If someone took the last seats while she was typing, she is told how many Seats are actually left and is offered the nearest Windows with room for 2. Nothing is charged.
 
 - **UJ-2. Aino and Jonas reach for the last seat at the same moment.** *[Core]*
-  - **Persona + context:** Both want the last seat on Friday 18:00–19:30, which shows 1 Seat left.
+  - **Persona + context:** Both want the last seat on Friday 17:30–19:00, which shows 1 Seat left.
   - **Entry state:** Both are anonymous, and both are on the review page with 1 seat.
   - **Path:** Both press Pay within the same second.
   - **Climax:** Exactly one of them gets a confirmation. The other is told that no seat is left, is not charged and gets no email.
@@ -81,8 +81,8 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
     1. She signs in with her email and password.
     2. She opens today's booking list. It shows the Windows in time order, each with its Seat capacity, Seats booked and Seats left, and under each Window its Bookings with reference, name, email, seats and total.
     3. She opens the Outbox to check that a guest's confirmation went out.
-  - **Climax:** She sees at a glance that 18:00–19:30 is full and that 20:00–21:30 has 9 Seats left.
-  - **Resolution:** She signs out. A Guest who types the Administrator address is refused.
+  - **Climax:** She sees at a glance that 17:30–19:00 is full and that 20:30–22:00 has 9 Seats left.
+  - **Resolution:** She signs out. A Guest who types the Administrator address is sent to Sign-in and gets nothing else; the API refuses the request (FR-20).
 
 - **UJ-4. Ingrid's friend falls ill.** *[If time]*
   - **Persona + context:** On Friday morning, more than 12 hours before the Window, Ingrid needs only one of her two seats.
@@ -98,11 +98,11 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
   - **Entry state:** He is anonymous and on the landing page.
   - **Path:**
     1. He chooses **Private sauna** and picks Sunday.
-    2. The page lists each Sauna that can be booked whole that day, with its size, price and free Windows. He picks 10:00–11:30 in the 12-seat Sauna 3.
+    2. The page lists each Sauna that can be booked whole that day, with its size, price and free Windows. He picks 10:00–11:30 in Kajo, the 12-seat Sauna 3.
     3. He reviews the booking and pays.
-  - **Climax:** The confirmation names Sauna 3 and the Window. Nobody else can book Sauna 3, or a Seat in it, for that Window.
+  - **Climax:** The confirmation names Kajo and the Window. Nobody else can book Kajo, or a Seat in it, for that Window.
   - **Resolution:** Seats left for that Window drop by 12. He can cancel for a refund or a Voucher until 72 hours before the start.
-  - **Edge case:** If the Seats already booked in that Window would no longer fit in the Saunas ahead of Sauna 3, Sauna 3 is not offered. Saunas later in the Fill order may still be.
+  - **Edge case:** If the Seats already booked in that Window would no longer fit in the Saunas ahead of Kajo, Kajo is not offered. Saunas later in the Fill order may still be.
 
 - **UJ-6. Katja closes Sauna 3 for repairs.** *[If time]*
   - **Persona + context:** The stove in Sauna 3 needs repair next Tuesday from 14:00 to 17:00.
@@ -120,7 +120,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Venue time:** local time at the Venue (Europe/Oslo). All times in this PRD are in Venue time.
 - **Sauna:** one sauna room with a Capacity (changed only by an Administrator, FR-38) and one or more doors. All examples use this set: Sauna 1 = 7, Sauna 2 = 10, Sauna 3 = 12, Sauna 4 = 15 (44 in total). The four Saunas are named, from smallest to largest, Rauha, Löyly, Kajo and Lumo (Lisa, 2026-10-31); they are Sauna 1 to 4 in the examples, and these Capacities are the seed values (§12 Q3).
 - **Capacity:** the number of Seats a Sauna holds.
-- **Window:** a bookable time slot that is the same for every Sauna in the Venue. The standard length is 1 h 30 min (for example 15:00–16:30). No two Windows overlap, and intervals are half-open, so 15:00–16:30 and 16:30–18:00 do not overlap. Identical and nested Windows overlap too.
+- **Window:** a bookable time slot that is the same for every Sauna in the Venue. The standard length is 1 h 30 min (for example 15:00–16:30). No two Windows overlap, and intervals are half-open, so 15:00–16:30 and 16:30–18:00 do not overlap. Identical and nested Windows overlap too. All UI copy and emails, including Administrator pages, say **session**, in lower case in sentences; Window stays the term in this PRD, the architecture and the code. The UI never uses "session" for a browser session (Lisa, 2026-11-05).
 - **Seat:** one guest's place in a Window. Seats are identical, and in the guest's view a Seat is not tied to any Sauna.
 - **Seat booking:** a Booking of 1 to 10 Seats in one Window.
 - **Whole-sauna booking:** a Booking of one entire Sauna for one Window. Guests see it as "Private sauna".
@@ -131,6 +131,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Guest account:** an optional account that lets a Guest see their own Bookings (If time, FR-37).
 - **Seat booker:** a Guest who holds a Seat booking in a given Window.
 - **Administrator:** a staff user with an Administrator account. The Core has one seeded Administrator; more can exist.
+- **Reception:** the desk at the Venue where a Guest gives the Booking reference on arrival. A Guest who has lost the reference gives their name and email instead (Lisa, 2026-11-05). Staff find the Booking in the read-only Booking list (FR-16) `[ASSUMPTION: reception staff use the Administrator Booking list, and v1 has no check-in marking]`.
 - **Open for Seats:** a Sauna is open for Seats in a Window when it is not Whole-sauna-booked, not Blocked, and not an unreleased Whole-booking-only Sauna. With Gradual opening (Step 2), a Sauna that may open but has not been opened still counts as open for Seats, and only Door codes depend on whether it has been opened (FR-46, FR-50).
 - **Seat capacity:** for a Window, the sum of Capacity over the Saunas that are open for Seats. In the Core, this is the sum of all Capacities.
 - **Seats left:** Seat capacity minus the Seats booked in the Window, and also minus the Seats held once Holds exist.
@@ -161,7 +162,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 ## 4. Features
 
 ### 4.1 Find a Window *[Core]*
-**Description:** A Guest lands on a calm page. It says in a few lines what Saunalöyly is and offers one main action, **Book seats**. The Guest picks a date within the Booking horizon and the number of Seats, then sees that date's Windows, each with its Seats left and the total price for the chosen number. The Guest books Seats, never a particular Sauna, and the page says so. The **Private sauna** entry appears only once §4.9 is built. Realizes UJ-1 and UJ-2.
+**Description:** A Guest lands on a calm page. It says in a few lines what Saunalöyly is and offers one main action, **Book seats**. The Guest picks a date within the Booking horizon and the number of Seats, then sees that date's Windows, each with its Seats left, and one total price for the chosen number. The Guest books Seats, never a particular Sauna, and the page says so. The **Private sauna** entry appears only once §4.9 is built. Realizes UJ-1 and UJ-2.
 
 **Functional Requirements:**
 
@@ -176,7 +177,7 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
     - etiquette: bring two towels, one of them to sit on; ask the others before throwing water on the stones; follow the swimwear rule;
     - safety: bring water and drink plenty; alcohol is not allowed at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children must be supervised by an adult;
-    - practical: changing time is part of the Window;
+    - practical: changing time is part of the Window (on the page: "Changing time is part of your session.");
     - the section can be linked to directly (FR-8).
 - The website presents the Venue:
   - the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4);
@@ -194,7 +195,7 @@ A Guest can choose a date and a whole number of Seats from 1 to 10. Realizes UJ-
 - A Seat number outside 1–10 cannot be submitted, and the server rejects it (FR-18).
 
 #### FR-3: Windows with Seats left
-For the chosen date and number of Seats, a Guest sees every bookable Window with its start and end, its Seats left, and the total price for the chosen number. Realizes UJ-1 and UJ-2.
+For the chosen date and number of Seats, a Guest sees every bookable Window with its start and end and its Seats left, and one total price for the chosen number. Realizes UJ-1 and UJ-2.
 
 **Consequences (testable):**
 - Seats left equals Seat capacity minus Seats booked (FR-10), and matches the Administrator's booking list (FR-16).
@@ -202,6 +203,7 @@ For the chosen date and number of Seats, a Guest sees every bookable Window with
 - If no Window on the date has room, the page offers up to three of the nearest Windows that do, the same day first, then the following days within the Booking horizon `[ASSUMPTION: same day first, then the following days, at most three]`.
 - A Window whose Booking deadline has passed is not offered.
 - No countdown, "people viewing" count, padded number or other urgency cue appears. Any text about scarcity states the true current Seats left.
+- The total is shown once, not per Window, for the chosen number and visible for the chosen Window (Lisa, 2026-11-05). This holds while the price is the same in every Window, and must change if per-Window prices arrive.
 - The total shown equals the number of Seats times the price per Seat, in NOK including VAT, and is the amount charged.
 
 #### FR-4: Seats, not Saunas
@@ -224,11 +226,11 @@ A Guest can enter a name and an email, and review the Booking before paying. Rea
 
 **Consequences (testable):**
 - The name is free text of 1–100 characters, and the email is a valid address of at most 254 characters `[ASSUMPTION: text limits]`. Nothing else is asked.
-- Before the pay button, either on the details page or on a separate review step, the Guest sees:
+- Details and Review are two separate pages (Lisa, 2026-11-05). Before the pay button, on Review, the Guest sees:
   - the Window, the number of Seats, and the total price in NOK including VAT;
   - the Venue's identity and contact details;
   - the booking terms, including that a booking for a fixed date has no right of withdrawal (angrerettloven § 22 m), and what the Guest can and cannot Change afterwards.
-- Until §4.8 is built, the terms state that a Booking cannot be changed or refunded online.
+- Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered (Lisa, 2026-11-05).
 - The Guest must accept the terms before paying. Links to the full terms and the privacy notice are present.
 - Going back keeps everything the Guest has entered.
 
@@ -262,6 +264,7 @@ After a successful Booking, the Guest sees a confirmation page and receives a si
   - what happens next;
   - the booking terms;
   - a link to the "Before you come" section of the landing page (etiquette and safety).
+- In the Core, "what happens next" is the reception instruction: "Keep your booking reference and give it at reception when you arrive." (Lisa, 2026-11-05).
 - The email is stored in the Outbox. The confirmation page shows that email as sent. Which later emails a Guest sees is set in FR-17.
 - The confirmation page opens only in the browser session that paid, and for as long as that session lasts `[ASSUMPTION: the confirmation page is tied to the paying browser session]`. A reload in that session shows it again.
 - The Core confirmation contains no Manage link `[ASSUMPTION: the Manage link arrives with §4.8, when there is something to manage]`.
@@ -587,12 +590,12 @@ A Guest can ask for a new Manage link by giving the Booking reference and email.
 - The reference and email alone never open a Booking.
 
 ### 4.11 Seat Hold during payment *[If time — 5]*
-**Description:** When the Guest presses Book after choosing a Window and Seats, those Seats are held for a fixed 10 minutes while the Guest enters details, accepts the terms and pays. The hold length is not a Setting. A Hold is stored with its expiry time and stops counting when it expires, whether or not any cleanup has run. A Hold does not by itself prevent double booking: the atomic check of FR-10 still applies when the Booking is confirmed. Payment stays synchronous (FR-6), so the Booking is created in the same step that records the charge.
+**Description:** When the Guest presses **Continue booking** on Book seats after choosing a Window and Seats, those Seats are held for a fixed 10 minutes while the Guest enters details, accepts the terms and pays. The hold length is not a Setting. A Hold is stored with its expiry time and stops counting when it expires, whether or not any cleanup has run. A Hold does not by itself prevent double booking: the atomic check of FR-10 still applies when the Booking is confirmed. Payment stays synchronous (FR-6), so the Booking is created in the same step that records the charge.
 
 **Functional Requirements:**
 
 #### FR-35: Hold Seats for 10 minutes
-When a Guest presses Book, the chosen Seats are held for that Guest for 10 minutes.
+When a Guest presses **Continue booking** on Book seats, the chosen Seats are held for that Guest for 10 minutes.
 
 **Consequences (testable):**
 - Held Seats are left out of other Guests' Seats left until the Hold expires or ends.
@@ -625,7 +628,7 @@ A Guest can create an account, sign in and sign out, and see the Bookings made w
 **Consequences (testable):**
 - A Guest signs up with an email and a password that meets FR-19 `[ASSUMPTION: Guests sign in by email, as Administrators do]`.
 - Sign-in is throttled as in FR-15 (PW-6), and a wrong email or password gives the same message (PW-5). Sign-up does not reveal whether an email already has an account: the reply is the same, and the account is confirmed through a link emailed to the address (Outbox). A password is reset the same way, by an emailed link.
-- The choice to sign in appears after **Book**. Continuing without an account is the default and the most prominent option.
+- The choice to sign in appears after **Continue booking** on Book seats, before Details. Continuing without an account is the default and the most prominent option.
 - A signed-in Guest:
   - sees only the Bookings made while signed in to that account (RB-4);
   - cannot reach Administrator functions (RB-2);
@@ -844,7 +847,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 - **Palette:** light wood (birch and pine), deep forest green, granite grey, birch white, a grey sea-blue and sky blue. Saturation is low, and every pair of text and background colours meets WCAG AA contrast.
 - **Type:** Finlandica for headings and Source Sans 3 for text. Both are under the SIL Open Font License and self-hosted. Finlandica is Finland's country-brand typeface, so it reads as Finnish by design.
 - **Imagery:** Finnish saunas outside and inside, with their traditional equipment: the *kiuas* (stove) and its stones, the *kiulu* (bucket) and *kauha* (ladle), the wooden *lauteet* (benches) and the *vihta* (birch whisk). The light is dim and indirect, with wood, water and forest in view. Every image is AI-generated or freely licensed and listed in the asset register (DR-3).
-- **Copy:** short and concrete, with facts before persuasion. A few Finnish words appear, each with an English gloss.
+- **Copy:** short and concrete, with facts before persuasion. A few Finnish words appear, each with an English gloss. The word for a Window in all copy is "session" (§3), and the example wording in this PRD reads the same way.
 - **Anti-references:**
   - spa-luxury cues (scents, music, coloured LED light, "pamper yourself");
   - polished stock photography;
@@ -854,7 +857,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 - References to study, not copy, are in addendum F.
 
 ## 7. Information Architecture
-- **Core, Guest:** Landing (with "Before you come") → Book seats (date, Seats, Windows) → Details and review → Confirmation (with the sent email and a link to "Before you come"). Also Terms and Privacy notice.
+- **Core, Guest:** Landing (with "Before you come") → Book seats (date, Seats, Windows) → Details → Review → Confirmation (with the sent email and a link to "Before you come"). Also Terms and Privacy notice.
 - **Core, Administrator:** Sign-in → Booking list (by date and Window) → Outbox. Also Sign-out.
 - **If time, Guest:**
   - Manage booking, reached from the Manage link: view the Booking, move Seats or take a Voucher, or cancel or move a Whole-sauna booking;
@@ -867,13 +870,13 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 - **Step 2:** Gift card purchase. Administrator screens for Gift card values, limits and the list of cards sold; for doors, locks, codes, the Send time, per-Block door-code overrides and resend; and for Gradual opening.
 - The UX workflow sketches the booking flow and the Administrator booking list first, and the blocking calendar when §4.13 comes near, following the teacher's advice (2026-10-06).
 - **UX scope for this round (Lisa, 2026-10-30):** the UX workflow designs every Core page in full, plus the places on Core pages where If-time features plug in (the Private sauna entry, the Voucher field, the sign-in choice), and the flows of §4.8 to §4.12. The screens of §4.13 come later.
-- **States left to the UX designer under FR-22:** behaviour is the designer's call unless a rule above fixes it. Core: the Booking deadline passing between choosing a Window and paying; a Window that has started but can still be booked; the last day of the horizon; no Window with room anywhere in the horizon; sign-in slowed or refused; an anonymous visitor at an Administrator address; a date with no Bookings; payment in progress. If time: the Manage page after a Voucher, a Venue cancellation, the Cutoff and the end of the Window; a Voucher that covers the whole total, where "Pay NOK 0" needs other wording; a resend refused by the rate limit; the Remedy page after the choice or after 30 days; a Seat taken by another Guest while the details are entered.
+- **States left to the UX designer under FR-22:** behaviour is the designer's call unless a rule above fixes it. Core: the Booking deadline passing between choosing a Window and paying; a Window that has started but can still be booked; the last day of the horizon; no Window with room anywhere in the horizon; sign-in slowed or refused; an anonymous visitor at an Administrator address; a date with no Bookings; payment in progress; the browser session ending during a booking. If time: the Manage page after a Voucher, a Venue cancellation, the Cutoff and the end of the Window; a Voucher that covers the whole total, where "Pay NOK 0" needs other wording; a resend refused by the rate limit; the Remedy page after the choice or after 30 days; a Seat taken by another Guest while the details are entered.
 
 **Emails.** All emails are plain text in English and appear in the Outbox. A Guest sees an email on the page of the action that sent it (FR-17).
 
 | Email | To | Content | Phase |
 |---|---|---|---|
-| Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, terms, "Before you come", payment note | Core |
+| Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, Guest's email, what happens next, terms, "Before you come", payment note | Core |
 | Confirmation of a Change (FR-26, FR-33) | Booker | What changed, the new Window and Seats, the Manage link | If time 2–3 |
 | Split-off Booking (FR-26) | Booker | New Booking reference and its own Manage link | If time 2 |
 | Voucher (FR-27, FR-28, FR-42) | Booker | Code, value, expiry date | If time 2 |
@@ -1016,7 +1019,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 
 ## 12. Open Questions
 1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
-2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Owner: Lisa. Decide before the UX workflow.
+2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Decided 2026-11-05 (Lisa): it has no separate measure. FR-22 and FR-23 are the only checks.
 3. **Seed data.** Decided 2026-11-01 (Lisa); the values are in addendum J.
    - The Saunas are Rauha 7, Löyly 10, Kajo 12 and Lumo 15 Seats, 44 in total, filled in that order.
    - The price is NOK 250 per Seat including VAT, the same in every Window (FR-26). It is illustrative (§9).
@@ -1031,7 +1034,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
    - The analysis of 2026-11-02 (the cost of switching later) is superseded by this decision: PostgreSQL is chosen from the Core, so no later switch is planned. Its warning still holds: every write unit locks the Windows it touches in a fixed order, in one function of the data layer, because code written for a database-wide lock can race under Read Committed.
 5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
 6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2).
-7. **Administrator cancellation of a single Booking.** It is not in the sources. Is it needed? It is the only way some late-cancellation cases in the catalogue can arise.
+7. **Administrator cancellation of a single Booking.** Decided 2026-11-05 (Lisa): not in the Core, so the Booking list stays read-only. It is the only way some late-cancellation cases in the catalogue can arise, so those cases do not occur in the Core.
 8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
 9. **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
 10. **Trademark.** Decided 2026-10-31 (Lisa): keep "Saunalöyly". A check of "Löyly" found filed or registered marks in Australia, Canada, Denmark, the EU, Finland, the UK and the US (counts only; owners, classes and the Norwegian register were not checked), but the Venue is fictional and not used in trade. If the platform is ever used commercially, check the owners and classes (43 and 44) and rename if needed.
@@ -1048,6 +1051,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-1: content of the "Before you come" section, apart from the two towels and the bathing rules.
 - FR-3: the nearest Windows with room come from the same day first, then the following days, at most three.
 - FR-5: names are 1–100 characters, and emails at most 254.
+- §3: reception staff use the Administrator Booking list, and v1 has no check-in marking.
 - FR-8: the Core confirmation has no Manage link.
 - FR-8: the confirmation page is tied to the paying browser session.
 - FR-13: the seed generates Windows from the run date.
