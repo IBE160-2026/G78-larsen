@@ -221,7 +221,7 @@ components:
   image-block:
     radius: '{rounded.none}'
   rule-list:
-    borderTop: '1px solid {colors.border}'
+    titleBorderBottom: '1px solid {colors.border}'
     paddingBlock: '{spacing.2}'
   sauna-card:
     imageHeight: '{spacing.sauna-image-height}'
@@ -422,7 +422,7 @@ Rendered in [`directions-3.html`](mockups/directions-3.html) unless marked. Beha
 
 **Landing**
 
-- **Rule list.** Items in `{typography.body}`, each with a 1 px `{colors.border}` line above and `{spacing.2}` padding. No bullets. Group title in `{typography.heading-md}`.
+- **Rule list.** Group title in `{typography.heading-md}`, with a 1 px `{colors.border}` line under it. Items in `{typography.body}` with `{spacing.2}` padding, no lines between them and no bullets (Lisa).
 - **Sauna card.** Image `{spacing.sauna-image-height}` high, name in `{typography.heading-lg}` `{spacing.3}` below it, size line in `{colors.muted}`, one line of text in `{typography.body}`. No border, no fill.
 - **Find us block.** Heading in `{typography.heading-lg}`, then address and contact, then Text links, all in `{typography.small}`, one column each.
 
