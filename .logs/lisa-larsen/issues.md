@@ -88,14 +88,16 @@
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Wordmark (240,2 px i 240 px rail) må sjekkes med ekte Finlandica; base-URL for e-postlenker er ikke satt
 - [x] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — arkitekturspinen mangler UX-punkt 13 og 14 (løst 2026-11-05: ført inn i AD-16 og AD-12)
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — koden må bygge det AD-16 nå krever: `seats_left` på `no_seat_free`, `deadline_passed`, `already_started`, `horizon_end` og `horizon_days`
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lukk de 12 high-funnene i `validation-report.md` før stories for Book seats, Review og Confirmation skrives
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt refusjonssetningen: PRD §9 mot FR-5 og Open Item 11 (H-1); gjenåpner en lukket beslutning
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt "never alone" (innhold M-8); gjenåpner Open Item 12
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt zoom: flytt 1024–1365 px og enspalteløsning inn i Core, eller utvid unntaket i FR-23 (A-03)
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Administrator-sidene mot FR-51 (A-18)
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt hvor valg, navn, e-post og nøkkel lever, og om nøkkelraden skal overleve økten (H-4, cold-load); kan endre AD-8 og AD-9
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Venue og kontakt i bekreftelsen, og Name og Email på Review (H-2, H-3)
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — sett tidspunkt for Terms og Privacy notice (H-5); avklar behandlingsansvarlig, oppbevaringstid og session-cookie mot FR-21 (innhold M-12, M-13)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lukk resten av high-funnene før stories for Book seats og Review skrives: feilmønster, fokus etter avvisning, Nearest sessions, sidetitler og gruppenavn på radioer
+- [x] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt refusjonssetningen: PRD §9 mot FR-5 og Open Item 11 (H-1); gjenåpner en lukket beslutning (løst 2026-11-06: unntaket skrives i Terms, løsningen kommer med FR-42)
+- [x] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt "never alone" (innhold M-8); gjenåpner Open Item 12 (løst 2026-11-06: ny tekst i FR-1, addendum F og mock)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt zoom (A-03); anbefalt: laget 1024–1365 px inn i Core, test 200 %, og skriv om påstanden om WCAG 2.0 AA i FR-23
+- [x] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Administrator-sidene mot FR-51 (A-18) (løst 2026-11-06: laptop i Core, mobil senere)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt tapt økt og direkte lasting (H-4, cold-load); anbefalt: utkast og nøkkel i `sessionStorage`, aldri ny nøkkel ved `invalid_key`, én linje i AD-9
+- [x] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Venue og kontakt i bekreftelsen, og Name og Email på Review (H-2, H-3) (løst 2026-11-06: ført inn i FR-5, FR-8 og §7)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Terms og Privacy notice skrives senere (H-5): ta med unntaket når Saunalöyly avlyser, behandlingsansvarlig, oppbevaringstid og session-cookie mot FR-21 (innhold M-12, M-13)
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — legg skjermleser og zoom til den manuelle testen i FR-23; testliste i `review-accessibility.md`
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de 8 bindende antakelsene og de 4 i kildene (`review-content.md`)
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gå gjennom de 42 medium- og 44 low-funnene, og oppdater `updated` i dokumentene etter endringene
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gå gjennom de 42 medium- og 44 low-funnene
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Venue-teksten må si hvor gjestene kan bade og isbade, ellers viser sikkerhetsregelen til noe siden ikke beskriver
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Administrator-sidene har ingen smal layout spesifisert; må lages før FR-51 bygges
