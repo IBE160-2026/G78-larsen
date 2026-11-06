@@ -78,7 +78,7 @@
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — den første skjelett-storyen må gjennomføre AD-21: skiva og 42 tester flyttes til `/api`, server-sesjoner, Seats 1–10 og migreringsrunneren, uten å løse opp noen regel
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — endre spinen (Manage-link og vouchersaldo) før første story i hvis-tid 2 skrives
 - [ ] 2026-11-03 [arkitektur-spine](987-2026-11-03-21-10-57-arkitektur-spine.md) — NFR-3 (vindu i hoppet/gjentatt sommertidstime avvises) er ikke eksplisitt i spinen; dekk det i seed- eller FR-13-storyen
-- [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gjennomgang av `DESIGN.md` og `EXPERIENCE.md` er utsatt av Lisa; anbefalt innhold og tilgjengelighet
+- [x] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gjennomgang av `DESIGN.md` og `EXPERIENCE.md` er utsatt av Lisa; anbefalt innhold og tilgjengelighet (løst 2026-11-06: rubrikk, tilgjengelighet og innhold kjørt; se `validation-report.md`)
 - [x] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — 15 punkter under PRD impact i `EXPERIENCE.md` er ikke ført inn i PRD/arkitektur (blant dem Q2, Q7, reception, Session, to sider for Details og Review) (løst 2026-11-05: punkt 1–12 og 15 er i PRD-en, 13 og 14 står som eget punkt)
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — innhold mangler før Core er komplett: Venue-tekst, Sauna-linjer, swimwear-regel, adresse/kontakt, Terms, Privacy notice, bilder, alt-tekst, logo og favicon
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — vilkårsteksten på Review må holde seg på rundt seks linjer, ellers havner Pay under første skjermbilde
@@ -88,3 +88,14 @@
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Wordmark (240,2 px i 240 px rail) må sjekkes med ekte Finlandica; base-URL for e-postlenker er ikke satt
 - [x] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — arkitekturspinen mangler UX-punkt 13 og 14 (løst 2026-11-05: ført inn i AD-16 og AD-12)
 - [ ] 2026-11-05 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — koden må bygge det AD-16 nå krever: `seats_left` på `no_seat_free`, `deadline_passed`, `already_started`, `horizon_end` og `horizon_days`
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lukk de 12 high-funnene i `validation-report.md` før stories for Book seats, Review og Confirmation skrives
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt refusjonssetningen: PRD §9 mot FR-5 og Open Item 11 (H-1); gjenåpner en lukket beslutning
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt "never alone" (innhold M-8); gjenåpner Open Item 12
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt zoom: flytt 1024–1365 px og enspalteløsning inn i Core, eller utvid unntaket i FR-23 (A-03)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Administrator-sidene mot FR-51 (A-18)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt hvor valg, navn, e-post og nøkkel lever, og om nøkkelraden skal overleve økten (H-4, cold-load); kan endre AD-8 og AD-9
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt Venue og kontakt i bekreftelsen, og Name og Email på Review (H-2, H-3)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — sett tidspunkt for Terms og Privacy notice (H-5); avklar behandlingsansvarlig, oppbevaringstid og session-cookie mot FR-21 (innhold M-12, M-13)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — legg skjermleser og zoom til den manuelle testen i FR-23; testliste i `review-accessibility.md`
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de 8 bindende antakelsene og de 4 i kildene (`review-content.md`)
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gå gjennom de 42 medium- og 44 low-funnene, og oppdater `updated` i dokumentene etter endringene
