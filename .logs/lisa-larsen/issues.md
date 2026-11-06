@@ -102,5 +102,5 @@
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Venue-teksten må si hvor gjestene kan bade og isbade, ellers viser sikkerhetsregelen til noe siden ikke beskriver
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Administrator-sidene har ingen smal layout spesifisert; må lages før FR-51 bygges
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — kjør testen på 200 % på 1366 × 768 og 1920 × 1080; viser den at noe går tapt, må enspalteløsning under 1024 px vurderes for Core
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de fire nye tekstene i Voice and Tone
+- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de fem nye tekstene i Voice and Tone
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Privacy notice må nevne at navn og e-post ligger i `sessionStorage`
