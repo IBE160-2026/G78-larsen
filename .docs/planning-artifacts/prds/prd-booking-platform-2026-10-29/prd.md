@@ -1,6 +1,6 @@
 ---
 title: "Saunalöyly Booking Platform"
-status: draft
+status: final
 created: 2026-10-29
 updated: 2026-11-06
 ---
@@ -898,7 +898,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 ### 8.1 Delivery requirements (exam)
 - **DR-1 AI use and quality assurance.** Documentation shows:
   - how AI was used at each stage (planning with BMAD, implementation with Claude Code);
-  - how it was steered (session logs, and a token budget per story, which is only a proposal until §12 Q17 is decided);
+  - how it was steered (session logs);
   - how the result was checked (tests, reviews, manual checks), including where AI output was wrong or rejected and how that was found.
 - **DR-2 README.** The README covers:
   - how to install and start the backend and the frontend;
@@ -1037,7 +1037,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
    - The SQLite spike no longer applies. The store-level refusal of FR-10 (CHECK constraint and trigger) is re-proven on PostgreSQL, for the Core first and later for Whole-sauna bookings and Blocks (addendum A).
    - The architecture keeps the SQL plain and the data access in one layer.
    - The analysis of 2026-11-02 (the cost of switching later) is superseded by this decision: PostgreSQL is chosen from the Core, so no later switch is planned. Its warning still holds: every write unit locks the Windows it touches in a fixed order, in one function of the data layer, because code written for a database-wide lock can race under Read Committed.
-5. **Stored or derived Placement.** An architecture decision. The research recommends derived Placement, proven by the model-based test (FR-31).
+5. **Stored or derived Placement.** Decided in the architecture (AD-6): Placement is derived, never stored, as the research recommends. The model-based test proves it (FR-31).
 6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2).
 7. **Administrator cancellation of a single Booking.** Decided 2026-11-05 (Lisa): not in the Core, so the Booking list stays read-only. It is the only way some late-cancellation cases in the catalogue can arise, so those cases do not occur in the Core.
 8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
@@ -1046,10 +1046,10 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 11. **Gift-card validity (Step 2).** One year is common practice, but a three-year limitation period may still apply to a paid card. This is a legal reading, not legal advice.
 12. **Gaps before any real launch.** Norwegian pre-contract information if the service is marketed to Norwegian consumers, and the organisation number and VAT details. These are out of scope for the fictional exam version.
 13. **Heating cases I11 to I23.** Vision.
-14. **Lock unit.** Open again since 2026-11-03: SQLite's single write lock (the basis of the 2026-11-01 answer) is gone with the change to PostgreSQL (Q4). With derived Placement the Window is the natural lock unit (addendum A). Recommendation: lock the Window rows with `SELECT … FOR UPDATE`, several Windows in id (start-time) order, before the first write of every write unit. A spike on 2026-11-03 found this sufficient for Seat bookings, Whole-sauna bookings and Blocks (addendum A). The Core architecture decides it, and the parallel tests of FR-11 prove it. The tests of FR-32 run when Whole-sauna booking is built.
+14. **Lock unit.** Decided in the architecture (AD-3): the Window is the lock unit, and several Windows are locked in id (start-time) order. A spike on 2026-11-03 found this sufficient for Seat bookings, Whole-sauna bookings and Blocks (addendum A). The parallel tests of FR-11 prove it. The tests of FR-32 run when Whole-sauna booking is built.
 15. **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
 16. **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
-17. **Coach proposal not yet confirmed.** One proposal from the brainstorm stands in the PRD without Lisa's confirmation: a token budget per story (DR-1). Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (§8.2) and the planning depth (§10.3) on 2026-11-01. Owner: Lisa. Decide the token budget before sprint planning.
+17. **Coach proposals from the brainstorm.** Decided 2026-11-06 (Lisa): the token budget per story is dropped. Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (§8.2) and the planning depth (§10.3) on 2026-11-01.
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
@@ -1084,7 +1084,6 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-49: H11 as recommended.
 - NFR-1: one command each to start the backend and frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
-- DR-1: a brainstorm proposal not yet confirmed (a token budget per story); open as §12 Q17.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
 - §10.1: the order of If-time items 3 to 6.

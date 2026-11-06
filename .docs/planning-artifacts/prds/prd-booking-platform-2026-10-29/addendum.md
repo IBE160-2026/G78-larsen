@@ -320,7 +320,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - **Concurrency research.** Its appendix labels some references "high" that its memlog lists as unverified.
 
 ## I. Build order and risk handling
-The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every story (2026-10-30), and the freeze, the work windows and the planning depth (2026-11-01); the token budget is not confirmed.
+The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every story (2026-10-30), and the freeze, the work windows and the planning depth (2026-11-01). The token budget was dropped (2026-11-06).
 - **Planning** is lean (PRD §10.3): the architecture covers the Core and the hooks that would force a Core rewrite; Core stories come in two batches (before about 5 November and before 17 November); only HTTPS and If-time 2 get epics.
 - **Build:**
   - Start with the database engine, the schema and the capacity invariant.
@@ -329,7 +329,7 @@ The brainstorm of 2026-10-27 proposed this. Lisa has confirmed tests in every st
 - **Freeze:** feature cutoff 11 December, freeze 12–15 December; 9–11 December is buffer (Lisa, 2026-11-01).
 - **Work windows:** 27 October to about 8 November, 17 November to 4 December, then buffer and the freeze.
 - **Risk handling:**
-  - Keep stories small, with a token budget per story logged in the session log.
+  - Keep stories small.
   - Run mechanical tasks at lower effort.
   - Test concurrency, capacity, validation and SC1 in depth; give the rest breadth only.
 

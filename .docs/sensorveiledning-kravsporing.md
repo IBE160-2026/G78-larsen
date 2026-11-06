@@ -23,7 +23,7 @@ Status per 2026-10-31: planlegging er sterk, men det finnes ingen app, ingen tes
 
 ## Beslutninger som venter på deg
 
-1. Q17 i PRD: bare tokenbudsjett per story er ikke bekreftet. Bekreftet 2026-11-01: frys (funksjonsstopp 11.12, frys 12.–15.12) og planleggingsdybde (slank: Core i full arkitektur, Core-stories i to puljer, epics bare for HTTPS og «hvis tid» 2).
+1. ~~Q17 i PRD~~ Avgjort 2026-11-06: tokenbudsjett per story er droppet. Bekreftet 2026-11-01: frys (funksjonsstopp 11.12, frys 12.–15.12) og planleggingsdybde (slank: Core i full arkitektur, Core-stories i to puljer, epics bare for HTTPS og «hvis tid» 2).
 2. ~~Q4: databasemotor~~ Avgjort 2026-11-03: PostgreSQL i Docker (erstatter SQLite fra 2026-11-01). FR-10 bygges med CHECK og trigger og må bevises på PostgreSQL; SQLite-spiken gjelder ikke lenger.
 3. ~~Backcasting fra 15.12~~ Kjørt og avgjort 2026-11-01 (`backcasting-2026-11-01.md`): trolig v1 er Core + HTTPS, og rekkefølgen på «hvis tid» 3–6 avgjøres når «hvis tid» 2 er sammenslått. Det som ikke nås, står som ikke levert (DR-2).
 

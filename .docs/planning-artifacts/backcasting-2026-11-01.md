@@ -74,7 +74,7 @@ Two consequences for decisions:
 
 ## Checkpoints (go / no-go)
 
-Each checkpoint re-runs this backcast with real velocity. The token budget per story (DR-1, Q17) gives the data.
+Each checkpoint re-runs this backcast with real velocity. The session logs and finished stories give the data.
 
 | Date | Test | If it fails |
 |---|---|---|
