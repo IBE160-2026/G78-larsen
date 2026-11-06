@@ -2,7 +2,7 @@
 title: "Saunalöyly Booking Platform"
 status: draft
 created: 2026-10-29
-updated: 2026-11-05
+updated: 2026-11-06
 ---
 
 # PRD: Saunalöyly Booking Platform
@@ -176,7 +176,7 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - links to the terms and the privacy notice;
   - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
     - etiquette: bring two towels, one of them to sit on; ask the others before throwing water on the stones; follow the swimwear rule;
-    - safety: bring water and drink plenty; alcohol is not allowed at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; bathe with caution, and never alone; children must be supervised by an adult;
+    - safety: bring water and drink plenty; alcohol is not allowed at the venue; keep rounds to 5–10 minutes, and leave the sauna if you feel unwell; swim preferably with others, and never ice-bathe alone; children must be supervised by an adult;
     - practical: changing time is part of the Window (on the page: "Changing time is part of your session.");
     - the section can be linked to directly (FR-8).
 - The website presents the Venue:
@@ -228,6 +228,7 @@ A Guest can enter a name and an email, and review the Booking before paying. Rea
 - The name is free text of 1–100 characters, and the email is a valid address of at most 254 characters `[ASSUMPTION: text limits]`. Nothing else is asked.
 - Details and Review are two separate pages (Lisa, 2026-11-05). Before the pay button, on Review, the Guest sees:
   - the Window, the number of Seats, and the total price in NOK including VAT;
+  - the Guest's name and email (Lisa, 2026-11-06);
   - the Venue's identity and contact details;
   - the booking terms, including that a booking for a fixed date has no right of withdrawal (angrerettloven § 22 m), and what the Guest can and cannot Change afterwards.
 - Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered (Lisa, 2026-11-05).
@@ -244,6 +245,7 @@ A Guest can pay with a Simulated payment, and a successful payment creates the B
 - A successful payment reduces the Window's Seats left by exactly the number of Seats booked.
 - The Simulated payment is synchronous in every phase (decided 2026-10-30): the charge is recorded in the same atomic step that creates the Booking, so a request that creates no Booking charges nothing.
 - Each review page carries a one-time key. Submitting the same review twice (by double click, reload or retry) never creates two Bookings or two charges, and a repeat returns the first outcome: a Guest who was booked sees the confirmation again, never "no Seat free".
+- Going back from the confirmation page never reaches a page that can pay again: the Guest sees the confirmation (Lisa, 2026-11-06).
 
 #### FR-7: Failed payment
 A failed Simulated payment creates nothing. Realizes UJ-1.
@@ -261,6 +263,7 @@ After a successful Booking, the Guest sees a confirmation page and receives a si
   - the date and Window;
   - the number of Seats and the total paid;
   - the Guest's email;
+  - the Venue's identity and contact details (Lisa, 2026-11-06);
   - what happens next;
   - the booking terms;
   - a link to the "Before you come" section of the landing page (etiquette and safety).
@@ -428,15 +431,17 @@ Guests and the Administrator can use every Core page on a laptop screen, in the 
 
 **Consequences (testable):**
 - Every Core page works without horizontal scrolling at 1366×768 and 1920×1080 `[ASSUMPTION: these two sizes define "laptop screen"]`.
+- Every Core page also works without horizontal scrolling at window widths from 1024 px, which covers a laptop with display scaling (Lisa, 2026-11-06).
 - All styling comes from one stylesheet. The fonts are the self-hosted, OFL-licensed files listed in the asset register (DR-3).
 - Error and sold-out messages state what happened and what the Guest can do next. "Sold out" is shown as information about availability, with alternatives, not as an error.
 
 #### FR-23: Accessible Core pages
-Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2 (Lisa, 2026-10-30). The legal minimum for private websites in Norway is WCAG 2.0 AA, which has no Reflow criterion, so the Core meets it in full.
+Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2 (Lisa, 2026-10-30). The legal minimum for private websites in Norway is WCAG 2.0 AA, which has no Reflow criterion. The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it (Lisa, 2026-11-06).
 
 **Consequences (testable):**
 - An automated accessibility check reports no level A or AA failures on the Core pages, except 1.4.10 Reflow, which the report lists as a known gap until FR-51. If FR-51 is not built, the README names the gap among the success criteria not delivered (DR-2).
 - A manual pass confirms that the entire booking flow and the Administrator list can be completed with the keyboard alone. Focus is always visible and never hidden behind fixed elements.
+- A manual pass at 200 % zoom on 1366×768 and 1920×1080 finds no content or function lost (1.4.4). Two-way scrolling is allowed.
 - Text contrast meets AA.
 - Interactive targets are at least 24×24 CSS pixels.
 - No information is conveyed by colour alone.
@@ -876,7 +881,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 
 | Email | To | Content | Phase |
 |---|---|---|---|
-| Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, Guest's email, what happens next, terms, "Before you come", payment note | Core |
+| Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, Guest's email, Venue identity and contact details, what happens next, terms, "Before you come", payment note | Core |
 | Confirmation of a Change (FR-26, FR-33) | Booker | What changed, the new Window and Seats, the Manage link | If time 2–3 |
 | Split-off Booking (FR-26) | Booker | New Booking reference and its own Manage link | If time 2 |
 | Voucher (FR-27, FR-28, FR-42) | Booker | Code, value, expiry date | If time 2 |

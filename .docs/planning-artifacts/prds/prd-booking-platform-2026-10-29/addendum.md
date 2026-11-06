@@ -285,7 +285,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - No alcohol: about 80 % of Finland's 30–40 yearly sauna heat deaths involved intoxication (Statistics Finland, 2011).
 - Swimwear rules vary between venues.
 - Children must be supervised by an adult.
-- Bathe with caution, and never alone (Lisa, 2026-10-30).
+- Swim preferably with others, and never ice-bathe alone (Lisa, 2026-11-06). This replaces "Bathe with caution, and never alone" from 2026-10-30.
 - Wording on the page (Lisa, 2026-10-31, changed 2026-11-03): etiquette says to ask the others before throwing water on the stones and follow the swimwear rule; safety says that alcohol is not allowed at the venue and that children must be supervised by an adult.
 
 ## G. Rejected or replaced alternatives
@@ -390,7 +390,7 @@ Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downst
 
 | Topic | PRD position | Alternative not taken |
 |---|---|---|
-| WCAG in the Core | WCAG 2.2 AA, with one stated exception: 1.4.10 Reflow waits for the mobile layout (FR-23, FR-51). The legal minimum, WCAG 2.0 AA, is met in full | A simple one-column layout in the Core; or aim for 2.0 AA in the Core and 2.2 AA with FR-51 |
+| WCAG in the Core | WCAG 2.2 AA, with one stated exception: 1.4.10 Reflow waits for the mobile layout (FR-23, FR-51). The legal minimum, WCAG 2.0 AA, is met once the 200 % test in FR-23 passes (changed 2026-11-06) | A simple one-column layout in the Core; or aim for 2.0 AA in the Core and 2.2 AA with FR-51 |
 | Payment model | Synchronous in every phase. A late payment books or charges nothing, so CT-5 becomes "not charged" (FR-6, FR-36) | Charge before the check, with an immediate refund; or an asynchronous model like a real card flow, with refunds and out-of-order confirmations |
 | Emails a Guest sees | A Guest sees an email on the page of the action that sent it. The resend and remedy emails are visible only in the Outbox, because showing them would give access to a Booking (FR-17) | The Manage page also lists every email about the Booking; or no change, with only the Outbox |
 | Store-level refusal (FR-10) | The data store refuses over-capacity writes in every phase | Core only, with serialised requests as the guarantee afterwards |

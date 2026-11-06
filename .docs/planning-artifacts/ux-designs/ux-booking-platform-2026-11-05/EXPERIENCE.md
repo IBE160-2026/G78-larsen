@@ -6,7 +6,7 @@ sources:
   - {planning_artifacts}/prds/prd-booking-platform-2026-10-29/addendum.md
   - {planning_artifacts}/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md
   - {planning_artifacts}/briefs/brief-booking-platform-2026-09-20/brief.md
-updated: 2026-11-05
+updated: 2026-11-06
 ---
 
 # Saunalöyly Booking Platform: Experience Spine
@@ -49,7 +49,7 @@ In sentences it is lower case, as in the mock ("Choose a session"). All other te
 
 Details and Review are two separate pages. PRD §7 lists them as one, and FR-5 allows either.
 
-**Core, Administrator (laptop only)**
+**Core, Administrator (laptop)**
 
 | Surface | Reached from | Purpose |
 |---|---|---|
@@ -167,7 +167,7 @@ The "Before you come" text follows FR-1, with one change for the UI word: "Chang
 | "Your details" | Details heading |
 | "Review" | Review heading |
 | "Booking terms" | Heading on Review and Confirmation |
-| "Date", "Session", "Seats", "Total", "Venue", "Contact", "Email" | Booking summary labels |
+| "Date", "Session", "Seats", "Total", "Name", "Email", "Venue", "Contact" | Booking summary labels |
 | "The nearest sessions with room:" | Notice after a refusal on Review |
 | "Sent by email:" | Label above Email as sent |
 
@@ -187,7 +187,10 @@ The "Before you come" text follows FR-1, with one change for the UI word: "Chang
 | "No room for 2 seats on Saturday. The nearest sessions with room:" | No room on the date |
 | "Booking opens 4 weeks ahead." | Last horizon day |
 | "There is no room for 2 seats in the next 4 weeks." | No room in the horizon |
-| "Choose a session", as an error | Continue with a choice missing |
+| "Choose a date", "Choose the number of seats", "Choose a session", as errors | Continue with a choice missing. [ASSUMPTION] The first two are new |
+| "Enter the date as dd.mm.yyyy" | [ASSUMPTION] Date mistyped |
+| "This date cannot be booked. Pick a day below." | [ASSUMPTION] Date not bookable, typed |
+| "This booking may already be paid. Check your email for a confirmation before you book again." | [ASSUMPTION] Key known from another browser session |
 | "Enter a valid email address" | Email field (from `color-themes-3.html`) |
 | "Enter your name" | Name field |
 | "Wrong email or password" | Sign-in, every refusal |
@@ -229,7 +232,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 
 [ASSUMPTION] On arrival nothing is pre-selected: no date, number or Session. NFR-9 forbids pre-ticked options, and a Guest's own choice keeps the total honest. The Session list appears once a date is chosen, so the schedule is one step away.
 
-[ASSUMPTION] Continue is always enabled. Pressing it with a choice missing shows a Field error at that question and moves focus there, because a disabled button gives no reason.
+[ASSUMPTION] Continue is always enabled, because a disabled button gives no reason. Pressing it with a choice missing shows an Error summary at the top of the main column and a Field error at each question. The summary takes focus, and each of its links moves focus to its question: the date field, or the chosen or first available radio. A typed date is checked when the Guest leaves the field or presses Enter. A problem then shows a Field error only, focus stays, and the error joins the Error summary if the Guest presses Continue.
 
 [ASSUMPTION] Changing the date clears the chosen Session, because a Session belongs to one date.
 
@@ -246,10 +249,10 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 | Component | Use | Behavioural rules |
 |---|---|---|
 | Notice | Availability and neutral messages | Says what happened and what to do next. Availability is not an error (FR-22). Announced as a status message |
-| Nearest sessions | No room, refused requests | Up to three Sessions with room for the chosen number, same day first, then following days within the horizon (FR-3). Choosing one selects that date and Session and keeps the number, name and email |
-| Error summary | Top of a form with errors | Lists each error as a link to its field. Takes focus when it appears (FR-23) |
-| Field error | Next to a field | Always with an Error summary. Input is kept (FR-23) |
-| Booking summary | Review, Confirmation | Date, Session, Seats, total incl. VAT. On Review it also holds Venue identity and contact details (FR-5). On Confirmation it also holds the Guest's email (FR-8), and the amount is the stored total (AD-13) |
+| Nearest sessions | No room, refused requests | Up to three Sessions with room for the chosen number, same day first, then following days within the horizon (FR-3). Choosing one selects that date and Session and keeps the number, name and email. Each one is a Text link with the date, time and Seats left and its own tab stop, not a radio, because choosing one changes the page (WCAG 3.2.2). On Review, focus then moves to the Review heading. On Book seats, it moves to the chosen Session |
+| Error summary | Top of a form with errors | Lists each error as a link to its field. An error with no field, such as a failed payment, is plain text. Takes focus when it appears (FR-23) |
+| Field error | Next to a field | Comes with an Error summary, except a typed date before Continue (see Book seats). Input is kept (FR-23) |
+| Booking summary | Review, Confirmation | Date, Session, Seats, total incl. VAT. On Review it also holds the Guest's name and email, and Venue identity and contact details (FR-5). On Confirmation it also holds the Guest's email, and Venue identity and contact details (FR-8), and the amount is the stored total (AD-13) |
 | Reference display | Confirmation | 8 characters (AD-20). Selectable text. Opens nothing by itself (FR-8) |
 | Email as sent | Confirmation, result pages | Labelled "Sent by email:". Shows the stored email, not a rebuilt one (FR-8, AD-12). Only on the page of the action that sent it (FR-17). Never holds a Manage link resend or remedy email |
 
@@ -318,8 +321,8 @@ Any screen can be overtaken by a refusal when the Guest submits (AD-2). A refuse
 | Seats taken while typing | Notice with the true Seats left and Nearest sessions. Nothing charged (FR-12, UJ-1) |
 | Lost the last Seat | Notice with "No seat free" and Nearest sessions. Nothing charged, no email (FR-11) |
 | Deadline passed before payment | Notice that the Session can no longer be booked, with Nearest sessions. Nothing charged |
-| Retries used up | Notice with "please try again", different from "No seat free". Nothing written (FR-14) |
-| After a refusal | Guest stays on Review with the name and email kept. The Notice sits under Back. Pay, the payment note and the Terms checkbox are removed for the refused Session (Lisa). The Booking summary and booking terms stay. Choosing a nearest Session reloads Review with Pay, the note and the checkbox back. This gives one place to recover without retyping (WCAG 3.3.7) |
+| Retries used up | Notice with "please try again", different from "No seat free". Pay, the payment note and the Terms checkbox stay, so the Guest can try again. Nothing written (FR-14) |
+| After a refusal | Guest stays on Review with the name and email kept. The Notice sits under Back. Pay, the payment note and the Terms checkbox are removed for the refused Session (Lisa). The Notice takes focus, because Pay held it and is gone. The Booking summary and booking terms stay. Choosing a nearest Session reloads Review with Pay, the note and the checkbox back. This gives one place to recover without retyping (WCAG 3.3.7) |
 
 **Confirmation**
 
@@ -334,12 +337,25 @@ Any screen can be overtaken by a refusal when the Guest submits (AD-2). A refuse
 |---|---|
 | Normal | Static text, reachable from every page that links to it. Coming back keeps a booking in progress (FR-5) |
 
+**Booking draft**
+
+The draft holds everything the Guest has entered, plus the one key for the booking (AD-9). It lives in `sessionStorage`, so it survives a reload in the same tab and disappears with the tab.
+
+| State | Treatment |
+|---|---|
+| Reload on Book seats, Details or Review | The draft is restored. Sessions are read again, so a chosen Session that no longer fits is cleared as usual |
+| Details with no chosen Session, or Review with no name or email | Goes to the earliest page with something missing, with no error. This covers a direct address and a new tab |
+| Pay pressed again after a lost response | Same key, so the first outcome returns (FR-6, AD-9) |
+| Back after a paid Booking | After success the draft holds only the Booking reference, so Details and Review replace themselves with Confirmation. The same Booking cannot be paid twice |
+| Book seats action after a paid Booking | Starts a new draft with a new key |
+
 **Not available and browser-session states**
 
 | State | Treatment |
 |---|---|
 | Unknown address or unknown Booking | "This page is not available." with a link to Landing. [ASSUMPTION] One plain page for all of these, because the response must be the same whether or not a Booking exists (FR-20) |
-| Browser session gone during a booking (`401 no_session`, `409 invalid_key`) | [ASSUMPTION] The SPA makes a new browser session and a new key without comment, entered values stay, and the Guest sees "please try again". Not in the PRD's §7 list. Copy must not call this a session |
+| Browser session gone during a booking (`401 no_session`) | The SPA makes a new browser session and keeps the Booking draft and its key. Entered values stay, and the Guest sees "please try again". If a payment succeeded and the browser session was deleted before the Guest saw the result, the key is gone too, so a second Booking is possible. Lisa accepted this risk, because it needs a lost response and a lost browser session at once. Copy must not call this a session |
+| Key known from another browser session (`409 invalid_key`) | A Booking may already exist, so the SPA never makes a new key here. The Notice says so and takes focus. Pay, the payment note and the Terms checkbox are removed, and Book seats is offered as a Text link. Choosing it starts a new Booking draft. Copy must not call this a session |
 | Payment held by the test switch (`409 payment_pending`) | [ASSUMPTION] Treated as "please try again", with the same key. Test only (AD-14) |
 
 **Administrator**
@@ -362,10 +378,11 @@ Focus states are in Interaction Primitives. If-time states are in If-time Plug-i
 
 - Click or keyboard, always both. No hover-only information, no drag, no gestures.
 - Focus ring: 3 px `{colors.focus}`, 2 px offset, on every interactive element. On hidden radios the ring shows on the visible cell.
-- Date, Seat and Session choices are radio groups, each one tab stop, with arrow keys inside.
+- Date, Seat and Session choices are radio groups, each one tab stop, with arrow keys inside. Nearest sessions are links, not radios.
 - Focus moves to the page heading on every route change (architecture Conventions). On Landing the heading is the Wordmark. [ASSUMPTION] The Wordmark is the page's one top-level heading, so that this rule has a target.
+- When the element with focus disappears, focus moves to what replaced it, never to the page body.
 - No live updates (AD-4). Sessions are read again when the date or number changes. The server decides at submit.
-- Back in the browser and the Back link do the same thing, and neither loses input (FR-5).
+- Back in the browser and the Back link do the same thing, and neither loses input (FR-5). After payment, Back shows Confirmation (see Booking draft).
 - [ASSUMPTION] Motion is minimal and respects reduced motion (memlog). No transitions are needed for any Core behaviour.
 - [ASSUMPTION] No dialogs in Core. Everything is a page or an inline message, because no modal was rendered.
 - **Banned:** countdown timers, "people viewing" counts, padded numbers, pre-ticked options, hidden fees (NFR-9, FR-3), any mention of a Hold or time limit in the Seat flow (FR-35), consent banner (FR-21), marketing email, combined basket across Sessions (FR-9).
@@ -377,7 +394,10 @@ Behavioural. Contrast lives in `DESIGN.md`, Colors. The floor is FR-23: WCAG 2.2
 - **Keyboard order on Book seats, to verify against WCAG 2.4.3.** The rail is visually on the left and last in tab order. Main comes first in the source, so the order runs date field, month link, calendar, seats, Sessions, Continue. Within the rail the Wordmark is visually first but comes after Continue in tab order. This is deliberate, so the Guest meets the questions before the action, but it has not been tested. If it fails, the fix must not repeat the action.
 - **Session rows.** The accessible name of each radio must include the Seats left text, for example "13:00 to 14:30, 12 seats left". The mock names only the time, which would hide availability from a screen reader. Check that unavailable rows, whose radios are disabled, can still be reached by reading.
 - **Calendar.** Days have full names ("14 November 2026"). The radio pattern is a list to arrow keys, not a grid: confirm this in the manual pass.
-- **Status messages.** Total block changes, Notices and "Processing" are announced without moving focus (WCAG 4.1.3).
+- **Group names.** Seat picker and Session list are `fieldset` elements, with the question text as `legend`. The calendar's radio group is named with its month and year, for example "Pick a day, November 2026" (WCAG 1.3.1, 4.1.2).
+- **Page titles.** A page's title is its heading followed by " – Saunalöyly". Landing is just "Saunalöyly". While an Error summary shows, the title starts with "Error: ". The title is set before focus moves (WCAG 2.4.2).
+- **Zoom.** The manual pass also runs at 200 % on 1366 × 768 and 1920 × 1080. Scrolling in two directions is allowed, but nothing may be cut off or overlap, and Continue and Pay must stay reachable (WCAG 1.4.4, FR-23). If something is lost, a simple stacked layout under 1024 px must be reconsidered for Core.
+- **Status messages.** Total block changes, Notices and "Processing" are announced without moving focus (WCAG 4.1.3). The exception is a Notice that replaces the element with focus: it takes focus itself, through `tabindex="-1"`.
 - **Errors.** Text next to the field and in a summary (FR-23). Colour is never the only cue.
 - **Focus not obscured.** The Fixed action bar must leave room, so a focused element always scrolls clear of it (WCAG 2.4.11, FR-23).
 - **Targets.** At least 24 × 24 CSS px (FR-23). Calendar days at `{spacing.calendar-cell-height}` and Session rows at `{spacing.session-row-height}` meet this.
@@ -389,12 +409,12 @@ Behavioural. Contrast lives in `DESIGN.md`, Colors. The floor is FR-23: WCAG 2.2
 
 ## Responsive & Platform
 
-Laptop sizes per FR-22. Everything below 1366 px is specified for FR-51, not promised for v1.
+Laptop sizes per FR-22. The layer from 1024 to 1365 px is part of Core (Lisa, 2026-11-06), so a laptop with display scaling works without horizontal scrolling. Everything below 1024 px is specified for FR-51, not promised for v1.
 
 | Width | Behaviour |
 |---|---|
 | 1366 px and up | As in `DESIGN.md`, Layout & Spacing. No horizontal scrolling at 1366 × 768 or 1920 × 1080 (FR-22). Review keeps Pay in the first view (Lisa) |
-| 1024 to 1365 px | [ASSUMPTION] Rail stays. Book seats stacks the date above seats and Sessions, and Review stacks the Booking summary above the terms and Pay, because the two columns no longer fit beside the rail |
+| 1024 to 1365 px | Rail stays. Book seats stacks the date above seats and Sessions, and Review stacks the Booking summary above the terms and Pay, because the two columns no longer fit beside the rail |
 | Below 1024 px | [ASSUMPTION] Narrow layout: one column, rail dissolved as below. The threshold is a starting value, to be set when the layout is built |
 | 320 px | Lower limit. No horizontal scrolling, FR-23 applies (FR-51) |
 
@@ -406,7 +426,7 @@ Laptop sizes per FR-22. Everything below 1366 px is specified for FR-51, not pro
 - [ASSUMPTION] The Sauna cards and "Before you come" go to one column, and the Find us block stacks.
 - [ASSUMPTION] Details, Review and Confirmation need no change beyond one column.
 
-**Administrator pages stay laptop-only**, with no narrow layout.
+**Administrator pages are laptop pages in Core** and work on mobile later, because FR-51 covers Administrators too. Their narrow layout is not specified yet.
 
 **Browsers.** No list is stated. Tests use Chromium through Playwright.
 
@@ -536,7 +556,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 3. The swimwear rule. FR-1 refers to it, but no rule is defined.
 4. Fictional address and contact details (FR-1, FR-5). Only `admin@saunaloyly.example` exists.
 5. Terms text. Required contents are in FR-5. It should also cover the steps, how to correct mistakes and the contract language (addendum D). The part shown on Review must stay short, about six lines at most, or Pay leaves the first view at 1366 × 768. The rest belongs on the Terms page.
-6. Privacy notice text. Required contents are in FR-21. Check the "no consent banner" claim against the session cookie (extract §14, C15).
+6. Privacy notice text. Required contents are in FR-21. Check the "no consent banner" claim against the session cookie (extract §14, C15). The Booking draft keeps name and email in the browser, and the text should say so.
 7. Real images, each AI-generated or freely licensed and in the asset register (DR-3): hero, sauna from outside at the water; towels on the bench; one image per Sauna (lauteet, kiuas and stones, kiulu and kauha, the door); vihta on a wooden wall.
 8. Alt text for each image.
 9. Logo and favicon. None exists, and the Wordmark is typeset text. Decide whether that is enough.
@@ -544,8 +564,8 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 ### Decisions for Core
 
 10. Closed by Lisa: all wording and the date format in Voice and Tone are accepted, and may be adjusted during the build.
-11. Closed by Lisa: "A booking cannot be changed or refunded." "Online" is dropped, because no other route exists.
-12. Closed by Lisa: "Bathe with caution, and never alone" stays. The saunas are shared, so a Guest with 1 seat is not alone.
+11. Closed by Lisa: "A booking cannot be changed or refunded." "Online" is dropped, because no other route exists. Decided 2026-11-06: the Terms text (item 5) must add what applies when Saunalöyly cancels (PRD §9). The route itself comes later, with FR-42.
+12. Closed by Lisa, changed 2026-11-06: "Swim preferably with others, and never ice-bathe alone." replaces "Bathe with caution, and never alone", so that a Guest with 1 seat can follow the rule. The Venue text must say where Guests can swim and ice-bathe.
 13. Closed by Lisa: reception finds the Booking by name and email in the day's Booking list, and no new function is added. Confirmation asks the Guest to keep the reference.
 14. Keyboard order on Book seats: test against WCAG 2.4.3 (see Accessibility Floor).
 15. JavaScript reliance: the site is an SPA, and addendum E warns against a JavaScript-only calendar (extract §14, C13). Typed date still applies. No no-script behaviour is specified.

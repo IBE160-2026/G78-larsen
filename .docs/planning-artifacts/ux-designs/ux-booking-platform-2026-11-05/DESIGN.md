@@ -1,7 +1,7 @@
 ---
 name: Saunalöyly Booking Platform
 status: final
-updated: 2026-11-05
+updated: 2026-11-06
 description: Calm, plain booking website for one fictional Finnish sauna venue. Open Guide direction, light mode, one stylesheet with CSS custom properties, no UI library.
 colors:
   page: '#F5F3EB'
@@ -332,7 +332,7 @@ Fills that do not reach 3:1, so they must never be the only cue: `{colors.primar
 | Wordmark | `{typography.wordmark}` | 52 / 1.1, -0.01em | The name in the rail |
 | Page and section heading | `{typography.heading-xl}` | 44 / 1.12 | "Book seats", "Before you come", "The saunas" |
 | Large heading | `{typography.heading-lg}` | 32 / 1.2 | Sauna names, "Find us" |
-| Small heading | `{typography.heading-md}` | 24 / 1.25 | Etiquette, Safety, Practical; the numbered questions on Book seats |
+| Small heading | `{typography.heading-md}` | 24 / 1.25 | Etiquette, Safety, Practical; the numbered questions on Book seats, as `legend` |
 | Lead | `{typography.lead}` | 30 / 1.3, weight 300 | Venue description under the hero |
 | Body | `{typography.body}` | 18 / 1.65 | Reading text |
 | Small body | `{typography.body-sm}` | 17 / 1.45 | Rail facts and notes, Session row text, input text, tables |
@@ -376,13 +376,13 @@ The hero plus the first lines of the description fill the first view at 1366 × 
 
 **Book seats page.** Main padding is `{spacing.5}` top and bottom and `{spacing.9}` at the sides. Under the heading are two columns: `{spacing.date-column}` for the date and fluid for seats and Sessions, gap `{spacing.8}`. The numbered questions sit `{spacing.2}` above their control, and question 3 sits `{spacing.4}` under the seat buttons.
 
-The page is built to fit: heading, calendar, ten seat buttons and all eight seed Sessions come to about 570 px, so at 1366 × 768 a guest sees every step and the total without scrolling. Any new element on this page has to be checked against that budget.
+The page is built to fit: heading, calendar, ten seat buttons and all eight seed Sessions come to about 570 px, so at 1366 × 768 a guest sees every step and the total without scrolling. Any new element on this page has to be checked against that budget. An Error summary is the exception: it appears only after Continue, the page may then scroll, and Continue stays in view in the rail.
 
 **Other guest pages.** Details, Review, Confirmation, Terms and Privacy notice use the same shell with only the Wordmark in the rail. All but Review have a main column at `{spacing.measure-text}`. [Details](mockups/key-details.html), [Review](mockups/key-review.html) and [Confirmation](mockups/key-confirmation.html) are rendered. Terms and Privacy notice are spine only.
 
 **Review.** Review has two columns, so that Pay stays in the first view at 1366 × 768 (Lisa). Under the heading and Back sit two equal columns, gap `{spacing.8}`, each within `{spacing.measure-text}`. The Booking summary is on the left, and the booking terms, Terms checkbox and Pay are on the right. A Notice after a refusal sits above the columns at `{spacing.measure-text}`.
 
-**Administrator pages.** [ASSUMPTION] No rail. The Administrator bar runs full width and content sits under it in one column up to `{spacing.page-max}`, because the booking table needs the width and staff pages have no need for the guest shell. Laptop only.
+**Administrator pages.** [ASSUMPTION] No rail. The Administrator bar runs full width and content sits under it in one column up to `{spacing.page-max}`, because the booking table needs the width and staff pages have no need for the guest shell. Laptop in Core, mobile later with FR-51.
 
 **Narrow screens.** Breakpoints and collapse order are behaviour and live in `EXPERIENCE.md`, Responsive & Platform. [ASSUMPTION] The side gutter is `{spacing.gutter-narrow}`, taken from the mock's page wrapper. [ASSUMPTION] Type tokens do not change on narrow screens, because no smaller scale was reviewed. The 52 px wordmark has to be checked at 320 px with the real font. No fixed width may block FR-51 (architecture Conventions), so the width tokens above are laptop values and must yield.
 
@@ -431,8 +431,8 @@ Rendered in [`directions-3.html`](mockups/directions-3.html) unless marked. Beha
 Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, so no new visual language is introduced.
 
 - **Notice.** `{colors.surface}` fill, 1 px `{colors.border}`, `{spacing.3}` padding, `{typography.body-sm}` in `{colors.text}`. For availability information, including "Sold out". Never `{colors.error}`.
-- **Nearest sessions.** Up to three Session rows inside a Notice, each also showing the date.
-- **Error summary.** `{colors.surface}` fill, 1 px `{colors.error}` line, `{spacing.3}` padding, text in `{colors.error}`, with no title and each entry an underlined link in `{colors.error}` to its field.
+- **Nearest sessions.** Up to three rows inside a Notice, each one Text link with the date, time and Seats left, at least `{spacing.session-row-height}` high, with the Session list's rules between them. No radio and no selected state.
+- **Error summary.** `{colors.surface}` fill, 1 px `{colors.error}` line, `{spacing.3}` padding, text in `{colors.error}`, with no title. Each entry with a field is an underlined link in `{colors.error}` to that field, and an entry with no field is plain text.
 - **Field error.** Text in `{typography.hint}` and `{colors.error}` directly under the field. The field border does not change colour.
 - **Booking summary.** Label and value pairs in `{typography.body}`, with lines in `{colors.border}` between rows.
 - **Reference display.** The 8-character Booking reference in `{typography.heading-lg}`, tabular figures, with its label in `{typography.label}` above.
