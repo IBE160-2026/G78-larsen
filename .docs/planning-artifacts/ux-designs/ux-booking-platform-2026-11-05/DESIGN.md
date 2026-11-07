@@ -88,12 +88,12 @@ typography:
     lineHeight: '1.35'
   session-time:
     fontFamily: Source Sans 3
-    fontSize: 21px
-    fontWeight: '300'
+    fontSize: 18px
+    fontWeight: '400'
     lineHeight: '1.3'
   session-time-selected:
     fontFamily: Source Sans 3
-    fontSize: 21px
+    fontSize: 18px
     fontWeight: '600'
     lineHeight: '1.3'
   calendar-day:
@@ -164,7 +164,7 @@ components:
     height: '{spacing.control-height}'
   terms-checkbox:
     accent: '{colors.link}'
-    size: 20px
+    size: 16px
     type: '{typography.body-sm}'
   date-calendar:
     background: '{colors.surface}'
@@ -342,8 +342,8 @@ Fills that do not reach 3:1, so they must never be the only cue: `{colors.primar
 | Button | `{typography.button}` | 17 / 1.3, weight 600 | Primary button |
 | Total | `{typography.total}` | 24 / 1.35, weight 600 | The total in the rail |
 | Total note | `{typography.total-note}` | 15 / 1.35 | Price per seat under the total |
-| Session time | `{typography.session-time}` | 21 / 1.3, weight 300 | Start and end in a Session row |
-| Session time, selected | `{typography.session-time-selected}` | 21 / 1.3, weight 600 | The chosen Session |
+| Session time | `{typography.session-time}` | 18 / 1.3, weight 400 | Start and end in a Session row |
+| Session time, selected | `{typography.session-time-selected}` | 18 / 1.3, weight 600 | The chosen Session |
 | Calendar day | `{typography.calendar-day}` | 15 / 1 | Calendar days and weekday heads (heads in weight 600) |
 | Calendar day, selected | `{typography.calendar-day-selected}` | 15 / 1, weight 700 | The chosen date |
 
@@ -408,7 +408,7 @@ Rendered in [`directions-3.html`](mockups/directions-3.html) unless marked. Beha
 - **Rail.** `{colors.page}`, no fill or border of its own, stacked in one column: Wordmark, then the page's facts or total, the action, then notes.
 - **Rail note.** `{typography.body-sm}` in `{colors.muted}`, `{spacing.4}` apart.
 - **Text field.** Label in `{typography.label}` above, `{spacing.1}` gap. Input `{spacing.control-height}` high, `{colors.surface}`, 1 px `{colors.border}`, square. Hint in `{typography.hint}` and `{colors.muted}` below.
-- **Terms checkbox.** Rendered in `mockups/key-review.html`. Native checkbox at 20 px with `{colors.link}` accent, label in `{typography.body-sm}`, matching the radio treatment. Size and accent follow the radios.
+- **Terms checkbox.** Rendered in `mockups/key-review.html`. Native checkbox at 16 px with `{colors.link}` accent, label in `{typography.body-sm}`, matching the radio treatment. The checkbox sits inside its label, so the whole line is the click target. Size and accent follow the radios.
 - **Image block.** Fills its container exactly, square corners, no caption and no overlay. Dim, indirect light, wood, water and forest in view (PRD §6).
 
 **Book seats**
@@ -416,7 +416,7 @@ Rendered in [`directions-3.html`](mockups/directions-3.html) unless marked. Beha
 - **Date calendar.** Text field on top, then a month line in `{typography.small}` with the month name in weight 600 and "Next month" as a Text link, then a seven-column grid with `{spacing.1}` gaps. Bookable day: `{colors.surface}`, 1 px `{colors.border}`, `{spacing.calendar-cell-height}` high. Selected: as Primary button, in `{typography.calendar-day-selected}`. Not bookable: `{colors.unavailable}` fill, `{colors.muted}` number, no border.
 - **Seat picker.** Ten equal cells, 1 to 10, `{spacing.1}` gaps, `{spacing.control-height}` high. Selected cell as in the calendar, weight 700.
 - **Session list.** Rows stacked with one rule between each and a rule closing the list. No gaps, no cards.
-- **Session row.** Three columns: 32 px radio, time in `{typography.session-time}` in a column at least 128 px wide that grows with enlarged text (`minmax(128px, max-content)`, 12 px after the time), then the Seats left text in `{typography.body-sm}`. At least `{spacing.session-row-height}` high, `{spacing.3}` side padding, 1 px `{colors.border}` above. Native radio at 20 px with `{colors.link}` accent. Selected: `{colors.surface}` fill, 3 px inset `{colors.button-edge}` bar on the left, text in weight 600. Unavailable: `{colors.unavailable}` fill, radio disabled, text stays `{colors.text}`.
+- **Session row.** Three columns: 32 px radio, time in `{typography.session-time}` in a column at least 112 px wide that grows with enlarged text (`minmax(112px, max-content)`, 12 px after the time), then the Seats left text in `{typography.body-sm}`. At least `{spacing.session-row-height}` high, `{spacing.3}` side padding, 1 px `{colors.border}` above. Native radio at 16 px with `{colors.link}` accent. The whole row is the label, so the click target is the full row, at least 40 px high, whatever the radio size. Selected: `{colors.surface}` fill, 3 px inset `{colors.button-edge}` bar on the left, text in weight 600. Unavailable: `{colors.unavailable}` fill, radio disabled, text stays `{colors.text}`.
 - **Total block.** Spine name for the rail's total. "Total NOK 500" in `{typography.total}`, "incl. VAT" in `{typography.body-sm}` on the same line, the per-seat line in `{typography.total-note}` and `{colors.muted}` below, `{spacing.3}` above the Primary button.
 - **Fixed action bar.** Narrow screens only. Spine only. `{colors.surface}` fill, 1 px `{colors.border}` line on top, `{spacing.3}` padding, holding one full-width Primary button. [ASSUMPTION] Fill and line follow the flat rule above, because this bar has not been rendered.
 
