@@ -171,7 +171,7 @@ The "Before you come" text follows FR-1, with one change for the UI word: "Chang
 | "The nearest sessions with room:" | Notice after a refusal on Review |
 | "Sent by email:" | Label above Email as sent |
 
-| "1 seat left, too few for this booking" | Unavailable Session row |
+| "1 seat left, not enough for 2" | Unavailable Session row. The last number is the Seats the guest chose |
 | "Holds 7" | Sauna card |
 | "Already started" | Started Session that can still be booked |
 | "Processing" | Pay button during payment |
@@ -477,7 +477,7 @@ Ingrid has tried a public sauna once and wants to take a friend. She is anonymou
 
 1. On Landing she sees the Venue, the rail facts and **Book seats** without scrolling, and presses it.
 2. Book seats opens with the three questions. She picks Saturday in the Date calendar and 2 in the Seat picker.
-3. The Session list shows Saturday's eight Sessions. 16:00–17:30 shows "1 seat left, too few for this booking" and cannot be chosen. The rail shows Total NOK 500 incl. VAT.
+3. The Session list shows Saturday's eight Sessions. 16:00–17:30 shows "1 seat left, not enough for 2" and cannot be chosen. The rail shows Total NOK 500 incl. VAT.
 4. She picks 14:30–16:00 and presses "Continue booking".
 5. On Details she types her name and email and continues.
 6. Review shows Saturday 14:30–16:00, 2 seats, NOK 500 incl. VAT, the Venue's details, and the booking terms: a booking for a fixed date cannot be withdrawn, and a booking cannot be changed or refunded.
