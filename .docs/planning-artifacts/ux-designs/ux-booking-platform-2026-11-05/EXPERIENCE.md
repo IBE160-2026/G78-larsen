@@ -107,7 +107,7 @@ Details and Review are two separate pages. PRD §7 lists them as one, and FR-5 a
 
 Session length stays once on Landing so first-time Guests know how long a visit lasts. On Book seats the times say it.
 
-**Other pages.** Order from top to bottom, built from what FR-5, FR-8 and FR-15 to FR-17 require. Details, Review, Confirmation and Booking list are rendered in `mockups/`. Terms, Privacy notice, Sign-in and Outbox are spine only, as Lisa chose, so [ASSUMPTION] their order has not been reviewed.
+**Other pages.** Order from top to bottom, built from what FR-5, FR-8 and FR-15 to FR-17 require. Details, Review, Confirmation, Booking list and Terms are rendered in `mockups/`. Privacy notice, Sign-in and Outbox are spine only, as Lisa chose, so [ASSUMPTION] their order has not been reviewed.
 
 | Page | Order |
 |---|---|
@@ -166,7 +166,8 @@ The "Before you come" text follows FR-1, with one change for the UI word: "Chang
 | "Continue booking" | Book seats and Details action. The page heading tells them apart |
 | "Your details" | Details heading |
 | "Review" | Review heading |
-| "Booking terms" | Heading on Review and Confirmation |
+| "Booking terms" | Heading on Review, Confirmation and Terms |
+| "A booking for a fixed date cannot be withdrawn." "A booking cannot be changed or refunded." "If Saunalöyly cancels your session, you choose a refund or a voucher." | Booking terms on Review and Confirmation, one shared text (AD-12). The full text is on Terms |
 | "Date", "Session", "Seats", "Total", "Name", "Email", "Venue", "Contact" | Booking summary labels |
 | "The nearest sessions with room:" | Notice after a refusal on Review |
 | "Sent by email:" | Label above Email as sent |
@@ -480,7 +481,7 @@ Ingrid has tried a public sauna once and wants to take a friend. She is anonymou
 3. The Session list shows Saturday's eight Sessions. 16:00–17:30 shows "1 seat left, not enough for 2" and cannot be chosen. The rail shows Total NOK 500 incl. VAT.
 4. She picks 14:30–16:00 and presses "Continue booking".
 5. On Details she types her name and email and continues.
-6. Review shows Saturday 14:30–16:00, 2 seats, NOK 500 incl. VAT, the Venue's details, and the booking terms: a booking for a fixed date cannot be withdrawn, and a booking cannot be changed or refunded.
+6. Review shows Saturday 14:30–16:00, 2 seats, NOK 500 incl. VAT, the Venue's details, and the booking terms: a booking for a fixed date cannot be withdrawn, a booking cannot be changed or refunded, and if Saunalöyly cancels, she chooses a refund or a voucher.
 7. She accepts the terms and presses **Pay NOK 500**, beside "Simulated payment: no money moves". The button shows "Processing".
 8. **Climax:** Confirmation shows her Booking reference, the Session, 2 seats, the total and her email, and tells her to give the reference at reception. The email is below, exactly as sent. She knows the seats are hers and what to do when she arrives.
 
@@ -555,7 +556,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 2. One line for each of the four Saunas (Landing, FR-1). Resolved 2026-11-07 (Lisa): each line says what the Finnish name means, so it states nothing the PRD does not know and never suggests that a Seat booking chooses a Sauna (FR-4). Rauha: "Rauha means peace." Löyly: "Named for the steam from the stones, like the venue." Kajo: "Kajo means a soft glow of light." Lumo: "Lumo means enchantment."
 3. The swimwear rule. FR-1 refers to it, but no rule is defined. Resolved 2026-11-07: the line is now "Swimwear to wear at the venue." under What to bring (Lisa).
 4. Fictional address and contact details (FR-1, FR-5). Only `admin@saunaloyly.example` exists.
-5. Terms text. Required contents are in FR-5. It should also cover the steps, how to correct mistakes and the contract language (addendum D). The part shown on Review must stay short, about six lines at most, or Pay leaves the first view at 1366 × 768. The rest belongs on the Terms page.
+5. Terms text. Required contents are in FR-5. It should also cover the steps, how to correct mistakes and the contract language (addendum D). The part shown on Review must stay short, about six lines at most, or Pay leaves the first view at 1366 × 768. The rest belongs on the Terms page. Resolved 2026-11-07 (Lisa): the full text is in [Terms](mockups/key-terms.html), with sections Who we are, What you book, Price and payment, How to book, Confirmation, No right of withdrawal, Changes and refunds, If Saunalöyly cancels, At the venue, Language and Your data. Review and Confirmation show three statements, the third being "If Saunalöyly cancels your session, you choose a refund or a voucher." Pay stays at about 440 px on Review at a 1366 px viewport. Address, contact and organisation number stay open under item 4. Not legal advice; Norwegian terms are a known gap before any real launch (addendum D).
 6. Privacy notice text. Required contents are in FR-21. Check the "no consent banner" claim against the session cookie (extract §14, C15). The Booking draft keeps name and email in the browser, and the text should say so.
 7. Real images, each AI-generated or freely licensed and in the asset register (DR-3): hero, sauna from outside at the water; towels on the bench; one image per Sauna (lauteet, kiuas and stones, kiulu and kauha, the door); vihta on a wooden wall.
 8. Alt text for each image.
@@ -570,7 +571,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 14. Keyboard order on Book seats: test against WCAG 2.4.3 (see Accessibility Floor).
 15. JavaScript reliance: the site is an SPA, and addendum E warns against a JavaScript-only calendar (extract §14, C13). Typed date still applies. No no-script behaviour is specified.
 16. Closed by Lisa: the Administrator does not cancel single Bookings in Core. The Booking list stays read-only.
-17. Closed by Lisa: Details, Review, Confirmation and Booking list have key-screen mocks. Terms, Privacy notice, Sign-in, Outbox and the narrow layout are spine only.
+17. Closed by Lisa: Details, Review, Confirmation and Booking list have key-screen mocks. Terms, Privacy notice, Sign-in, Outbox and the narrow layout are spine only. Changed 2026-11-07: Terms is rendered in `mockups/key-terms.html`.
 18. Closed by Lisa: guest copy uses plain sentence case, with seats, saunas and session in lower case. Only names such as Rauha and Before you come take capitals. The PRD and code keep theirs.
 
 ### If-time states left to the designer (PRD §7)

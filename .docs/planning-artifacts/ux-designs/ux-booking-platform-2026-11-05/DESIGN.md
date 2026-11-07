@@ -378,7 +378,7 @@ The hero plus the first lines of the description fill the first view at 1366 × 
 
 The page is built to fit: heading, calendar, ten seat buttons and all eight seed Sessions come to about 570 px, so at 1366 × 768 a guest sees every step and the total without scrolling. Any new element on this page has to be checked against that budget. An Error summary is the exception: it appears only after Continue, the page may then scroll, and Continue stays in view in the rail.
 
-**Other guest pages.** Details, Review, Confirmation, Terms and Privacy notice use the same shell with only the Wordmark in the rail. All but Review have a main column at `{spacing.measure-text}`. [Details](mockups/key-details.html), [Review](mockups/key-review.html) and [Confirmation](mockups/key-confirmation.html) are rendered. Terms and Privacy notice are spine only.
+**Other guest pages.** Details, Review, Confirmation, Terms and Privacy notice use the same shell with only the Wordmark in the rail. All but Review have a main column at `{spacing.measure-text}`. [Details](mockups/key-details.html), [Review](mockups/key-review.html), [Confirmation](mockups/key-confirmation.html) and [Terms](mockups/key-terms.html) are rendered. Privacy notice is spine only.
 
 **Review.** Review has two columns, so that Pay stays in the first view at 1366 × 768 (Lisa). Under the heading and Back sit two equal columns, gap `{spacing.8}`, each within `{spacing.measure-text}`. The Booking summary is on the left, and the booking terms, Terms checkbox and Pay are on the right. A Notice after a refusal sits above the columns at `{spacing.measure-text}`.
 

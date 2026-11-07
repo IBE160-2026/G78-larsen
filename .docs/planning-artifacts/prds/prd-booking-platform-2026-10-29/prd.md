@@ -230,7 +230,7 @@ A Guest can enter a name and an email, and review the Booking before paying. Rea
   - the Window, the number of Seats, and the total price in NOK including VAT;
   - the Guest's name and email (Lisa, 2026-11-06);
   - the Venue's identity and contact details;
-  - the booking terms, including that a booking for a fixed date has no right of withdrawal (angrerettloven § 22 m), and what the Guest can and cannot Change afterwards.
+  - the booking terms, including that a booking for a fixed date has no right of withdrawal (angrerettloven § 22 m), what the Guest can and cannot Change afterwards, and that the Guest chooses a refund or a Voucher if Saunalöyly cancels (§9; on the page: "If Saunalöyly cancels your session, you choose a refund or a voucher.").
 - Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered (Lisa, 2026-11-05).
 - The Guest must accept the terms before paying. Links to the full terms and the privacy notice are present.
 - Going back keeps everything the Guest has entered.
