@@ -552,7 +552,7 @@ Nothing here has been decided unless marked closed. Every `[ASSUMPTION]` above i
 The mock's bracketed text and flat image blocks are placeholders, not content. The PRD says the Core website is complete only when every Core page has final copy and images in the §6 look, with no placeholders (§10.1). The Core website is therefore **not complete** until all of this exists:
 
 1. Venue description, a few lines (Landing). Resolved 2026-11-07: "Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round." No number of Saunas and no "shared", so it stays true with Private sauna booking (Lisa).
-2. One line for each of the four Saunas (Landing, FR-1).
+2. One line for each of the four Saunas (Landing, FR-1). Resolved 2026-11-07 (Lisa): each line says what the Finnish name means, so it states nothing the PRD does not know and never suggests that a Seat booking chooses a Sauna (FR-4). Rauha: "Rauha means peace." Löyly: "Named for the steam from the stones, like the venue." Kajo: "Kajo means a soft glow of light." Lumo: "Lumo means enchantment."
 3. The swimwear rule. FR-1 refers to it, but no rule is defined. Resolved 2026-11-07: the line is now "Swimwear to wear at the venue." under What to bring (Lisa).
 4. Fictional address and contact details (FR-1, FR-5). Only `admin@saunaloyly.example` exists.
 5. Terms text. Required contents are in FR-5. It should also cover the steps, how to correct mistakes and the contract language (addendum D). The part shown on Review must stay short, about six lines at most, or Pay leaves the first view at 1366 × 768. The rest belongs on the Terms page.
