@@ -551,7 +551,7 @@ Nothing here has been decided unless marked closed. Every `[ASSUMPTION]` above i
 
 The mock's bracketed text and flat image blocks are placeholders, not content. The PRD says the Core website is complete only when every Core page has final copy and images in the §6 look, with no placeholders (§10.1). The Core website is therefore **not complete** until all of this exists:
 
-1. Venue description, a few lines (Landing).
+1. Venue description, a few lines (Landing). Resolved 2026-11-07: "Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round." No number of Saunas and no "shared", so it stays true with Private sauna booking (Lisa).
 2. One line for each of the four Saunas (Landing, FR-1).
 3. The swimwear rule. FR-1 refers to it, but no rule is defined. Resolved 2026-11-07: the line is now "Bring swimwear to wear at the venue." (Lisa).
 4. Fictional address and contact details (FR-1, FR-5). Only `admin@saunaloyly.example` exists.

@@ -171,7 +171,7 @@ A Guest can open the website without signing in and start a Seat booking in one 
 
 **Consequences (testable):**
 - The landing page shows:
-  - the Venue name and a short description;
+  - the Venue name and a short description (on the page: "Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round." It names no number of Saunas and does not say they are shared, so it stays true when a Sauna is booked whole);
   - the **Book seats** action;
   - links to the terms and the privacy notice;
   - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
