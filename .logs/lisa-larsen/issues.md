@@ -106,3 +106,4 @@
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Privacy notice må nevne at navn og e-post ligger i `sessionStorage`
 - [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt kortere tekst for utilgjengelig Session-rad: «1 seat left, too few for 2 seats» i stedet for «… too few for this booking» (`EXPERIENCE.md` linje 174 og 480, mocken) (løst 2026-11-07: «1 seat left, not enough for 2»)
 - [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Terms checkbox (20 px) mot radioene (nå 16 px): `DESIGN.md` linje 411 og `terms-checkbox.size` sier at størrelsen følger radioene; beslutt 16 px eller endre setningen (løst 2026-11-07: 16 px; klikkflaten er hele labellinjen og er uendret)
+- [ ] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Safety «Bring water and drink plenty.» mot ny linje om tappekran med drikkevann; vurder «Drink plenty of water.» (FR-1 i `prd.md` og mocken)
