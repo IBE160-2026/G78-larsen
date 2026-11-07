@@ -104,4 +104,4 @@
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — kjør testen på 200 % på 1366 × 768 og 1920 × 1080; viser den at noe går tapt, må enspalteløsning under 1024 px vurderes for Core
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de fem nye tekstene i Voice and Tone
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Privacy notice må nevne at navn og e-post ligger i `sessionStorage`
-- [ ] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt kortere tekst for utilgjengelig Session-rad: «1 seat left, too few for 2 seats» i stedet for «… too few for this booking» (`EXPERIENCE.md` linje 174 og 480, mocken)
+- [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt kortere tekst for utilgjengelig Session-rad: «1 seat left, too few for 2 seats» i stedet for «… too few for this booking» (`EXPERIENCE.md` linje 174 og 480, mocken) (løst 2026-11-07: «1 seat left, not enough for 2»)
