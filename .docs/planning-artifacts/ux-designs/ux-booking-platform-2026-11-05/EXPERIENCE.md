@@ -148,7 +148,7 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 
 "Complete booking" is not an acceptable pay label (addendum D).
 
-The "Before you come" text follows FR-1, with one change for the UI word: "Changing time is part of your session." The swimwear rule is missing (see Open Items).
+The "Before you come" text follows FR-1, with one change for the UI word: "Changing time is part of your session." The swimwear line is "Bring swimwear to wear at the venue." (Lisa, 2026-11-07).
 
 **Required statements, meaning fixed by the PRD, wording accepted by Lisa**
 
@@ -553,7 +553,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 1. Venue description, a few lines (Landing).
 2. One line for each of the four Saunas (Landing, FR-1).
-3. The swimwear rule. FR-1 refers to it, but no rule is defined.
+3. The swimwear rule. FR-1 refers to it, but no rule is defined. Resolved 2026-11-07: the line is now "Bring swimwear to wear at the venue." (Lisa).
 4. Fictional address and contact details (FR-1, FR-5). Only `admin@saunaloyly.example` exists.
 5. Terms text. Required contents are in FR-5. It should also cover the steps, how to correct mistakes and the contract language (addendum D). The part shown on Review must stay short, about six lines at most, or Pay leaves the first view at 1366 × 768. The rest belongs on the Terms page.
 6. Privacy notice text. Required contents are in FR-21. Check the "no consent banner" claim against the session cookie (extract §14, C15). The Booking draft keeps name and email in the browser, and the text should say so.
