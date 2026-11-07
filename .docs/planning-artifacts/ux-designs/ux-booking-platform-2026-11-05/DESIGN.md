@@ -332,7 +332,7 @@ Fills that do not reach 3:1, so they must never be the only cue: `{colors.primar
 | Wordmark | `{typography.wordmark}` | 52 / 1.1, -0.01em | The name in the rail |
 | Page and section heading | `{typography.heading-xl}` | 44 / 1.12 | "Book seats", "Before you come", "The saunas" |
 | Large heading | `{typography.heading-lg}` | 32 / 1.2 | Sauna names, "Find us" |
-| Small heading | `{typography.heading-md}` | 24 / 1.25 | Etiquette, Safety, Practical; the numbered questions on Book seats, as `legend` |
+| Small heading | `{typography.heading-md}` | 24 / 1.25 | What to bring, Safety, Practical; the numbered questions on Book seats, as `legend` |
 | Lead | `{typography.lead}` | 30 / 1.3, weight 300 | Venue description under the hero |
 | Body | `{typography.body}` | 18 / 1.65 | Reading text |
 | Small body | `{typography.body-sm}` | 17 / 1.45 | Rail facts and notes, Session row text, input text, tables |

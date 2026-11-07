@@ -286,7 +286,7 @@ Take two back-to-back Windows, W1 15:00–16:30 and W2 16:30–18:00:
 - Swimwear rules vary between venues.
 - Children must be supervised by an adult.
 - Swim preferably with others, and never ice-bathe alone (Lisa, 2026-11-06). This replaces "Bathe with caution, and never alone" from 2026-10-30.
-- Wording on the page (Lisa, 2026-10-31, changed 2026-11-03 and 2026-11-07): etiquette says to ask the others before throwing water on the stones and to bring swimwear to wear at the venue ("Bring swimwear to wear at the venue.", 2026-11-07, replaces "follow the swimwear rule"); safety says that alcohol is not allowed at the venue and that children must be supervised by an adult.
+- Wording on the page (Lisa, 2026-10-31, changed 2026-11-03 and 2026-11-07): the first group is "What to bring" (2026-11-07, replaces "Etiquette") and lists "Swimwear to wear at the venue." (2026-11-07, replaces "follow the swimwear rule"), "Two towels. One to sit on and one to dry yourself with." and "A bottle for water.", as short items because the heading carries "bring"; safety says to ask the others before throwing water on the stones, to drink enough water to avoid dehydration, that alcohol is not allowed at the venue and that children must be supervised by an adult.
 
 ## G. Rejected or replaced alternatives
 - Looking up a Booking by reference and email: replaced by resending the link only (2026-10-29).
