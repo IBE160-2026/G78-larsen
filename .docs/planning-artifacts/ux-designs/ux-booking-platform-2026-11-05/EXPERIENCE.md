@@ -565,7 +565,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 10. Closed by Lisa: all wording and the date format in Voice and Tone are accepted, and may be adjusted during the build.
 11. Closed by Lisa: "A booking cannot be changed or refunded." "Online" is dropped, because no other route exists. Decided 2026-11-06: the Terms text (item 5) must add what applies when Saunalöyly cancels (PRD §9). The route itself comes later, with FR-42.
-12. Closed by Lisa, changed 2026-11-06: "Swim preferably with others, and never ice-bathe alone." replaces "Bathe with caution, and never alone", so that a Guest with 1 seat can follow the rule. The Venue text must say where Guests can swim and ice-bathe.
+12. Closed by Lisa, changed 2026-11-06: "Swim preferably with others, and never ice-bathe alone." replaces "Bathe with caution, and never alone", so that a Guest with 1 seat can follow the rule. The Venue text must say where Guests can swim and ice-bathe. Resolved 2026-11-07: Practical says "You can swim in the sea all year round.", and the sea is also where Guests ice-bathe (Lisa).
 13. Closed by Lisa: reception finds the Booking by name and email in the day's Booking list, and no new function is added. Confirmation asks the Guest to keep the reference.
 14. Keyboard order on Book seats: test against WCAG 2.4.3 (see Accessibility Floor).
 15. JavaScript reliance: the site is an SPA, and addendum E warns against a JavaScript-only calendar (extract §14, C13). Typed date still applies. No no-script behaviour is specified.
