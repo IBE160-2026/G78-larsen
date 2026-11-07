@@ -99,11 +99,11 @@
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — legg skjermleser til den manuelle testen i FR-23; testliste i `review-accessibility.md`
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de 8 bindende antakelsene og de 4 i kildene (`review-content.md`)
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — gå gjennom de 42 medium- og 44 low-funnene
-- [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Venue-teksten må si hvor gjestene kan bade og isbade, ellers viser sikkerhetsregelen til noe siden ikke beskriver
+- [x] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Venue-teksten må si hvor gjestene kan bade og isbade, ellers viser sikkerhetsregelen til noe siden ikke beskriver (løst 2026-11-07: «You can swim in the sea all year round.» under Practical; sjøen er også stedet for isbad)
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Administrator-sidene har ingen smal layout spesifisert; må lages før FR-51 bygges
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — kjør testen på 200 % på 1366 × 768 og 1920 × 1080; viser den at noe går tapt, må enspalteløsning under 1024 px vurderes for Core
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — bekreft de fem nye tekstene i Voice and Tone
 - [ ] 2026-11-06 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Privacy notice må nevne at navn og e-post ligger i `sessionStorage`
 - [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — beslutt kortere tekst for utilgjengelig Session-rad: «1 seat left, too few for 2 seats» i stedet for «… too few for this booking» (`EXPERIENCE.md` linje 174 og 480, mocken) (løst 2026-11-07: «1 seat left, not enough for 2»)
 - [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Terms checkbox (20 px) mot radioene (nå 16 px): `DESIGN.md` linje 411 og `terms-checkbox.size` sier at størrelsen følger radioene; beslutt 16 px eller endre setningen (løst 2026-11-07: 16 px; klikkflaten er hele labellinjen og er uendret)
-- [ ] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Safety «Bring water and drink plenty.» mot ny linje om tappekran med drikkevann; vurder «Drink plenty of water.» (FR-1 i `prd.md` og mocken)
+- [x] 2026-11-07 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Safety «Bring water and drink plenty.» mot ny linje om tappekran med drikkevann; vurder «Drink plenty of water.» (FR-1 i `prd.md` og mocken) (løst 2026-11-07: «Bring a bottle for water, and drink plenty.»)
