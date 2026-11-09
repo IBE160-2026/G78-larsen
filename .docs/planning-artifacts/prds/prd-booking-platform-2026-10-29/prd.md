@@ -183,7 +183,7 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4);
   - opening hours and the Window schedule;
   - the price per Seat, and the price per Sauna once §4.9 exists;
-  - the fictional address and contact details that FR-5 also shows.
+  - the fictional address and contact details that FR-5 also shows (on the page: Badstubrygga 4, 0000 Havbukta; +47 01 23 45 67; hello@saunaloyly.example. The postcode and the number cannot exist in Norway, and `.example` is a reserved domain).
 - Choosing **Book seats** opens the date and Seat selection directly.
 
 #### FR-2: Date and number of Seats
