@@ -1,7 +1,7 @@
 ---
 name: Saunalöyly Booking Platform
 status: final
-updated: 2026-11-06
+updated: 2026-11-09
 description: Calm, plain booking website for one fictional Finnish sauna venue. Open Guide direction, light mode, one stylesheet with CSS custom properties, no UI library.
 colors:
   page: '#F5F3EB'
@@ -122,7 +122,7 @@ spacing:
   '11': 96px
   rail-width: 320px
   date-column: 348px
-  side-image-width: 300px
+  before-image-height: 220px
   page-max: 1320px
   measure-text: 640px
   measure-lead: 800px
@@ -367,7 +367,7 @@ Rail padding is `{spacing.6}` top and bottom and `{spacing.7}` at the sides. The
 |---|---|
 | Hero image | Full width of main, `{spacing.hero-height}` high, no inset |
 | Venue description | `{typography.lead}`, top gap `{spacing.6}`, side gutter `{spacing.9}`, max width `{spacing.measure-lead}` |
-| Before you come | Two columns, fluid text and `{spacing.side-image-width}` image, gap `{spacing.9}`, top gap `{spacing.11}`. The image runs to the right edge. Rule groups are `{spacing.5}` apart |
+| Before you come | Top gap `{spacing.11}`. Heading, then three equal columns, one per Rule list (What to bring, Safety, Practical), `{spacing.5}` under the heading, gap `{spacing.7}`, side gutter `{spacing.9}`. Under the columns, after `{spacing.7}`, one image `{spacing.before-image-height}` high, from the left text edge to the right edge of main (Lisa, 2026-11-09). Below 1200 px the columns stack (`EXPERIENCE.md`, Responsive & Platform) |
 | The saunas | Padding `{spacing.11}` top and bottom. Intro text max width `{spacing.measure-text}`. Two-column grid, gaps `{spacing.8}` by `{spacing.7}`. Even cards start `{spacing.10}` lower, which gives the page its loose, unruled rhythm |
 | Image band | Full width of main, `{spacing.band-height}` high |
 | Find us | Three equal columns, gap `{spacing.6}`, top rule, padding `{spacing.6}` top and `{spacing.7}` bottom |

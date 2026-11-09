@@ -75,11 +75,13 @@ h4{font-size:44px;line-height:1.12;font-weight:300}
 h5{font-size:24px;line-height:1.25;font-weight:300}
 .hero{height:468px}
 .desc{padding:34px 56px 0;max-width:800px;font-size:30px;line-height:1.3;font-weight:300}
-.before{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:56px;padding:96px 0 0 56px}
+.before{padding:96px 0 0 56px}
+.before .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;align-items:start;margin-right:56px}
+.before .strip{height:220px;margin-top:40px}
+@media (max-width:1199px){.before .cols{grid-template-columns:minmax(0,1fr);gap:0}}
 .bg{margin-top:26px}
 .bg ul{margin-top:4px;border-top:1px solid var(--border)}
 .bg li{padding:7px 0}
-.before .side{align-self:stretch}
 .saunas{padding:104px 56px 96px}
 .saunas .tx{max-width:640px}
 .saunas .tx p{margin-top:12px}
@@ -137,7 +139,7 @@ h5{font-size:24px;line-height:1.25;font-weight:300}
 <div class="main">
 <div class="img i-forest hero">Image: sauna from outside at the water, forest behind, dim indirect light</div>
 <p class="desc">Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round.</p>
-<section class="before" id="before-you-come"><div class="tx"><h4>Before you come</h4><div class="bg"><h5>What to bring</h5><ul><li>Swimwear to wear at the venue.</li><li>Two towels. One to sit on and one to dry yourself with.</li><li>A bottle for water.</li></ul></div><div class="bg"><h5>Safety</h5><ul><li>Drink enough water to avoid dehydration.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds in the sauna to 10 minutes at most, and leave if you feel unwell.</li><li>Ask the others before throwing water on the stones.</li><li>Swim preferably with others, and never ice-bathe alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg"><h5>Practical</h5><ul><li>Changing time is part of your session.</li><li>There is a wardrobe for your clothes.</li><li>You can swim in the sea all year round.</li><li>There are showers.</li><li>There is a tap with drinking water.</li></ul></div></div><div class="img i-birch side">Image: two towels folded on the wooden bench</div></section>
+<section class="before" id="before-you-come"><h4>Before you come</h4><div class="cols"><div class="bg"><h5>What to bring</h5><ul><li>Swimwear to wear at the venue.</li><li>Two towels. One to sit on and one to dry yourself with.</li><li>A bottle for water.</li></ul></div><div class="bg"><h5>Safety</h5><ul><li>Drink enough water to avoid dehydration.</li><li>Alcohol is not allowed at the venue.</li><li>Keep rounds in the sauna to 10 minutes at most, and leave if you feel unwell.</li><li>Ask the others before throwing water on the stones.</li><li>Swim preferably with others, and never ice-bathe alone.</li><li>Children must be supervised by an adult.</li></ul></div><div class="bg"><h5>Practical</h5><ul><li>Changing time is part of your session.</li><li>There is a wardrobe for your clothes.</li><li>You can swim in the sea all year round.</li><li>There are showers.</li><li>There is a tap with drinking water.</li></ul></div></div><div class="img i-birch strip">Image: two towels folded on the wooden bench</div></section>
 <section class="saunas"><div class="tx"><h4>The saunas</h4><p>A booking gives you seats in the shared saunas open during your session. On site you can move freely between them.</p></div><div class="rooms"><div class="room"><div class="img i-forest ">Image: lauteet</div><h5>Rauha</h5><p class="meta">Holds 7</p><p>Rauha means peace.</p></div><div class="room"><div class="img i-granite ">Image: kiuas and stones</div><h5>Löyly</h5><p class="meta">Holds 10</p><p>Named for the steam from the stones, like the venue.</p></div><div class="room"><div class="img i-wood ">Image: kiulu and kauha on a bench</div><h5>Kajo</h5><p class="meta">Holds 12</p><p>Kajo means a soft glow of light.</p></div><div class="room"><div class="img i-sea ">Image: the sauna door from outside</div><h5>Lumo</h5><p class="meta">Holds 15</p><p>Lumo means enchantment.</p></div></div></section>
 <div class="img i-pine band">Image: vihta hanging on a wooden wall</div>
 <section class="find"><h4>Find us</h4><p><span class="ph">[Street address]</span><br><span class="ph">[Phone]</span><br><span class="ph">[Email]</span></p><p><span class="lnk">Terms</span><br><span class="lnk">Privacy notice</span></p></section>

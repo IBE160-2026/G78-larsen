@@ -6,7 +6,7 @@ sources:
   - {planning_artifacts}/prds/prd-booking-platform-2026-10-29/addendum.md
   - {planning_artifacts}/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md
   - {planning_artifacts}/briefs/brief-booking-platform-2026-09-20/brief.md
-updated: 2026-11-06
+updated: 2026-11-09
 ---
 
 # Saunalöyly Booking Platform: Experience Spine
@@ -415,7 +415,7 @@ Laptop sizes per FR-22. The layer from 1024 to 1365 px is part of Core (Lisa, 20
 | Width | Behaviour |
 |---|---|
 | 1366 px and up | As in `DESIGN.md`, Layout & Spacing. No horizontal scrolling at 1366 × 768 or 1920 × 1080 (FR-22). Review keeps Pay in the first view (Lisa) |
-| 1024 to 1365 px | Rail stays. Book seats and Review keep their two columns down to 1200 px and stack only below that (`max-width: 1199px`): Book seats puts the date above seats and Sessions, and Review puts the Booking summary above the terms and Pay. A 1366 px screen with a scrollbar leaves only about 1336–1349 px, and both pages must still fit the first view there (Lisa, 2026-11-07). Measured in the mocks: on Review, Pay ends at about 440 px at 1280–1366 px and 480 px at 1200 px; on Book seats, the Session list ends at about 545 px, every row is 40 px from 1280 px up, and seat cells stay at least 31 px. From about 1240 px down, "1 seat left, not enough for 2" wraps and that row grows to 45 px, still inside the first view. Nothing overflows |
+| 1024 to 1365 px | Rail stays. Book seats and Review keep their two columns down to 1200 px and stack only below that (`max-width: 1199px`): Book seats puts the date above seats and Sessions, and Review puts the Booking summary above the terms and Pay. A 1366 px screen with a scrollbar leaves only about 1336–1349 px, and both pages must still fit the first view there (Lisa, 2026-11-07). Measured in the mocks: on Review, Pay ends at about 440 px at 1280–1366 px and 480 px at 1200 px; on Book seats, the Session list ends at about 545 px, every row is 40 px from 1280 px up, and seat cells stay at least 31 px. From about 1240 px down, "1 seat left, not enough for 2" wraps and that row grows to 45 px, still inside the first view. Nothing overflows. On Landing, "Before you come" keeps its three columns down to 1200 px and stacks below that (`max-width: 1199px`), the same limit as the two pages above, because three columns would be under 230 px wide (Lisa, 2026-11-09) |
 | Below 1024 px | [ASSUMPTION] Narrow layout: one column, rail dissolved as below. The threshold is a starting value, to be set when the layout is built |
 | 320 px | Lower limit. No horizontal scrolling, FR-23 applies (FR-51) |
 
