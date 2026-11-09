@@ -2,7 +2,7 @@
 title: "Saunalöyly Booking Platform"
 status: final
 created: 2026-10-29
-updated: 2026-11-06
+updated: 2026-11-09
 ---
 
 # PRD: Saunalöyly Booking Platform
@@ -410,13 +410,14 @@ The platform stores only the personal data a Booking needs, and a privacy notice
 **Consequences (testable):**
 - For a Guest, the platform stores name and email only; a Guest with an account (FR-37) also has a password hash. For an Administrator, it stores email and the password hash.
 - A privacy notice is linked wherever data is collected and is kept separate from the terms. It states:
+  - who is responsible for the data (the controller) and how to reach them;
   - what is stored and why (to deliver the Booking);
   - the legal basis;
   - how long data is kept and who sees it;
   - the Guest's rights, including the right to complain to Datatilsynet.
-- Guest names and emails are deleted or anonymised after a retention period `[ASSUMPTION: 12 months after the Window, or after the last Voucher from the Booking expires if that is later]`.
+- Guest names and emails are deleted or anonymised 12 months after the Window, or after the last Voucher from the Booking expires if that is later.
 - No marketing email is sent.
-- Only cookies strictly needed for the service are set, so no consent banner is needed.
+- Only cookies strictly needed for the service are set, so no consent banner is needed. The session cookie is set when a Guest opens Book seats or an Administrator opens Sign-in, so a visitor who only reads Landing gets none.
 - Fonts, images and scripts are served by the platform itself. No request goes to a third party.
 - Passwords, Manage-link tokens and Door codes never appear in logs.
 - The privacy notice, or a security section in the README, states how the data is protected: password hashing, server-side role checks, Manage-link tokens stored only as hashes in the Booking data (the Outbox, a simulated mailbox, holds the links as sent), whether HTTPS is in place, and no third-party requests.
@@ -1063,7 +1064,6 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-11: 100 race repetitions per test run.
 - FR-15: the sign-in throttling thresholds (5 failed attempts, 15 minutes) are starting values, and the architecture may adjust them.
 - FR-16: the booking list is grouped by date and Window, with totals.
-- FR-21: retention is 12 months after the Window, or until the last Voucher expires.
 - FR-22: "laptop screen" means 1366×768 and 1920×1080.
 - §4.8: moving Seats is built before the Voucher.
 - FR-27: a Voucher is worth the price paid for the Seats given up.

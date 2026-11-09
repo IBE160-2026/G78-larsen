@@ -7,7 +7,7 @@ paradigm: 'Layered (api → services → db) around a database-enforced invarian
 scope: 'v1: the Core in full (PRD §4.1–4.6); later phases only where a Core choice would otherwise force a rewrite (PRD §10.3)'
 status: final
 created: '2026-11-03'
-updated: '2026-11-06'
+updated: '2026-11-09'
 binds: [FR-1..FR-23, NFR-1..NFR-11, DR-1..DR-5; shape-only for FR-24..FR-42]
 sources:
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md
@@ -121,7 +121,7 @@ flowchart LR
 - **Rule:**
   - **Storage:** one `sessions` table holds anonymous and signed-in browsers, with a role per row. The cookie holds a 256-bit random token: HttpOnly, `SameSite=Strict`, `Path=/`, and `Secure` once HTTPS is on. The store keeps only the SHA-256 hash of the token.
   - **References:** everything references `sessions.id`. The foreign keys from `bookings` and `holds` are `ON DELETE SET NULL`, and the one from `idempotency_keys` is `CASCADE`. The slice's client-supplied `session_id` is replaced.
-  - **Creation:** the SPA calls `POST /api/session` when it loads. That call creates an anonymous session, or returns the existing one if it is still valid. A Guest write without a session gets `401 no_session`.
+  - **Creation:** the SPA calls `POST /api/session` when a Guest opens Book seats or an Administrator opens Sign-in, and after a `401 no_session` during a booking. No other page load creates a session, so Landing, Terms and Privacy notice set no cookie (FR-21). That call creates an anonymous session, or returns the existing one if it is still valid. A Guest write without a session gets `401 no_session`.
   - **Lifetimes:** anonymous sessions last 24 h and Administrator sessions 8 h, both sliding.
   - **Sign-in and sign-out:** sign-in rotates the token on the same row and sets its role, so the row id never changes. Sign-out deletes the row. Expired rows are purged at startup.
   - **CSRF:** every state-changing request must be same-origin and carry a JSON body. There are no CSRF tokens.

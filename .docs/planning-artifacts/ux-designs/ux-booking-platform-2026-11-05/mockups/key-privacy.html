@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy notice page</title><style>
+/*
+  Key screen: Privacy notice page
+  Governing spine sections:
+  EXPERIENCE.md: Information Architecture (Privacy notice); Content Homes, Other pages (Terms, Privacy notice: heading, text);
+  State Patterns: Terms and Privacy notice, Booking draft; Open Item 6.
+  PRD: FR-21 (contents, retention, cookies, no third-party requests). Addendum D, Privacy (GDPR art. 6(1)(b) and art. 13).
+  Architecture: AD-8 (session cookie, 24 h sliding), AD-9 (draft in sessionStorage), AD-12 (Outbox), AD-19 (nothing secret logged).
+  DESIGN.md: Layout & Spacing, Other pages (main column at the text measure).
+  Page title in the build: "Privacy notice – Saunalöyly".
+
+  Text pairs: tokens from DESIGN.md, Colors (AA), as in key-terms.html.
+  Fonts: the system stack stands in for Finlandica (headings, weight 400) and Source Sans 3 (text).
+*/
+:root{--page:#F5F3EB;--surface:#FDFCF7;--text:#26353D;--muted:#4C5D66;--link:#2F5A71;--focus:#2F5A71;--border:#6F8693;--unavail:#E4EBEC;--font:system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5}
+h1,h2,h3,p,ul,figure{margin:0;padding:0}
+h1,h2,h3{font-weight:400}
+a{color:var(--link)}
+a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* page around the mockup, as in key-terms.html */
+.wrap{width:min(1320px,calc(100% - 32px));margin-inline:auto}
+.top{padding:32px 0 8px}
+.top h1{font-size:32px;line-height:1.2}
+.top p{max-width:820px;margin-top:8px}
+.top .key{font-size:15px;color:var(--muted)}
+.flabel{font-weight:600;margin:24px 0 8px}
+.end{height:40px}
+
+/* browser frame, 1366 px wide */
+.frame{width:100%;max-width:1366px;margin-inline:auto;border-block:1px solid var(--border);background:var(--page)}
+.chrome{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--unavail);border-bottom:1px solid var(--border)}
+.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid var(--border);margin-right:4px}
+.url{flex:0 1 460px;height:20px;background:var(--surface);border-radius:3px}
+@media (min-width:1368px){.frame{box-sizing:content-box;border:1px solid var(--border);border-radius:6px;overflow:clip}}
+
+/* shared parts */
+.ph{font-style:italic;border-bottom:1px dashed currentColor}
+.lnk{color:var(--link);text-decoration:underline}
+.hxl{font-size:44px;line-height:1.12}
+.hmd{font-size:24px;line-height:1.25}
+
+/* guest shell: rail with only the Wordmark, main column at the text measure */
+.vp{display:grid;grid-template-columns:320px minmax(0,1fr);max-width:1320px;margin-inline:auto;min-height:620px;font-size:18px;line-height:1.65}
+.rail{min-width:0}
+.stick{position:sticky;top:0;padding:32px 40px}
+.mark{display:block;font-size:52px;line-height:1.1;font-weight:400;letter-spacing:-.01em;color:var(--text);text-decoration:none}
+.main{min-width:0;padding:24px 56px 48px}
+.col{max-width:640px}
+.sec{margin-top:32px}
+.sec p{margin-top:8px}
+</style></head>
+<body><div class="wrap top"><h1>Privacy notice page</h1>
+<p>Reached by the Privacy notice link wherever data is collected, and separate from the Terms (FR-21). Coming back to Details or Review keeps everything entered.</p>
+<p class="key">Reading the mockup: [square brackets] mark content still to be written. The system font stands in for Finlandica and Source Sans 3. Not legal advice: the text follows FR-21 and the notes in the PRD addendum D. A real launch must reconcile the 12 months with the 5-year accounting rule (bokføringsloven §&nbsp;13), and must have a Norwegian text.</p></div>
+<div class="wrap"><p class="flabel">Privacy notice page</p></div><figure class="frame"><div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url"></span></div><div class="vp"><aside class="rail"><div class="stick"><a class="mark" href="#">Saunalöyly</a></div></aside><div class="main"><div class="col"><h2 class="hxl">Privacy notice</h2>
+<section class="sec"><h3 class="hmd">Who is responsible</h3><p>Saunalöyly is responsible for your personal data, as the data controller. You can reach us at <span class="ph">[street address]</span>, <span class="ph">[email]</span> or <span class="ph">[phone]</span>.</p></section>
+<section class="sec"><h3 class="hmd">What we store and why</h3><p>When you book, we store your name and email with your booking: the date, the session, the number of seats, the price and your booking reference. We use them to deliver your booking: to send your confirmation, and to find your booking when you arrive. We do not send marketing email.</p></section>
+<section class="sec"><h3 class="hmd">Legal basis</h3><p>We use this data because we need it to carry out the contract you make when you book (GDPR art.&nbsp;6(1)(b)). Without your name and email we cannot take your booking.</p></section>
+<section class="sec"><h3 class="hmd">In your browser</h3><p>While you book, your name and email are kept in this browser tab, so that you can go back without losing them. They are gone when you close the tab.</p><p>We set one cookie when you open Book seats. It holds a random code that keeps your booking together and lets this browser show your confirmation. It expires 24 hours after your last visit. We set no other cookies.</p></section>
+<section class="sec"><h3 class="hmd">Who sees your data</h3><p>Saunalöyly's staff see your name, email and booking in the booking list, including at reception. We do not give your data to anyone else, and our pages load nothing from other companies.</p><p>In this version, payment is simulated and emails are not sent anywhere. Your confirmation email is shown on the confirmation page and kept in a simulated mailbox that staff can read.</p></section>
+<section class="sec"><h3 class="hmd">How long we keep it</h3><p>We delete or anonymise your name and email 12 months after your session, including the confirmation email. If you have a voucher from the booking, we keep them until the voucher expires, if that is later.</p></section>
+<section class="sec"><h3 class="hmd">How we protect it</h3><p>Only signed-in staff can open the booking list, and the server checks this on every request. Staff passwords are stored only in hashed form.</p></section>
+<section class="sec"><h3 class="hmd">Your rights</h3><p>You can ask to see the data we hold about you, to correct or delete it, to limit how we use it, and to get a copy of it. Contact us at the address above, and we will answer within one month.</p><p>You can also complain to Datatilsynet, the Norwegian data protection authority, at <a class="lnk" href="https://www.datatilsynet.no">datatilsynet.no</a>.</p></section>
+</div></div></div></figure>
+<div class="end"></div></body></html>
