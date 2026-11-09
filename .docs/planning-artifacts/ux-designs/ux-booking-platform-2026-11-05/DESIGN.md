@@ -122,13 +122,13 @@ spacing:
   '11': 96px
   rail-width: 320px
   date-column: 348px
-  before-image-height: 220px
+  before-image-height: 300px
   page-max: 1320px
   measure-text: 640px
   measure-lead: 800px
   hero-height: 468px
   sauna-image-height: 320px
-  band-height: 300px
+  band-height: 220px
   button-height: 48px
   control-height: 44px
   session-row-height: 40px
@@ -369,8 +369,8 @@ Rail padding is `{spacing.6}` top and bottom and `{spacing.7}` at the sides. The
 | Venue description | `{typography.lead}`, top gap `{spacing.6}`, side gutter `{spacing.9}`, max width `{spacing.measure-lead}` |
 | Before you come | Top gap `{spacing.11}`. Heading, then three equal columns, one per Rule list (What to bring, Safety, Practical), `{spacing.5}` under the heading, gap `{spacing.7}`, side gutter `{spacing.9}`. Under the columns, after `{spacing.7}`, one image `{spacing.before-image-height}` high, from the left text edge to the right edge of main (Lisa, 2026-11-09). Below 1200 px the columns stack (`EXPERIENCE.md`, Responsive & Platform) |
 | The saunas | Padding `{spacing.11}` top and bottom. Intro text max width `{spacing.measure-text}`. Two-column grid, gaps `{spacing.8}` by `{spacing.7}`. Even cards start `{spacing.10}` lower, which gives the page its loose, unruled rhythm |
-| Image band | Full width of main, `{spacing.band-height}` high |
-| Find us | Three equal columns, gap `{spacing.6}`, top rule, padding `{spacing.6}` top and `{spacing.7}` bottom |
+| Image band | Width of main less a `{spacing.9}` left inset, as the Before you come image, `{spacing.band-height}` high |
+| Find us | Three equal columns, gap `{spacing.6}`, padding `{spacing.6}` top and `{spacing.7}` bottom |
 
 The hero plus the first lines of the description fill the first view at 1366 × 768, taken as about 620 px of page height after browser chrome. The Book seats action is in that view without scrolling.
 
