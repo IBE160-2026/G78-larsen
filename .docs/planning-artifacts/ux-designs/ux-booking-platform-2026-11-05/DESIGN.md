@@ -409,7 +409,7 @@ Rendered in [`directions-3.html`](mockups/directions-3.html) unless marked. Beha
 - **Rail note.** `{typography.body-sm}` in `{colors.muted}`, `{spacing.4}` apart.
 - **Text field.** Label in `{typography.label}` above, `{spacing.1}` gap. Input `{spacing.control-height}` high, `{colors.surface}`, 1 px `{colors.border}`, square. Hint in `{typography.hint}` and `{colors.muted}` below.
 - **Terms checkbox.** Rendered in `mockups/key-review.html`. Native checkbox at 16 px with `{colors.link}` accent, label in `{typography.body-sm}`, matching the radio treatment. The checkbox sits inside its label, so the whole line is the click target. Size and accent follow the radios.
-- **Image block.** Fills its container exactly, square corners, no caption and no overlay. Dim, indirect light, wood, water and forest in view (PRD §6).
+- **Image block.** Fills its container exactly, square corners, no caption and no overlay. Warm, soft light, water in view (PRD §6).
 
 **Book seats**
 
@@ -463,6 +463,6 @@ Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, 
 | Square corners and thin lines | Rounded cards, pills or shadows |
 | Finlandica at 400 and up | Weight 300 in Finlandica, which does not exist and would be faked or substituted |
 | Self-host every font and image | Load anything from another origin |
-| Dim, indirect photographs of real sauna rooms and tools | Spa-luxury cues, polished stock photography, heat boasts, sexualised framing (PRD §6) |
+| Warm, softly lit photographs of real saunas and tools | Spa-luxury cues, polished stock photography, heat boasts, sexualised framing (PRD §6) |
 | Check Book seats against its first-view budget | Add a banner or a new row without checking the fit at 1366 × 768 |
 | Show each fact once on a page (`EXPERIENCE.md`, Content Homes) | Repeat a price, a time or an action to fill space |
