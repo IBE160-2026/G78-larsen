@@ -114,4 +114,4 @@
 - [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — les og godkjenn hele teksten i `mockups/key-privacy.html`; Lisa har bare tatt stilling til cookie og oppbevaringstid
 - [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — README må ha en sikkerhetsdel (FR-21): passordhashing, rollesjekk på serveren, Manage-lenker som hasher, om HTTPS er på, ingen tredjepartskall; Privacy notice har bare en kort versjon
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — velg om de seks illustrasjonene skal byttes med foto, genererte bilder (krever `OPENAI_API_KEY`) eller beholdes (løst 2026-11-09: illustrasjonene er fjernet)
-- [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — annenhver saunatekst er forskjøvet 72 px i `directions-3.html`; ser skjevt ut uten bilder, vurder når bildene er på plass
+- [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — annenhver saunatekst er forskjøvet 72 px i `directions-3.html`; ser skjevt ut uten bilder, vurder når bildene er på plass (løst 2026-11-09: fargeblokkene er tilbake)
