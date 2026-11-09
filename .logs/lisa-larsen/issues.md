@@ -116,5 +116,5 @@
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — velg om de seks illustrasjonene skal byttes med foto, genererte bilder (krever `OPENAI_API_KEY`) eller beholdes (løst 2026-11-09: illustrasjonene er fjernet)
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — annenhver saunatekst er forskjøvet 72 px i `directions-3.html`; ser skjevt ut uten bilder, vurder når bildene er på plass (løst 2026-11-09: fargeblokkene er tilbake)
 - [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — hero-bildet viser en innsjø, mens Venue-teksten sier sjøen; avklar om det skal stå slik
-- [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lenke og fotograf for dampbildet mangler i `ASSETS.md`; filnavnet `pexels-steam.jpg` har ikke Pexels-ID (DR-3)
+- [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lenke og fotograf for dampbildet mangler i `ASSETS.md`; filnavnet `pexels-steam.jpg` har ikke Pexels-ID (DR-3) (løst 2026-11-09)
 - [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — PRD §6 Imagery nevner fortsatt vihta, mens landingssiden nå bruker damp; avklar om PRD-en skal endres
