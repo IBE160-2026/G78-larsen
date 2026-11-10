@@ -28,7 +28,7 @@ How to read it: every domain noun is defined once in the Glossary (§3) and used
 
 ## 1. Vision
 
-Saunalöyly is a fictional, Finnish-inspired sauna venue with four or more saunas, and this platform is how guests reserve a place in it. A guest picks a day and the number of seats, sees at once which time windows have room and what it will cost, and pays. No account is needed, no help is needed, and nothing on the page tries to rush them. Alternatively, a group can take a whole sauna for itself. The website feels like the sauna it sells: calm, honest and plain, in light wood, forest green, birch white and sky blue, with real Finnish sauna rooms and their traditional tools in view.
+Saunalöyly is a fictional, Finnish-inspired sauna venue with four or more saunas, and this platform is how guests reserve a place in it. A guest picks a day and the number of seats, sees at once which time windows have room and what it will cost, and pays. No account is needed, no help is needed, and nothing on the page tries to rush them. Alternatively, a group can take a whole sauna for itself. The website feels like the sauna it sells: calm, honest and plain, in light wood, deep green, birch white and sky blue, with real Finnish sauna rooms and their traditional tools in view.
 
 The hard part is not the booking form. Individual seats and whole-sauna bookings draw on the same physical rooms. The platform must never sell a seat twice, never sell a sauna that guests are already booked into, and keep its numbers right when two people press Pay in the same second or an administrator closes a sauna for repairs. This PRD bets on one idea: **if the capacity rules are precise enough to test, one person can deliver a booking core that never oversells, and then grow it feature by feature without rewrites.** Every rule below is therefore written as a testable consequence. The riskiest rules are proven with parallel automated tests rather than argued.
 
@@ -850,7 +850,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 
 ## 6. Aesthetic and Tone
 - **Feel:** calm, honest and plain: the Finnish idea of *saunarauha*, the peace of the sauna. The site should be appealing and intuitive for a first-time Guest (Lisa, 2026-10-29), and unhurried: nothing on it pushes.
-- **Palette:** light wood (birch and pine), deep forest green, granite grey, birch white, a grey sea-blue and sky blue. Saturation is low, and every pair of text and background colours meets WCAG AA contrast.
+- **Palette:** light wood (birch and pine), deep green, granite grey, birch white, a grey sea-blue and sky blue. Saturation is low, and every pair of text and background colours meets WCAG AA contrast.
 - **Type:** Finlandica for headings and Source Sans 3 for text. Both are under the SIL Open Font License and self-hosted. Finlandica is Finland's country-brand typeface, so it reads as Finnish by design.
 - **Imagery:** Finnish saunas outside and inside, with their traditional equipment: the *kiuas* (stove) and its stones, the *kiulu* (bucket) and *kauha* (ladle) and the wooden *lauteet* (benches), and the steam (*löyly*) itself. Outside, the light is warm and soft, with water in view. Inside, it is dim and indirect. Every image is AI-generated or freely licensed and listed in the asset register (DR-3).
 - **Copy:** short and concrete, with facts before persuasion. A few Finnish words appear, each with an English gloss. The word for a Window in all copy is "session" (§3), and the example wording in this PRD reads the same way.

@@ -288,7 +288,7 @@ Light mode only. [ASSUMPTION] No dark tokens are defined, because only light val
 
 ## Colors
 
-The palette is pale sky on warm paper, with one dark ink. Every token below is final (variant A, [`color-themes-3.html`](mockups/color-themes-3.html)). The PRD's light wood and forest green reach the page through the photographs, not through the interface.
+The palette is pale sky on warm paper, with one dark ink. Every token below is final (variant A, [`color-themes-3.html`](mockups/color-themes-3.html)). The PRD's light wood reaches the page through the photographs and/or illustrations, not through the interface, and its deep green appears only as Success (`#2E6047`) for the confirmed state, never as a fill.
 
 - **Page (`#F5F3EB`)** is the warm paper background of every guest page, and of the rail.
 - **Surface (`#FDFCF7`)** sits on the page wherever something needs to lift slightly: input fields, calendar days, seat buttons, the selected Session row, notices. The step from page is only 1.1:1, so surface never carries meaning alone.
@@ -303,7 +303,7 @@ The palette is pale sky on warm paper, with one dark ink. Every token below is f
 - **Error (`#7F3C2E`)** is for form and payment errors only. "Sold out" and no-room states are availability information and never use it.
 - **Success (`#2E6047`)** is for the confirmed state only.
 
-The flat tones in the mock (forest, granite, light wood, pine, birch, sea-blue) are image stand-ins. They are not tokens and appear nowhere in the product.
+The flat tones in the mock (granite, light wood, pine, birch, sea-blue) are image stand-ins. They are not tokens and appear nowhere in the product.
 
 **Contrast, computed against WCAG 2.2 AA:**
 
@@ -457,12 +457,12 @@ Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, 
 | Do | Don't |
 |---|---|
 | One Primary button per page | A second filled button beside it |
-| Let photographs carry warmth and the PRD's wood and forest colours | Add wood, green or gradient fills to the interface |
+| Let photographs and/or illustrations carry warmth and the PRD's wood colours | Add wood, green or gradient fills to the interface |
 | Say state in words, with colour as support | Icons for state, or colour alone |
 | Keep `{colors.error}` for real errors | Show "Sold out" in `{colors.error}` |
 | Square corners and thin lines | Rounded cards, pills or shadows |
 | Finlandica at 400 and up | Weight 300 in Finlandica, which does not exist and would be faked or substituted |
 | Self-host every font and image | Load anything from another origin |
-| Photographs of real saunas and tools, warm and soft outside, dim and indirect inside | Spa-luxury cues, polished stock photography, heat boasts, sexualised framing (PRD §6) |
+| Photographs and/or illustrations of saunas and tools, warm and soft outside, dim and indirect inside | Spa-luxury cues, polished stock photography, heat boasts, sexualised framing (PRD §6) |
 | Check Book seats against its first-view budget | Add a banner or a new row without checking the fit at 1366 × 768 |
 | Show each fact once on a page (`EXPERIENCE.md`, Content Homes) | Repeat a price, a time or an action to fill space |
