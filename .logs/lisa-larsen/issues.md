@@ -118,4 +118,6 @@
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — hero-bildet viser en innsjø, mens Venue-teksten sier sjøen; avklar om det skal stå slik (løst 2026-11-09: nytt hero-bilde ved sjøen)
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lenke og fotograf for dampbildet mangler i `ASSETS.md`; filnavnet `pexels-steam.jpg` har ikke Pexels-ID (DR-3) (løst 2026-11-09)
 - [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — PRD §6 Imagery nevner fortsatt vihta, mens landingssiden nå bruker damp; avklar om PRD-en skal endres (løst 2026-11-09)
-- [ ] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — tittel og lenke til Pexels-foto 34097625 (dampen i Löyly-bildet) mangler i `ASSETS.md` (DR-3)
+- [x] 2026-11-09 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — tittel og lenke til Pexels-foto 34097625 (dampen i Löyly-bildet) mangler i `ASSETS.md` (DR-3) (løst 2026-11-10: Löyly-bildet bruker ikke lenger fotoet)
+- [ ] 2026-11-10 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lenke til Pixabay-siden for bilde 9176885 av tylijura (Löyly-bildet) mangler i `ASSETS.md` (DR-3)
+- [ ] 2026-11-10 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Löyly-bildet ser ut som en digital gjengivelse; Open Item 7 tillater KI-genererte bilder, men `DESIGN.md` sier «Photographs of real saunas and tools»; avgjør om ordlyden skal endres
