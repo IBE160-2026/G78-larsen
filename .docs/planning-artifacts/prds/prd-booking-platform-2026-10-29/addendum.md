@@ -454,7 +454,13 @@ On 2026-11-19 these dates and names were taken out of the FR text (PRD §4 and `
 | FR-23 | The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it | Lisa | 2026-11-06 |
 | FR-26 | A move costs nothing extra, because the price per Seat is the same in every Window in v1 | Lisa | 2026-10-30 |
 | FR-29 | Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 | Lisa | 2026-10-30 |
+| FR-21 | The session cookie is also set when a Guest opens a Manage link (architecture AD-28) | Lisa | 2026-11-19 |
+| FR-24 | On `localhost`, browsers send Secure cookies over plain HTTP anyway, so the local test checks the cookie attributes (architecture AD-27) | Lisa | 2026-11-19 |
+| FR-27 | The Voucher is part of the Change's confirmation email, so the Change sends one email | Lisa | 2026-11-19 |
+| FR-28 | A returned Voucher keeps the earliest expiry of the Vouchers used, but never less than 30 days after the cancellation (replaces the assumption) | Lisa | 2026-11-19 |
 | FR-33 | A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again | Lisa | 2026-10-30 |
+| FR-33 | The Voucher choice covers the full price paid and is valid for one year, also when part was paid with a Voucher | Lisa | 2026-11-19 |
+| §7 | A Change email carries no Manage link; it says the link in the confirmation email still works. Only the confirmation and a split-off Booking's email carry a Manage link (architecture AD-28) | Lisa | 2026-11-19 |
 | FR-35 (appendix) | Other Guests see held Seats as taken, with no comment | Lisa | 2026-10-30 |
 | FR-38 (appendix) | The seed supplies the standard programme (FR-13), and v1 has no recurring schedule | Lisa | 2026-10-30 |
 | FR-39 (appendix) | A change that sets the Booking horizon to more than 1 month is refused | Lisa | 2026-11-03 |

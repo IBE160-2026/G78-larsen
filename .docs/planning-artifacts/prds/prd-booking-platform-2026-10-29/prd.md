@@ -413,7 +413,7 @@ The platform stores only the personal data a Booking needs, and a privacy notice
   - the Guest's rights, including the right to complain to Datatilsynet.
 - Guest names and emails are deleted or anonymised 12 months after the Window, or after the last Voucher from the Booking expires if that is later.
 - No marketing email is sent.
-- Only cookies strictly needed for the service are set, so no consent banner is needed. The session cookie is set when a Guest opens Book seats or an Administrator opens Sign-in, so a visitor who only reads Landing gets none.
+- Only cookies strictly needed for the service are set, so no consent banner is needed. The session cookie is set when a Guest opens Book seats or a Manage link, or an Administrator opens Sign-in, so a visitor who only reads Landing gets none.
 - Fonts, images and scripts are served by the platform itself. No request goes to a third party.
 - Passwords, Manage-link tokens and Door codes never appear in logs.
 - The privacy notice, or a security section in the README, states how the data is protected: password hashing, server-side role checks, Manage-link tokens stored only as hashes in the Booking data (the Outbox, a simulated mailbox, holds the links as sent), whether HTTPS is in place, and no third-party requests.
@@ -455,7 +455,7 @@ The platform serves the website and the API over HTTPS only.
 **Consequences (testable):** (brief tests HT-1 to HT-4)
 - A plain-HTTP request to the website or the API is redirected to HTTPS. No data is returned or changed over HTTP.
 - Every HTTPS response carries a Strict-Transport-Security header.
-- Session cookies are Secure and HttpOnly, and are never sent over HTTP.
+- Session cookies are Secure and HttpOnly, and are never sent over HTTP. On `localhost`, browsers send Secure cookies over plain HTTP anyway, so the local test checks the cookie attributes and that the HTTP listener never reads a cookie. The README states this limit.
 - Every link in a simulated email starts with `https://`.
 
 ### 4.8 Change Seats or take a Voucher *[If time — 2]*
@@ -492,7 +492,7 @@ Before the Cutoff, a Guest can give up some or all Seats and receive a Voucher. 
 
 **Consequences (testable):**
 - The Voucher is worth the price paid for the Seats given up `[ASSUMPTION: the Voucher equals the price paid]`.
-- The Voucher is emailed (Outbox) with its code, its value and its expiry date, one year after issue. The result page shows that email (FR-17).
+- The Voucher's code, value and expiry date, one year after issue, are in the Change's confirmation email (Outbox), so the Change sends one email. The result page shows that email (FR-17).
 - The freed Seats count in Seats left at once.
 - No money is refunded.
 
@@ -503,7 +503,7 @@ A Guest can use a Voucher code to pay for a later Booking. Realizes UJ-4.
 - A Voucher can pay for all or part of a Booking, and the rest is paid by Simulated payment `[ASSUMPTION: partial use and combination work as for Gift cards]`. Any remaining value stays on the Voucher until it expires.
 - An expired, used-up or unknown code is refused with the same message. A Voucher is never paid out in money.
 - Two simultaneous uses of one Voucher never spend more than its value.
-- When a Booking paid partly with a Voucher is cancelled and the Guest chooses a refund, each part goes back the way it was paid: the money part as a Simulated refund, and the Voucher part as a new Voucher with the earliest expiry date of the Vouchers used `[ASSUMPTION: a returned Voucher keeps the earliest expiry]`.
+- When a Booking paid partly with a Voucher is cancelled and the Guest chooses a refund, each part goes back the way it was paid: the money part as a Simulated refund, and the Voucher part as a new Voucher with the earliest expiry date of the Vouchers used, but never less than 30 days after the cancellation.
 
 ### 4.9 Whole-sauna booking *[If time — 3]*
 **Description:** A Guest books one entire Sauna for one Window ("Private sauna"). Only Saunas marked as bookable whole are offered, each at its own price. Until §4.13 adds screens, those marks, the prices and the Fill order come from seed data.
@@ -581,7 +581,7 @@ Seat bookings, moves and cancellations and Whole-sauna bookings in the same Wind
 Before its Cutoff (72 hours), a Guest with the Manage link can cancel a Whole-sauna booking or move it to another Window. Realizes UJ-5.
 
 **Consequences (testable):**
-- On cancellation, the Guest chooses a Simulated refund or a Voucher valid for one year. Capacity is restored, and the Administrator sees the cancellation.
+- On cancellation, the Guest chooses a Simulated refund or a Voucher for the full price paid, valid for one year, also when part was paid with a Voucher. Capacity is restored, and the Administrator sees the cancellation.
 - A move to a Window where the Sauna is not available whole (FR-29) is rejected, and the original Booking is untouched `[ASSUMPTION: a move keeps the same Sauna unless the Guest picks another one that is available]`.
 - A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again.
 - Every cancellation or move sends a confirmation email (§7).
@@ -664,9 +664,9 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
 | Email | To | Content | Phase |
 |---|---|---|---|
 | Booking confirmation (FR-8) | Booker | Booking reference, date and Window, Seats, total paid, Guest's email, Venue identity and contact details, what happens next, terms, "Before you come", payment note | Core |
-| Confirmation of a Change (FR-26, FR-33) | Booker | What changed, the new Window and Seats, the Manage link | If time 2–3 |
+| Confirmation of a Change (FR-26, FR-27, FR-33) | Booker | What changed, the new Window and Seats, and that the Manage link in the confirmation email still works. A Change that issues a Voucher includes it here, so the Change sends one email | If time 2–3 |
 | Split-off Booking (FR-26) | Booker | New Booking reference and its own Manage link | If time 2 |
-| Voucher (FR-27, FR-28, FR-42) | Booker | Code, value, expiry date | If time 2 |
+| Voucher (FR-27, FR-28, FR-33, FR-42) | Booker | Code, value, expiry date. Always part of the email of the action that issues it, never a separate email | If time 2 |
 | Manage link resend (FR-34) | Address given, on a match | New link; the old one stops working. Visible only in the Outbox | If time 4 |
 | Whole-sauna booking, cancellation or move (FR-29, FR-33) | Booker | Sauna, Window, price, refund or Voucher | If time 3 |
 | Apology with remedy link (FR-40, FR-42) | Booker whose Booking was cancelled | What happened, the link, 30 days to choose; Step 2: do not use any Door codes received | If time 3, 7 |
@@ -855,7 +855,6 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - §4.8: moving Seats is built before the Voucher.
 - FR-27: a Voucher is worth the price paid for the Seats given up.
 - FR-28: Vouchers can be used in part and combined with payment, as Gift cards can.
-- FR-28: a Voucher returned in a refund keeps the earliest expiry of the Vouchers used.
 - FR-33: a move keeps the same Sauna unless the Guest picks another available one.
 - FR-34: the resend limit is 5 per hour per email address and per source address.
 - FR-35: Holds per source address are limited; the architecture sets the limit.
