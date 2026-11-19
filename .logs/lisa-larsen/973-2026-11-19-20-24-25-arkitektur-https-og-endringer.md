@@ -78,5 +78,7 @@ Lisa spurte om spinen samsvarer med `technology.md` (Bårds referanseoppsett for
   - EXPERIENCE.md: Next.js i stedet for «React SPA»;
   - README: status per 2026-11-19, Node.js som forutsetning, og hvordan plattformen skal kjøres. Kommandoene for den tynne slicen gjelder til skjelett-storyen er bygget.
 
+- **Pushet** til `origin/main` (`9689d50..9cd9402`): 9 commits med spine, reviews, PRD, addendum, EXPERIENCE.md, README og logger.
+
 ### Åpne punkter
 - Påstandene om Caddy og Next.js er lest fra kildekode og dokumentasjon, ikke kjørt, fordi Docker ikke kjørte. Første story som setter opp compose-stakken, må prøve redirecten (`curl -i`) og `caddy adapt`.
