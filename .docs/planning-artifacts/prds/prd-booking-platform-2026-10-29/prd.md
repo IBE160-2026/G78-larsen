@@ -22,7 +22,7 @@ The brief addendum's test tables are unnumbered. This PRD numbers their rows in 
 
 Supporting material is in `addendum.md` next to this file: technical direction for the architecture, the alternatives behind each research-based decision, legal notes, comparable services and aesthetic references.
 
-How to read it: every domain noun is defined once in the Glossary (§3) and used verbatim, capitalised. Features (§4) carry a delivery label and nest globally numbered FRs (FR-1 to FR-51) with testable consequences. FR-29 to FR-51 (§4.9 to §4.16) are specified but not planned, and are in `appendix-fr-29-51.md` next to this file (§10). Cross-cutting requirements are in §5. Inferences that Lisa has not confirmed are tagged `[ASSUMPTION: …]` inline and indexed in §13; real tensions are flagged `[NOTE FOR PM]`.
+How to read it: every domain noun is defined once in the Glossary (§3) and used verbatim, capitalised. Features (§4) carry a delivery label and nest globally numbered FRs (FR-1 to FR-51) with testable consequences. FR-34 to FR-51 (§4.10 to §4.16) are specified but not planned, and are in `appendix-fr-34-51.md` next to this file (§10). Cross-cutting requirements are in §5. Inferences that Lisa has not confirmed are tagged `[ASSUMPTION: …]` inline and indexed in §13; real tensions are flagged `[NOTE FOR PM]`.
 
 **Delivery order (decided):** the v1 **Core** comes first. The whole **If time** list follows, still part of v1, in the order of §10. **Step 2** comes after that, with the mobile layout last. **Vision** items are not built. A success criterion that is not reached is reported as not delivered.
 
@@ -30,7 +30,7 @@ How to read it: every domain noun is defined once in the Glossary (§3) and used
 
 Saunalöyly is a fictional, Finnish-inspired sauna venue with four or more saunas, and this platform is how guests reserve a place in it. A guest picks a day and the number of seats, sees at once which time windows have room and what it will cost, and pays. No account is needed, no help is needed, and nothing on the page tries to rush them. Alternatively, a group can take a whole sauna for itself. The website feels like the sauna it sells: calm, honest and plain, in light wood, deep green, birch white and sky blue, with real Finnish sauna rooms and their traditional tools in view.
 
-The hard part is not the booking form. Individual seats and whole-sauna bookings draw on the same physical rooms. The platform must never sell a seat twice, never sell a sauna that guests are already booked into, and keep its numbers right when two people press Pay in the same second or an administrator closes a sauna for repairs. This PRD bets on one idea: **if the capacity rules are precise enough to test, one person can deliver a booking core that never oversells, and then grow it feature by feature without rewrites.** Every rule below is therefore written as a testable consequence. The riskiest rules are proven with parallel automated tests rather than argued. For the version we will most likely deliver (the Core plus HTTPS), the bet is this: a Seat is never oversold under concurrent booking. Whole-sauna booking and Placement are the first extension, and they are tested only once §4.9 is built.
+The hard part is not the booking form. Individual seats and whole-sauna bookings draw on the same physical rooms. The platform must never sell a seat twice, never sell a sauna that guests are already booked into, and keep its numbers right when two people press Pay in the same second or an administrator closes a sauna for repairs. This PRD bets on one idea: **if the capacity rules are precise enough to test, one person can deliver a booking core that never oversells, and then grow it feature by feature without rewrites.** Every rule below is therefore written as a testable consequence. The riskiest rules are proven with parallel automated tests rather than argued. The planned v1 is the Core plus HTTPS, Change Seats or take a Voucher, and Whole-sauna booking (§10.1). The Core alone proves the first part of the bet: a Seat is never oversold under concurrent booking. Whole-sauna booking and Placement prove the rest, and they are tested once §4.9 is built. If the build does not get that far, the Core plus HTTPS is the floor, and the rest is reported as not delivered (DR-2).
 
 The platform is a learning project: an exam submission for IBE160 (group G78), built by one person between 27 October and 15 December 2026, planned with BMAD and implemented with Claude Code. Payment, email and door locks are simulated, and heating is not built at all. The platform is built so that it could grow into a real service, but it does not pretend to be one. Its value for assessment is a working, AI-built application together with an honest record of how AI was used and how the result was checked. If it became a real service, it would compete on price, appeal and features. Its differences would be a Finnish-inspired identity for people who already like saunas, and seats and private saunas in one system. Neither is proven: the exam version tests no prices and no demand.
 
@@ -509,12 +509,83 @@ A Guest can use a Voucher code to pay for a later Booking. Realizes UJ-4.
 - Two simultaneous uses of one Voucher never spend more than its value.
 - When a Booking paid partly with a Voucher is cancelled and the Guest chooses a refund, each part goes back the way it was paid: the money part as a Simulated refund, and the Voucher part as a new Voucher with the earliest expiry date of the Vouchers used `[ASSUMPTION: a returned Voucher keeps the earliest expiry]`.
 
-### 4.9 to 4.16 Specified, not planned
-*Moved on 2026-11-19 to `appendix-fr-29-51.md` next to this file.* These sections are fully specified, but they have no epics or stories in this round (§10.3). They keep their section and FR numbers, so references such as "§4.9" or "FR-31" in this PRD and in downstream documents point to the appendix.
+### 4.9 Whole-sauna booking *[If time — 3]*
+**Description:** A Guest books one entire Sauna for one Window ("Private sauna"). Only Saunas marked as bookable whole are offered, each at its own price. Until §4.13 adds screens, those marks, the prices and the Fill order come from seed data.
+
+Seats are counted into Saunas in the Fill order, so the last Saunas in the order stay free for groups as long as possible. A Sauna can be booked whole only if every Seat already booked in the Window still fits in the Saunas ahead of it. A Whole-sauna booking can be cancelled for a refund or a Voucher, or moved, until 72 hours before the start. Realizes UJ-5.
+
+`[NOTE FOR PM]` The strict rule protects groups, but it can refuse a Private sauna while the Venue still has room in total (catalogue B2). Comparable venues deliberately limit private use (addendum E). v1 models no limit beyond the Fill order.
+
+**Functional Requirements:**
+
+#### FR-29: Book a whole Sauna
+A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
+- The Sauna is bookable whole, and the Window is inside the Booking horizon and before its Booking deadline.
+- It is not Blocked and not already Whole-sauna-booked.
+- The Seats booked in the Window, plus the Seats held once §4.11 exists, are no more than its Room ahead. An unreleased Whole-booking-only Sauna skips this test, because it holds no Seats.
+- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats. Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 (Lisa, 2026-10-30).
+
+**Consequences (testable):**
+- Take 20 Seats booked, with Sauna 1 full, Sauna 2 full and 3 Seats counted in Sauna 3:
+  - Sauna 4 can be booked whole (20 ≤ 29), and Seats left becomes 9 (catalogue B1);
+  - Sauna 3 cannot (B2).
+- With 1 Seat booked, Sauna 1 cannot be booked whole (B3).
+- After the booking, Seats left drops at once by the Sauna's Capacity (B7) when the Sauna was open for Seats, and Seats are counted around the Sauna (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
+- A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
+- When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
+- With Sauna 1 marked Whole-booking-only and 5 Seats booked, Sauna 1 can still be booked whole (FR-41).
+
+#### FR-30: Choose the Sauna
+For a chosen date, the Private sauna page lists each Sauna that can be booked whole, with its Capacity, its price and its free Windows. The Guest picks a Window in that list, or opens one Sauna and picks a Window there. Realizes UJ-5.
+
+**Consequences (testable):**
+- Only the Sauna and Window pairs that FR-29 allows are listed.
+- The Guest always picks the Sauna; the platform never assigns one.
+- The confirmation names the Sauna and the Window.
+
+#### FR-31: Placement follows the Fill order
+After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Block, Whole-booking-only mark, removed mark, release, Capacity change and Fill order change, Placement satisfies these invariants:
+- **INV-1:** no Sauna holds more Seats than its Capacity.
+- **INV-2:** the Seats placed equal the Seats booked in the Window.
+- **INV-3:** a Whole-sauna-booked Sauna holds no Seats.
+- **INV-4:** a Blocked Sauna holds no Seats.
+- **INV-5:** no Sauna that is open for Seats and comes earlier in the Fill order has room while a later one holds Seats.
+
+**Consequences (testable):**
+- Catalogue groups A and B hold, with B4 rewritten as several Bookings under the 10-Seat cap (addendum A). Three examples:
+  - Cancelling 3 Seats counted in Sauna 1 at [7,10,5,0] gives [7,10,2,0] (A2).
+  - A Sauna emptied this way can be booked whole at once (A3).
+  - Cancelling a Whole-sauna booking counts the Seats forward again (B6).
+- Guests are never told a Sauna. The Administrator can see the Placement of each Window.
+- A model-based test applies random sequences of bookings, Changes (including partial moves), cancellations, Whole-sauna bookings, Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity changes and Fill order changes. After every step it checks INV-1 to INV-5 against a brute-force reference. Each If-time item adds its own actions to the test when it is built.
+
+#### FR-32: Seat and Whole-sauna requests never interleave
+Seat bookings, moves and cancellations and Whole-sauna bookings in the same Window are serialised, so each one completes on a consistent state. Realizes UJ-2 and UJ-5.
+
+**Consequences (testable):**
+- A Seat booking that races a Whole-sauna booking of the last Sauna able to take it: exactly one of them succeeds, never both (C2).
+- A cancellation that races a Whole-sauna booking: the Whole-sauna booking succeeds only if it is valid after the cancellation, and it is never made over a Sauna holding Seats (C3).
+- Two simultaneous cancellations never move a Seat twice or lose one (C4).
+- INV-1 to INV-5 hold after each completed request, under any interleaving (C5).
+- Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity decreases, Fill order changes and Window edits are serialised with Bookings and Holds in every Window they touch. When a Block races a booking for the last Seats, either the booking goes first and D2 or D3 then apply, or the Block goes first and the booking is judged on the reduced Seat capacity. The outcome is never a mix of the two (C6).
+- A Capacity decrease that races a Seat booking for the last Seats gives the same result as if one ran wholly before the other: the booking never lands in a Window the decrease has already filled, and the decrease never passes its check on stale Seat numbers (F1).
+- A Change that moves Seats from one Window to another, run in parallel with a Whole-sauna booking or an opposite Change in either Window, leaves INV-1 to INV-5 true in both Windows. No Seat is lost or counted twice.
+
+#### FR-33: Cancel or change a Whole-sauna booking
+Before its Cutoff (72 hours), a Guest with the Manage link can cancel a Whole-sauna booking or move it to another Window. Realizes UJ-5.
+
+**Consequences (testable):**
+- On cancellation, the Guest chooses a Simulated refund or a Voucher valid for one year. Capacity is restored, and the Administrator sees the cancellation.
+- A move to a Window where the Sauna is not available whole (FR-29) is rejected, and the original Booking is untouched `[ASSUMPTION: a move keeps the same Sauna unless the Guest picks another one that is available]`.
+- A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again (Lisa, 2026-10-30).
+- Every cancellation or move sends a confirmation email (§7).
+- After the Cutoff, every Change is refused with an explanation.
+
+### 4.10 to 4.16 Specified, not planned
+*Moved on 2026-11-19 to `appendix-fr-34-51.md` next to this file.* These sections are fully specified, but they have no epics or stories in this round (§10.3). They keep their section and FR numbers, so references such as "§4.13" or "FR-40" in this PRD and in downstream documents point to the appendix.
 
 | Section | Feature | Delivery label | FRs |
 |---|---|---|---|
-| §4.9 | Whole-sauna booking | If time — 3 | FR-29 to FR-33 |
 | §4.10 | "My booking" link resend | If time — 4 | FR-34 |
 | §4.11 | Seat Hold during payment | If time — 5 | FR-35 and FR-36 |
 | §4.12 | Guest accounts | If time — 6 | FR-37 |
@@ -655,8 +726,8 @@ The part-1 assessment criteria map to this PRD as follows:
 
 | Status | FRs | Sections |
 |---|---|---|
-| Built now | FR-1 to FR-24 (+ FR-25 to FR-28 if time) | §4.1 to §4.8 |
-| Specified, not planned | FR-29 to FR-51 | §4.9 to §4.16, in `appendix-fr-29-51.md` |
+| Built now | FR-1 to FR-24 (+ FR-25 to FR-33 if time) | §4.1 to §4.9 |
+| Specified, not planned | FR-34 to FR-51 | §4.10 to §4.16, in `appendix-fr-34-51.md` |
 
 ### 10.1 In scope
 **Core** (§4.1 to §4.6):
@@ -678,7 +749,9 @@ The part-1 assessment criteria map to this PRD as follows:
 6. Guest accounts (§4.12).
 7. Administrator tools and Venue rules (§4.13). All of v1 comes before Step 2, decided on 2026-10-29.
 
-The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: order of items 3 to 6]`. Backcasting from 15 December was run on 2026-11-01 (`backcasting-2026-11-01.md`); Lisa accepted the Core plus HTTPS as the likely v1 (2026-11-01). The order of items 3 to 6 is decided when If-time 2 is merged (§12 Q6).
+The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: order of items 4 to 6]`. Backcasting from 15 December was run on 2026-11-01 (`backcasting-2026-11-01.md`); Lisa accepted the Core plus HTTPS as the likely v1 (2026-11-01). The order of items 4 to 6 is decided when If-time 3 is merged (§12 Q6).
+
+*Decided by Lisa on 2026-11-19, after the teacher's feedback on the PRD (§4.1):* the website will be built autonomously with a `/goal` command, so items 1 to 3 are planned with epics and stories and kept in this order. Moving §4.9 before HTTPS was considered and not chosen, because FR-33 needs the Manage link and Voucher from §4.8, and HTTPS should be in place before Manage links are sent. §4.9 is planned instead, so the domain logic is built. The planned v1 is therefore the Core plus If-time items 1 to 3, and the Core plus HTTPS is the floor.
 
 `[NOTE FOR PM]` The Core is deliberately narrower than the teacher's suggested minimum, which was SC1 to SC4 with an Administrator view. The teacher rated time and scope a high risk, and two other exams fall inside the build period. Vouchers stay in v1 (If time 2), although the teacher suggested Step 2, because changing Seats depends on them.
 
@@ -687,11 +760,11 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - **Vision:** everything in §4.17.
 
 ### 10.3 Planning depth
-*Decided by Lisa on 2026-11-01, after backcasting from 15 December (`backcasting-2026-11-01.md`).* The likely v1 is the Core plus HTTPS, and the first building window is only 3–4 days, so planning is kept lean.
-- **Architecture.** It decides the Core in full. For later phases it records only what would force a Core rewrite: the per-Window capacity and booked columns, with the CHECK constraint and trigger that keep the store-level refusal of FR-10 extensible to Whole-sauna bookings and Blocks (addendum A). It adds one line each on derived Placement (Q5) and on Holds stored as data. The lock unit (Q14) is decided in the Core architecture, because PostgreSQL locks rows, not the whole database. Manage-link tokens are decided with the If-time 2 epic. The payment model is already decided: synchronous in every phase (FR-6).
+*Decided by Lisa on 2026-11-01, after backcasting from 15 December (`backcasting-2026-11-01.md`).* The likely v1 is the Core plus HTTPS, and the first building window is only 3–4 days, so planning is kept lean. *Updated 2026-11-19 (Lisa):* the website is built with a `/goal` command, and the planned v1 is the Core plus If-time 1 to 3 (§10.1). The Core plus HTTPS is the floor.
+- **Architecture.** It decides the Core in full. For later phases it records only what would force a Core rewrite: the per-Window capacity and booked columns, with the CHECK constraint and trigger that keep the store-level refusal of FR-10 extensible to Whole-sauna bookings and Blocks (addendum A). It adds one line each on derived Placement (Q5) and on Holds stored as data. The lock unit (Q14) is decided in the Core architecture, because PostgreSQL locks rows, not the whole database. Manage-link tokens are decided with the If-time 2 epic, and Whole-sauna booking (FR-29 to FR-33) with the If-time 3 epic. The payment model is already decided: synchronous in every phase (FR-6).
 - **Core stories.** All are written, in two batches: the skeleton stories before about 5 November, and the rest before 17 November.
-- **If-time.** Only HTTPS (§4.7) and If-time 2 (§4.8) get an epic. Their stories are written when each comes next, and HTTPS comes first. If-time 3 to 7 get neither epics nor stories in this round.
-- **Outside this round.** FR-29 to FR-42 (If-time 3 to 7), FR-43 to FR-51 (Step 2) and §4.17 (Vision). The epics document lists them as not planned in this round, so the readiness check does not count them as orphans.
+- **If-time.** HTTPS (§4.7), If-time 2 (§4.8) and If-time 3 (§4.9) each get an epic, and HTTPS comes first. Their stories are written before the `/goal` run (Lisa, 2026-11-19). If-time 4 to 7 get neither epics nor stories in this round.
+- **Outside this round.** FR-34 to FR-42 (If-time 4 to 7), FR-43 to FR-51 (Step 2) and §4.17 (Vision). The epics document lists them as not planned in this round, so the readiness check does not count them as orphans.
 - Step 2 starts only when every v1 item built so far passes its tests.
 
 ## 11. Success Metrics
@@ -748,7 +821,7 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
    - The architecture keeps the SQL plain and the data access in one layer.
    - The analysis of 2026-11-02 (the cost of switching later) is superseded by this decision: PostgreSQL is chosen from the Core, so no later switch is planned. Its warning still holds: every write unit locks the Windows it touches in a fixed order, in one function of the data layer, because code written for a database-wide lock can race under Read Committed.
 5. **Stored or derived Placement.** Decided in the architecture (AD-6): Placement is derived, never stored, as the research recommends. The model-based test proves it (FR-31).
-6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2).
+6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2). Updated 2026-11-19 (Lisa): item 3 (§4.9) is planned and stays third (§10.1). The order of items 4 to 6 is decided when If-time 3 is merged.
 7. **Administrator cancellation of a single Booking.** Decided 2026-11-05 (Lisa): not in the Core, so the Booking list stays read-only. It is the only way some late-cancellation cases in the catalogue can arise, so those cases do not occur in the Core.
 8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
 9. **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
@@ -795,4 +868,4 @@ The relative order of items 3 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
-- §10.1: the order of If-time items 3 to 6.
+- §10.1: the order of If-time items 4 to 6.

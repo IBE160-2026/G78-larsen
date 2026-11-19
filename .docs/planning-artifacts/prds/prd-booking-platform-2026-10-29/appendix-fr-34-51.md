@@ -1,85 +1,13 @@
 ---
-title: "Saunalöyly Booking Platform — PRD appendix: FR-29 to FR-51"
+title: "Saunalöyly Booking Platform — PRD appendix: FR-34 to FR-51"
 status: final
 created: 2026-11-19
 updated: 2026-11-19
 ---
 
-# PRD appendix: FR-29 to FR-51 (specified, not planned)
+# PRD appendix: FR-34 to FR-51 (specified, not planned)
 
-This appendix belongs to `prd.md` in the same folder. It holds §4.9 to §4.16, moved out of the PRD on 2026-11-19 so that the main document shows only what is being built now (§10). The requirements are unchanged and fully specified, but they have no epics or stories in this round (§10.3). Sections and FRs keep their numbers, so references such as "§4.9" or "FR-31" in the PRD and in downstream documents point here. The Glossary (PRD §3) applies, and the assumptions tagged here are indexed in PRD §13.
-
-### 4.9 Whole-sauna booking *[If time — 3]*
-**Description:** A Guest books one entire Sauna for one Window ("Private sauna"). Only Saunas marked as bookable whole are offered, each at its own price. Until §4.13 adds screens, those marks, the prices and the Fill order come from seed data.
-
-Seats are counted into Saunas in the Fill order, so the last Saunas in the order stay free for groups as long as possible. A Sauna can be booked whole only if every Seat already booked in the Window still fits in the Saunas ahead of it. A Whole-sauna booking can be cancelled for a refund or a Voucher, or moved, until 72 hours before the start. Realizes UJ-5.
-
-`[NOTE FOR PM]` The strict rule protects groups, but it can refuse a Private sauna while the Venue still has room in total (catalogue B2). Comparable venues deliberately limit private use (addendum E). v1 models no limit beyond the Fill order.
-
-**Functional Requirements:**
-
-#### FR-29: Book a whole Sauna
-A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
-- The Sauna is bookable whole, and the Window is inside the Booking horizon and before its Booking deadline.
-- It is not Blocked and not already Whole-sauna-booked.
-- The Seats booked in the Window, plus the Seats held once §4.11 exists, are no more than its Room ahead. An unreleased Whole-booking-only Sauna skips this test, because it holds no Seats.
-- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats. Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 (Lisa, 2026-10-30).
-
-**Consequences (testable):**
-- Take 20 Seats booked, with Sauna 1 full, Sauna 2 full and 3 Seats counted in Sauna 3:
-  - Sauna 4 can be booked whole (20 ≤ 29), and Seats left becomes 9 (catalogue B1);
-  - Sauna 3 cannot (B2).
-- With 1 Seat booked, Sauna 1 cannot be booked whole (B3).
-- After the booking, Seats left drops at once by the Sauna's Capacity (B7) when the Sauna was open for Seats, and Seats are counted around the Sauna (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
-- A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
-- When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
-- With Sauna 1 marked Whole-booking-only and 5 Seats booked, Sauna 1 can still be booked whole (FR-41).
-
-#### FR-30: Choose the Sauna
-For a chosen date, the Private sauna page lists each Sauna that can be booked whole, with its Capacity, its price and its free Windows. The Guest picks a Window in that list, or opens one Sauna and picks a Window there. Realizes UJ-5.
-
-**Consequences (testable):**
-- Only the Sauna and Window pairs that FR-29 allows are listed.
-- The Guest always picks the Sauna; the platform never assigns one.
-- The confirmation names the Sauna and the Window.
-
-#### FR-31: Placement follows the Fill order
-After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Block, Whole-booking-only mark, removed mark, release, Capacity change and Fill order change, Placement satisfies these invariants:
-- **INV-1:** no Sauna holds more Seats than its Capacity.
-- **INV-2:** the Seats placed equal the Seats booked in the Window.
-- **INV-3:** a Whole-sauna-booked Sauna holds no Seats.
-- **INV-4:** a Blocked Sauna holds no Seats.
-- **INV-5:** no Sauna that is open for Seats and comes earlier in the Fill order has room while a later one holds Seats.
-
-**Consequences (testable):**
-- Catalogue groups A and B hold, with B4 rewritten as several Bookings under the 10-Seat cap (addendum A). Three examples:
-  - Cancelling 3 Seats counted in Sauna 1 at [7,10,5,0] gives [7,10,2,0] (A2).
-  - A Sauna emptied this way can be booked whole at once (A3).
-  - Cancelling a Whole-sauna booking counts the Seats forward again (B6).
-- Guests are never told a Sauna. The Administrator can see the Placement of each Window.
-- A model-based test applies random sequences of bookings, Changes (including partial moves), cancellations, Whole-sauna bookings, Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity changes and Fill order changes. After every step it checks INV-1 to INV-5 against a brute-force reference. Each If-time item adds its own actions to the test when it is built.
-
-#### FR-32: Seat and Whole-sauna requests never interleave
-Seat bookings, moves and cancellations and Whole-sauna bookings in the same Window are serialised, so each one completes on a consistent state. Realizes UJ-2 and UJ-5.
-
-**Consequences (testable):**
-- A Seat booking that races a Whole-sauna booking of the last Sauna able to take it: exactly one of them succeeds, never both (C2).
-- A cancellation that races a Whole-sauna booking: the Whole-sauna booking succeeds only if it is valid after the cancellation, and it is never made over a Sauna holding Seats (C3).
-- Two simultaneous cancellations never move a Seat twice or lose one (C4).
-- INV-1 to INV-5 hold after each completed request, under any interleaving (C5).
-- Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity decreases, Fill order changes and Window edits are serialised with Bookings and Holds in every Window they touch. When a Block races a booking for the last Seats, either the booking goes first and D2 or D3 then apply, or the Block goes first and the booking is judged on the reduced Seat capacity. The outcome is never a mix of the two (C6).
-- A Capacity decrease that races a Seat booking for the last Seats gives the same result as if one ran wholly before the other: the booking never lands in a Window the decrease has already filled, and the decrease never passes its check on stale Seat numbers (F1).
-- A Change that moves Seats from one Window to another, run in parallel with a Whole-sauna booking or an opposite Change in either Window, leaves INV-1 to INV-5 true in both Windows. No Seat is lost or counted twice.
-
-#### FR-33: Cancel or change a Whole-sauna booking
-Before its Cutoff (72 hours), a Guest with the Manage link can cancel a Whole-sauna booking or move it to another Window. Realizes UJ-5.
-
-**Consequences (testable):**
-- On cancellation, the Guest chooses a Simulated refund or a Voucher valid for one year. Capacity is restored, and the Administrator sees the cancellation.
-- A move to a Window where the Sauna is not available whole (FR-29) is rejected, and the original Booking is untouched `[ASSUMPTION: a move keeps the same Sauna unless the Guest picks another one that is available]`.
-- A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again (Lisa, 2026-10-30).
-- Every cancellation or move sends a confirmation email (§7).
-- After the Cutoff, every Change is refused with an explanation.
+This appendix belongs to `prd.md` in the same folder. It holds §4.10 to §4.16, moved out of the PRD on 2026-11-19 so that the main document shows only what is planned (§10). The requirements are unchanged and fully specified, but they have no epics or stories in this round (§10.3). §4.9 was moved back into the PRD the same day, when it was planned (PRD §10.1). Sections and FRs keep their numbers, so references such as "§4.13" or "FR-40" in the PRD and in downstream documents point here. The Glossary (PRD §3) applies, and the assumptions tagged here are indexed in PRD §13.
 
 ### 4.10 "My booking" link resend *[If time — 4]*
 **Description:** A Guest who has lost the email enters the Booking reference and their email. If both match, a fresh Manage link is sent to that email. The page itself shows no Booking data, and it answers the same way whether or not anything matched. Realizes UJ-4.
