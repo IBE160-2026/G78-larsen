@@ -617,7 +617,7 @@ The Vision items are:
 v1 is built so that these are extensions, not rewrites. That readiness costs no v1 build time: v1 adds no tables, settings, endpoints or abstractions for Vision items, and the architecture only checks that each could be added without rewriting the capacity core. The brief addendum holds the detailed Vision rules (memberships, period cards, renewal, heating, remote doors and per-website settings). Addendum L keeps the rules worked out for one-Sauna access.
 
 ## 5. Cross-Cutting Requirements
-- **NFR-1 Runs locally.** A fresh clone runs from the README alone on a laptop. It needs no keys, paid accounts or external services. The examiner installs Python with uv, Node.js and Docker, and nothing else (Lisa, 2026-10-30; confirmed with the change to PostgreSQL on 2026-11-03). Docker runs the PostgreSQL data store as a container, started from the README (§12 Q4). `[ASSUMPTION: one command each to start the data store, the backend and the frontend, and one to run all tests]`.
+- **NFR-1 Runs locally.** A fresh clone runs from the README alone on a laptop. It needs no keys, paid accounts or external services. The examiner installs Python with uv, Node.js and Docker, and nothing else (Lisa, 2026-10-30; confirmed with the change to PostgreSQL on 2026-11-03). Docker runs the whole platform (the PostgreSQL data store, the backend, the frontend and the Caddy proxy) with one command from the README (§12 Q4, architecture AD-27). One more command runs all tests; uv and Node.js are needed for the tests and for development.
 - **NFR-2 One API, and the server decides.** The website talks to the booking platform only through one API. The platform enforces every rule in this PRD, whatever the website does. Other websites are not supported, but the API is kept clean so that support can be added later.
 - **NFR-3 Venue time.** All Windows, Booking deadlines, Cutoffs, Release times and Send times are in Venue time, including on the days when daylight saving time starts or ends `[ASSUMPTION: a Window keeps its local clock times across the change]`. Offsets (Booking horizon, Booking deadline, Cutoffs, Send time, Hold length and the 45-minute limit) are elapsed time from the Window's start or end. The Release time is a clock time on the date the Window starts. A Window belongs to the date it starts. A Window that would start or end in a skipped or repeated hour is refused.
 - **NFR-4 Money.** Prices are in NOK including VAT and come from seed data in the Core. A Booking keeps the price it was paid at.
@@ -872,7 +872,6 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-48: H14 as in the brief, widened to every way a Sauna becomes open.
 - FR-48: H15 as in the brief.
 - FR-49: H11 as recommended.
-- NFR-1: one command each to start the data store, the backend and the frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.

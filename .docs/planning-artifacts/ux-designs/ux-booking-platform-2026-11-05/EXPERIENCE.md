@@ -17,7 +17,7 @@ updated: 2026-11-09
 
 **Form factor.** Web, laptop first. All Core pages are designed for laptop (FR-22). The guest booking flow also has a specified narrow layout so it is ready if mobile is built, but FR-51 is last in Step 2, so that layout is specified, not promised for v1. Guests who book on the way to the sauna may be poorly served in v1; Lisa accepted this risk.
 
-**UI system.** None. One stylesheet with CSS custom properties, React SPA, no UI library. `DESIGN.md` is the visual identity reference and every `{path.to.token}` below resolves there. This spine covers behaviour and defers requirements to the PRD by FR, UJ and AD number.
+**UI system.** None. One stylesheet with CSS custom properties, Next.js (React) behind Caddy, no UI library (architecture AD-17, changed from a React SPA on 2026-11-19). `DESIGN.md` is the visual identity reference and every `{path.to.token}` below resolves there. This spine covers behaviour and defers requirements to the PRD by FR, UJ and AD number.
 
 **Core experience.** Booking is simple and clear for the Guest. Three questions on one page, then details, then review, then a confirmation that says what to do on arrival. Light mode only. [ASSUMPTION] No dark mode, because only light values were chosen (memlog).
 
@@ -363,8 +363,8 @@ The draft holds everything the Guest has entered, plus the one key for the booki
 | State | Treatment |
 |---|---|
 | Unknown address or unknown Booking | "This page is not available." with a link to Landing. [ASSUMPTION] One plain page for all of these, because the response must be the same whether or not a Booking exists (FR-20) |
-| Browser session gone during a booking (`401 no_session`) | The SPA makes a new browser session and keeps the Booking draft and its key. Entered values stay, and the Guest sees "please try again". If a payment succeeded and the browser session was deleted before the Guest saw the result, the key is gone too, so a second Booking is possible. Lisa accepted this risk, because it needs a lost response and a lost browser session at once. Copy must not call this a session |
-| Key known from another browser session (`409 invalid_key`) | A Booking may already exist, so the SPA never makes a new key here. The Notice says so and takes focus. Pay, the payment note and the Terms checkbox are removed, and Book seats is offered as a Text link. Choosing it starts a new Booking draft. Copy must not call this a session |
+| Browser session gone during a booking (`401 no_session`) | The frontend makes a new browser session and keeps the Booking draft and its key. Entered values stay, and the Guest sees "please try again". If a payment succeeded and the browser session was deleted before the Guest saw the result, the key is gone too, so a second Booking is possible. Lisa accepted this risk, because it needs a lost response and a lost browser session at once. Copy must not call this a session |
+| Key known from another browser session (`409 invalid_key`) | A Booking may already exist, so the frontend never makes a new key here. The Notice says so and takes focus. Pay, the payment note and the Terms checkbox are removed, and Book seats is offered as a Text link. Choosing it starts a new Booking draft. Copy must not call this a session |
 | Payment held by the test switch (`409 payment_pending`) | [ASSUMPTION] Treated as "please try again", with the same key. Test only (AD-14) |
 
 **Administrator**
@@ -577,7 +577,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 12. Closed by Lisa, changed 2026-11-06: "Swim preferably with others, and never ice-bathe alone." replaces "Bathe with caution, and never alone", so that a Guest with 1 seat can follow the rule. The Venue text must say where Guests can swim and ice-bathe. Resolved 2026-11-07: Practical says "You can swim in the sea all year round.", and the sea is also where Guests ice-bathe (Lisa).
 13. Closed by Lisa: reception finds the Booking by name and email in the day's Booking list, and no new function is added. Confirmation asks the Guest to keep the reference.
 14. Keyboard order on Book seats: test against WCAG 2.4.3 (see Accessibility Floor).
-15. JavaScript reliance: the site is an SPA, and addendum E warns against a JavaScript-only calendar (extract §14, C13). Typed date still applies. No no-script behaviour is specified.
+15. JavaScript reliance: pages are rendered by Next.js, but the booking flow runs in client components (AD-17), and addendum E warns against a JavaScript-only calendar (extract §14, C13). Typed date still applies. No no-script behaviour is specified.
 16. Closed by Lisa: the Administrator does not cancel single Bookings in Core. The Booking list stays read-only.
 17. Closed by Lisa: Details, Review, Confirmation and Booking list have key-screen mocks. Terms, Privacy notice, Sign-in, Outbox and the narrow layout are spine only. Changed 2026-11-07: Terms is rendered in `mockups/key-terms.html`. Changed 2026-11-09: Privacy notice is rendered in `mockups/key-privacy.html`.
 18. Closed by Lisa: guest copy uses plain sentence case, with seats, saunas and session in lower case. Only names such as Rauha and Before you come take capitals. The PRD and code keep theirs.

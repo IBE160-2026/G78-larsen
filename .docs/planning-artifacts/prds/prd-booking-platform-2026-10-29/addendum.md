@@ -460,6 +460,7 @@ On 2026-11-19 these dates and names were taken out of the FR text (PRD §4 and `
 | FR-28 | A returned Voucher keeps the earliest expiry of the Vouchers used, but never less than 30 days after the cancellation (replaces the assumption) | Lisa | 2026-11-19 |
 | FR-33 | A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again | Lisa | 2026-10-30 |
 | FR-33 | The Voucher choice covers the full price paid and is valid for one year, also when part was paid with a Voucher | Lisa | 2026-11-19 |
+| NFR-1 | Docker runs the whole platform (data store, backend, frontend, Caddy proxy) with one command, and one more command runs all tests (replaces the assumption; architecture AD-17, AD-27, following `technology.md`) | Lisa | 2026-11-19 |
 | §7 | A Change email carries no Manage link; it says the link in the confirmation email still works. Only the confirmation and a split-off Booking's email carry a Manage link (architecture AD-28) | Lisa | 2026-11-19 |
 | FR-35 (appendix) | Other Guests see held Seats as taken, with no comment | Lisa | 2026-10-30 |
 | FR-38 (appendix) | The seed supplies the standard programme (FR-13), and v1 has no recurring schedule | Lisa | 2026-10-30 |

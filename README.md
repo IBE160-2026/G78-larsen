@@ -12,14 +12,16 @@ Saunalöyly er et fiktivt, finsk-inspirert badstuanlegg med fire eller flere bad
 
 Det vanskelige er kapasiteten: plasser og hele badstuer trekker på de samme rommene, og plattformen skal aldri selge samme plass to ganger, heller ikke når to gjester trykker «Pay» i samme sekund. Hele kravsettet står i [PRD-en](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md).
 
-## Status (2026-10-31)
+## Status (2026-11-19)
 
 | Del | Status |
 |---|---|
 | Product brief | Ferdig |
 | Research (samtidighet, kapasitetsmodell, dørkoder) | Ferdig |
-| PRD | Utkast, kjerne (Core) og «hvis tid» er beskrevet, `status: draft` |
-| UX, arkitektur, epics og stories | Ikke startet |
+| PRD | Ferdig. Planlagt v1 er Core + If-time 1–3 (HTTPS, endringer og Vouchere, hel badstue) |
+| UX | Ferdig ([EXPERIENCE.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPERIENCE.md), [DESIGN.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/DESIGN.md)) |
+| Arkitektur | Ferdig ([arkitekturspine](.docs/planning-artifacts/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md)): FastAPI + PostgreSQL, Next.js som frontend og Caddy som eneste inngang, alt i Docker Compose |
+| Epics og stories | Ikke startet |
 | Applikasjon | **Tynn Core-skive (2026-11-03).** `src/booking_platform/` har PostgreSQL-skjema og et FastAPI-API for plasser, hold, bookinger, hele badstuer, blokker, markeringer og innstillinger. Ingen innlogging, betaling, e-post eller frontend ennå. Bygget for å kjøre FR-10-testene mot ekte stack |
 | Automatiserte tester | 28 tester for FR-10/11/12/14/35/36/41 og tre applikasjonsregler (`tests/`). Resten kommer sammen med hver story (PRD NFR-6) |
 
@@ -29,9 +31,10 @@ Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres n
 
 - [uv](https://docs.astral.sh/uv/) (installerer Python 3.12 etter behov, se `.python-version`)
 - Git
-- [Docker](https://www.docker.com/) (kjører databasen)
+- [Node.js](https://nodejs.org/) 24 LTS eller nyere (tester og utvikling av frontend)
+- [Docker](https://www.docker.com/) (kjører databasen nå, og hele plattformen når skjelettet er bygget)
 
-Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Start den med `docker compose up -d db` (port 55432). Frontend (Node.js) bestemmes i arkitekturfasen og skrives inn her når den er valgt.
+Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Start den med `docker compose up -d db` (port 55432). Når skjelett-storyen er bygget, starter `docker compose up --build --wait` hele plattformen (Caddy, FastAPI, Next.js og PostgreSQL) på `http://localhost:8000`, og på `https://localhost:8443` når HTTPS-storyen (FR-24) er bygget. Se spinens Structural Seed. Til da gjelder kommandoene under, som starter den tynne skiva.
 
 ## Kom i gang
 
