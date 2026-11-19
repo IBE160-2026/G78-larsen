@@ -99,35 +99,35 @@ An Administrator can change five Settings. Every other rule is fixed in v1.
 | Release time (06:00 rule) | 06:00 on the day of the Window; can be set to another time or turned off | never later than the Booking deadline of the Window it applies to |
 
 **Consequences (testable):**
-- A changed Cutoff applies only to Bookings made after the change. Existing Bookings keep the Cutoff they were made under.
-- A changed Booking horizon, Booking deadline or Release time applies from the moment of the change to every Window it has not yet affected `[ASSUMPTION: these rules are applied when a booking or release happens, not stored per Booking]`.
-- The Booking horizon and Booking deadline apply to Seat bookings, Holds, Whole-sauna bookings and the target Window of every Change `[ASSUMPTION: as in the brief]`.
-- A change that sets the Booking horizon to more than 1 month is refused (Lisa, 2026-11-03).
-- A change that sets the Booking deadline later than 45 minutes before the end of a standard 1 h 30 min Window, that is, more than 45 minutes after its start, is refused. For a Window of another length (FR-38), the earlier of the setting and 45 minutes before its end applies `[ASSUMPTION: rule for Windows of another length]`.
-- The Release time is never later than the Booking deadline of a Window with a Whole-booking-only Sauna that has not been released (FR-41). A Release time is a clock time and a Booking deadline belongs to a Window, so the limit is checked per Window `[ASSUMPTION: the limit is checked per Window, not as one global time]`:
+- **FR-39.1** A changed Cutoff applies only to Bookings made after the change. Existing Bookings keep the Cutoff they were made under.
+- **FR-39.2** A changed Booking horizon, Booking deadline or Release time applies from the moment of the change to every Window it has not yet affected `[ASSUMPTION: these rules are applied when a booking or release happens, not stored per Booking]`.
+- **FR-39.3** The Booking horizon and Booking deadline apply to Seat bookings, Holds, Whole-sauna bookings and the target Window of every Change `[ASSUMPTION: as in the brief]`.
+- **FR-39.4** A change that sets the Booking horizon to more than 1 month is refused (Lisa, 2026-11-03).
+- **FR-39.5** A change that sets the Booking deadline later than 45 minutes before the end of a standard 1 h 30 min Window, that is, more than 45 minutes after its start, is refused. For a Window of another length (FR-38), the earlier of the setting and 45 minutes before its end applies `[ASSUMPTION: rule for Windows of another length]`.
+- **FR-39.6** The Release time is never later than the Booking deadline of a Window with a Whole-booking-only Sauna that has not been released (FR-41). A Release time is a clock time and a Booking deadline belongs to a Window, so the limit is checked per Window `[ASSUMPTION: the limit is checked per Window, not as one global time]`:
   - a change that sets the Release time later than such a Window's Booking deadline is refused, and the message names the Windows;
   - a change that sets the Booking deadline earlier than the Release time of such a Window is refused in the same way;
   - with the Release time turned off, the limit does not apply.
-- With the default Settings, SC1 to SC4 behave as this PRD describes, and so do SC5 and SC6 once Step 2 is built (SC8). The tests of §4.1 to §4.12 pass unchanged.
+- **FR-39.7** With the default Settings, SC1 to SC4 behave as this PRD describes, and so do SC5 and SC6 once Step 2 is built (SC8). The tests of §4.1 to §4.12 pass unchanged.
 
 #### FR-40: Blocks
 An Administrator can Block one, several or all Saunas for a period, and can lift a Block. Realizes UJ-6.
 
 **Consequences (testable):**
-- A Block affects every Window that overlaps its period, using half-open intervals `[ASSUMPTION: half-open intervals]`. A Blocked Sauna cannot be booked whole and holds no Seats. A Block never changes a Window that has ended, even when its period reaches into the past.
-- The blocking calendar shows, for a chosen period, each Window with its Seats booked and Seats left, each Sauna's Whole-sauna bookings and Whole-booking-only marks, and each Block.
-- Before confirming, the Administrator sees each affected Window, how many Seats will be counted into other Saunas, and any Booking that would lose its place. The Block is applied only if the Bookings and Holds that would lose their place are still the ones the Administrator saw. Otherwise nothing is applied and a new preview is shown.
-- Blocking Sauna 2 in an empty Window lowers Seat capacity and Seats left to 34 (D1).
-- With Windows 15:00–16:30 and 16:30–18:00, a Block from 16:30 to 17:00 affects only the second. The first ends exactly when the Block starts (D5, rewritten so that the Windows do not overlap).
-- Seats in the Blocked Sauna are counted into other Saunas that are open for Seats, later ones included, where there is room. No Guest is affected (D2).
-- If Seat capacity falls below the Seats booked and held, the latest Seat bookings lose (D3):
+- **FR-40.1** A Block affects every Window that overlaps its period, using half-open intervals `[ASSUMPTION: half-open intervals]`. A Blocked Sauna cannot be booked whole and holds no Seats. A Block never changes a Window that has ended, even when its period reaches into the past.
+- **FR-40.2** The blocking calendar shows, for a chosen period, each Window with its Seats booked and Seats left, each Sauna's Whole-sauna bookings and Whole-booking-only marks, and each Block.
+- **FR-40.3** Before confirming, the Administrator sees each affected Window, how many Seats will be counted into other Saunas, and any Booking that would lose its place. The Block is applied only if the Bookings and Holds that would lose their place are still the ones the Administrator saw. Otherwise nothing is applied and a new preview is shown.
+- **FR-40.4** Blocking Sauna 2 in an empty Window lowers Seat capacity and Seats left to 34 (D1).
+- **FR-40.5** With Windows 15:00–16:30 and 16:30–18:00, a Block from 16:30 to 17:00 affects only the second. The first ends exactly when the Block starts (D5, rewritten so that the Windows do not overlap).
+- **FR-40.6** Seats in the Blocked Sauna are counted into other Saunas that are open for Seats, later ones included, where there is room. No Guest is affected (D2).
+- **FR-40.7** If Seat capacity falls below the Seats booked and held, the latest Seat bookings lose (D3):
   - Holds that no longer fit end first, newest first, and their Guests hold nothing (FR-35). Seat bookings then lose by Entry time, the latest first, then the next, until the rest fit `[ASSUMPTION: as many lose as needed]`. A Whole-sauna booking never loses its place this way (decided 2026-10-30);
   - each losing Booking is cancelled in full, regardless of Cutoffs;
   - each Guest chooses a refund or a Voucher, as in FR-42.
-- A Whole-sauna booking of a Blocked Sauna is cancelled regardless of its Cutoff, with the same choice (D4).
-- Lifting a Block counts Seats again so that INV-5 holds (D7).
-- A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating (this reading of F3 confirmed by Lisa, 2026-10-30).
-- When every Sauna is Blocked, the Window is not offered, and every Booking in it is cancelled as above (D6).
+- **FR-40.8** A Whole-sauna booking of a Blocked Sauna is cancelled regardless of its Cutoff, with the same choice (D4).
+- **FR-40.9** Lifting a Block counts Seats again so that INV-5 holds (D7).
+- **FR-40.10** A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating (this reading of F3 confirmed by Lisa, 2026-10-30).
+- **FR-40.11** When every Sauna is Blocked, the Window is not offered, and every Booking in it is cancelled as above (D6).
 
 #### FR-41: Whole-booking-only Saunas and the Release time
 An Administrator can mark a Sauna in a Window as Whole-booking-only, and remove the mark.

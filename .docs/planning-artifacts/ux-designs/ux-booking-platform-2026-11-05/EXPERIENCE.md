@@ -148,7 +148,15 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 
 "Complete booking" is not an acceptable pay label (addendum D).
 
-The "Before you come" text follows FR-1, with one change for the UI word: "Changing time is part of your session." The swimwear line is "Swimwear to wear at the venue." under What to bring (Lisa, 2026-11-07). What to bring has short items, since the heading carries "bring".
+**Landing copy, verbatim.** Moved here from PRD FR-1 on 2026-11-19; FR-1 now states only what the page must contain. What to bring has short items, since the heading carries "bring" (Lisa, 2026-11-07).
+
+| Text | Where |
+|---|---|
+| "Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round." | Venue description, under the hero |
+| "Swimwear to wear at the venue." "Two towels. One to sit on and one to dry yourself with." "A bottle for water." | Before you come, What to bring |
+| "Drink enough water to avoid dehydration." "Alcohol is not allowed at the venue." "Keep rounds in the sauna to 10 minutes at most, and leave if you feel unwell." "Ask the others before throwing water on the stones." "Swim preferably with others, and never ice-bathe alone." "Children must be supervised by an adult." | Before you come, Safety |
+| "Changing time is part of your session." "There is a wardrobe for your clothes." "You can swim in the sea all year round." "There are showers." "There is a tap with drinking water." | Before you come, Practical |
+| Badstubrygga 4, 0000 Havbukta; +47 01 23 45 67; hello@saunaloyly.example | Find us, and the Venue row on Review (FR-5). Served as Venue facts from the seed (AD-16) |
 
 **Required statements, meaning fixed by the PRD, wording accepted by Lisa**
 

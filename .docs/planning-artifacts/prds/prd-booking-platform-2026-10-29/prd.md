@@ -22,7 +22,7 @@ The brief addendum's test tables are unnumbered. This PRD numbers their rows in 
 
 Supporting material is in `addendum.md` next to this file: technical direction for the architecture, the alternatives behind each research-based decision, legal notes, comparable services and aesthetic references.
 
-How to read it: every domain noun is defined once in the Glossary (§3) and used verbatim, capitalised. Features (§4) carry a delivery label and nest globally numbered FRs (FR-1 to FR-51) with testable consequences. FR-34 to FR-51 (§4.10 to §4.16) are specified but not planned, and are in `appendix-fr-34-51.md` next to this file (§10). Cross-cutting requirements are in §5. Inferences that Lisa has not confirmed are tagged `[ASSUMPTION: …]` inline and indexed in §13; real tensions are flagged `[NOTE FOR PM]`.
+How to read it: every domain noun is defined once in the Glossary (§3) and used verbatim, capitalised. Features (§4) carry a delivery label and nest globally numbered FRs (FR-1 to FR-51) with testable consequences. Where an FR has many consequences, each is numbered (FR-40.1, FR-40.2 …) so that a story can name the ones it delivers. Finished page copy lives in the UX documents, not here. FR-34 to FR-51 (§4.10 to §4.16) are specified but not planned, and are in `appendix-fr-34-51.md` next to this file (§10). Cross-cutting requirements are in §5. Inferences that Lisa has not confirmed are tagged `[ASSUMPTION: …]` inline and indexed in §13; real tensions are flagged `[NOTE FOR PM]`.
 
 **Delivery order (decided):** the v1 **Core** comes first. The whole **If time** list follows, still part of v1, in the order of §10. **Step 2** comes after that, with the mobile layout last. **Vision** items are not built. A success criterion that is not reached is reported as not delivered.
 
@@ -167,24 +167,20 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 **Functional Requirements:**
 
 #### FR-1: Landing page
-A Guest can open the website without signing in and start a Seat booking in one step. Realizes UJ-1.
+A Guest can open the website without signing in and start a Seat booking in one step. Realizes UJ-1. This FR fixes what the website must contain; the wording is in `EXPERIENCE.md` (Voice and Tone, "Landing copy").
 
 **Consequences (testable):**
-- The landing page shows:
-  - the Venue name and a short description (on the page: "Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish saunas by the sea, where you can swim all year round." It names no number of Saunas and does not say they are shared, so it stays true when a Sauna is booked whole);
-  - the **Book seats** action;
-  - links to the terms and the privacy notice;
-  - a "Before you come" section on sauna etiquette and safety `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`:
-    - what to bring (on the page as short items, since the heading carries "bring"): swimwear to wear at the venue; two towels, one to sit on and one to dry yourself with; a bottle for water;
-    - safety: drink enough water to avoid dehydration; alcohol is not allowed at the venue; keep rounds in the sauna to 10 minutes at most, and leave if you feel unwell; ask the others before throwing water on the stones; swim preferably with others, and never ice-bathe alone; children must be supervised by an adult;
-    - practical: changing time is part of the Window (on the page: "Changing time is part of your session."); there is a wardrobe for your clothes; you can swim in the sea all year round; there are showers; there is a tap with drinking water;
-    - the section can be linked to directly (FR-8).
-- The website presents the Venue:
-  - the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4);
-  - opening hours and the Window schedule;
-  - the price per Seat, and the price per Sauna once §4.9 exists;
-  - the fictional address and contact details that FR-5 also shows (on the page: Badstubrygga 4, 0000 Havbukta; +47 01 23 45 67; hello@saunaloyly.example. The postcode and the number cannot exist in Norway, and `.example` is a reserved domain).
-- Choosing **Book seats** opens the date and Seat selection directly.
+- **FR-1.1** The landing page shows the Venue name and a short description. The description names no number of Saunas and does not say they are shared, so it stays true when a Sauna is booked whole.
+- **FR-1.2** It shows the **Book seats** action. Choosing it opens the date and Seat selection directly.
+- **FR-1.3** It links to the terms and the privacy notice.
+- **FR-1.4** It has a "Before you come" section on sauna etiquette and safety, which can be linked to directly (FR-8) `[ASSUMPTION: the content beyond the two towels and the bathing rules; sources in addendum F]`. The section covers:
+  - what to bring: swimwear to wear at the venue, two towels (one to sit on and one to dry yourself with) and a bottle for water;
+  - safety: drinking enough water, no alcohol at the venue, rounds of at most 10 minutes and leaving when unwell, asking the others before throwing water on the stones, swimming preferably with others and never ice-bathing alone, and children supervised by an adult;
+  - practical: changing time is part of the Window, a wardrobe, sea swimming all year round, showers and a tap with drinking water.
+- **FR-1.5** The website presents the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4).
+- **FR-1.6** The website shows the opening hours and the Window schedule.
+- **FR-1.7** The website shows the price per Seat, and the price per Sauna once §4.9 exists.
+- **FR-1.8** The website shows the fictional address and contact details that FR-5 also shows. None of them can reach anyone: the postcode and the phone number cannot exist in Norway, and the email uses the reserved `.example` domain.
 
 #### FR-2: Date and number of Seats
 A Guest can choose a date and a whole number of Seats from 1 to 10. Realizes UJ-1.
