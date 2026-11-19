@@ -18,7 +18,7 @@ Etter tilbakemelding på PRD-en: mange konsekvenser viste bare til katalog-ID-er
 - FR-31: «Catalogue groups A and B hold» er erstattet med utfallet for A1–A5, A8, B4 (omskrevet under 10-plassgrensen: 10+10+10+7 = 37), B5 og B6, med henvisning til FR-12 og FR-29 for resten.
 - FR-32: C2, C3 og C4 med tall. C6 viser til FR-40 i stedet for D2/D3.
 - F1 i FR-32 er ikke skrevet ut (kapasitetsendring hører til FR-38, If-time 7).
-- Ikke committet.
+- Committet i `19acd6e`.
 
 ### Åpne punkter
 Ingen.
