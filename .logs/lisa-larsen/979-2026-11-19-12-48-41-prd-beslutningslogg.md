@@ -16,7 +16,7 @@ Tilbakemelding på PRD-en (lav): beslutningslogg og krav var blandet. Rundt halv
 - `prd.md` §4 og `appendix-fr-34-51.md`: 16 + 6 parenteser med navn og dato er fjernet. Der parentesen også hadde innhold, er det beholdt: «(addendum M)» i FR-35 og «(Vision)» i FR-38.
 - `addendum.md` M: «Decision log» med M.1 (reviewer-runden, uendret), M.2 (de avgjorte spørsmålene ordrett) og M.3 (22 rader).
 - Datoer utenfor FR-teksten, for eksempel i §10 og i de åpne spørsmålene, er ikke rørt.
-- Ikke committet.
+- Committet i `38a0469`.
 
 ### Åpne punkter
 Ingen.
