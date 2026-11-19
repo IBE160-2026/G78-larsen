@@ -385,7 +385,10 @@ Lisa moved one-Sauna access from Step 2 to Vision on 2026-10-30. These are the r
 - Placement is frozen at the Send time, and F3's "no moves after the start" applies (FR-40). A Booking that would have to move after the Send time is cancelled with the remedy of FR-42, even when Seat capacity is not exceeded, and other Bookings are untouched. This follows the research recommendation; Lisa has not confirmed it.
 - The mode cannot be turned on while any future Window has a Booking split across Saunas. Turning it off applies only to Windows whose Door-code email has not been sent (H23).
 
-## M. Decisions from the reviewer round (Lisa, 2026-10-30)
+## M. Decision log
+Decisions with their dates and who took them, kept here so that the PRD's requirements read without them.
+
+### M.1 The reviewer round (Lisa, 2026-10-30)
 Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downstream.md`, `review-adversarial-rules.md` in the PRD folder). Lisa decided these points, with the alternative not taken. The review files hold the other findings.
 
 | Topic | PRD position | Alternative not taken |
@@ -407,3 +410,54 @@ Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downst
 | UX scope for this round | Every Core page in full, the places where If-time features plug in, and the flows of §4.8 to §4.12 (§7) | Core only |
 | Creating Windows (If time 7) | One at a time. The seed supplies the standard programme. A daily pattern over a period of dates goes to Vision (FR-38) | The Administrator creates Windows from a daily pattern over a period |
 | Guest accounts (If time 6) | Sign-up and password reset go by emailed links (Outbox). A signed-in Guest books with the account's email (FR-37) | As chosen, but password reset by a command only, as for Administrators |
+
+### M.2 Decided questions from PRD §12
+Moved from PRD §12 on 2026-11-19, with their original numbers and full text. PRD §12.2 gives the one-line answers.
+
+- **Q2.** **How is "intuitive" verified, now that the informal three-person test is dropped?** Decided 2026-11-05 (Lisa): it has no separate measure. FR-22 and FR-23 are the only checks.
+- **Q3.** **Seed data.** Decided 2026-11-01 (Lisa); the values are in addendum J.
+   - The Saunas are Rauha 7, Löyly 10, Kajo 12 and Lumo 15 Seats, 44 in total, filled in that order.
+   - The price is NOK 250 per Seat including VAT, the same in every Window (FR-26). It is illustrative (§9).
+   - The Venue is open every day 10:00–22:00, with eight back-to-back Windows of 1 h 30 min starting at 10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00 and 20:30, and no changeover gap. Q1 therefore applies to Door codes in Step 2.
+   - Private sauna prices are not set; they wait until §4.9 is planned.
+- **Q4.** **Database engine.** Decided 2026-11-03 (Lisa): PostgreSQL, run by Docker as a container started from the README (Docker running PostgreSQL confirmed by Lisa, 2026-11-03). This replaces the decision of 2026-11-01 (SQLite in WAL mode with `BEGIN IMMEDIATE`), which was based on a spike of the Core case only. The reason for the change is not recorded. Consequences:
+   - The race test of FR-11 and the parallel tests of FR-32 now meet real multi-writer contention, against the same kind of data store the platform uses (NFR-6).
+   - The examiner installs Docker (NFR-1). The README starts the container and pins the PostgreSQL major version.
+   - The mechanism is a conditional update under Read Committed, with the Windows locked in start-time order (Q14) and a bounded retry on 40001/40P01 (FR-14, addendum A).
+   - The SQLite spike no longer applies. The store-level refusal of FR-10 (CHECK constraint and trigger) is re-proven on PostgreSQL, for the Core first and later for Whole-sauna bookings and Blocks (addendum A).
+   - The architecture keeps the SQL plain and the data access in one layer.
+   - The analysis of 2026-11-02 (the cost of switching later) is superseded by this decision: PostgreSQL is chosen from the Core, so no later switch is planned. Its warning still holds: every write unit locks the Windows it touches in a fixed order, in one function of the data layer, because code written for a database-wide lock can race under Read Committed.
+- **Q5.** **Stored or derived Placement.** Decided in the architecture (AD-6): Placement is derived, never stored, as the research recommends. The model-based test proves it (FR-31).
+- **Q6.** **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2). Updated 2026-11-19 (Lisa): item 3 (§4.9) is planned and stays third (§10.1). The order of items 4 to 6 is decided when If-time 3 is merged.
+- **Q7.** **Administrator cancellation of a single Booking.** Decided 2026-11-05 (Lisa): not in the Core, so the Booking list stays read-only. It is the only way some late-cancellation cases in the catalogue can arise, so those cases do not occur in the Core.
+- **Q10.** **Trademark.** Decided 2026-10-31 (Lisa): keep "Saunalöyly". A check of "Löyly" found filed or registered marks in Australia, Canada, Denmark, the EU, Finland, the UK and the US (counts only; owners, classes and the Norwegian register were not checked), but the Venue is fictional and not used in trade. If the platform is ever used commercially, check the owners and classes (43 and 44) and rename if needed.
+- **Q14.** **Lock unit.** Decided in the architecture (AD-3): the Window is the lock unit, and several Windows are locked in id (start-time) order. A spike on 2026-11-03 found this sufficient for Seat bookings, Whole-sauna bookings and Blocks (addendum A). The parallel tests of FR-11 prove it. The tests of FR-32 run when Whole-sauna booking is built.
+- **Q17.** **Coach proposals from the brainstorm.** Decided 2026-11-06 (Lisa): the token budget per story is dropped. Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (§8.2) and the planning depth (§10.3) on 2026-11-01.
+
+### M.3 Decisions dated in the requirement text
+On 2026-11-19 these dates and names were taken out of the FR text (PRD §4 and `appendix-fr-34-51.md`). The requirement stands in the FR; this table records who decided it and when.
+
+| Where | Requirement | By | Date |
+|---|---|---|---|
+| FR-3 | The total is shown once, not per Window, for the chosen number and visible for the chosen Window | Lisa | 2026-11-05 |
+| FR-5 | Details and Review are two separate pages | Lisa | 2026-11-05 |
+| FR-5 | the Guest's name and email | Lisa | 2026-11-06 |
+| FR-5 | Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered | Lisa | 2026-11-05 |
+| FR-6 | The pay step, and every email that mentions a payment, carry the plain note "Simulated payment: no money moves" | Lisa | 2026-10-30 |
+| FR-6 | The Simulated payment is synchronous in every phase | — | 2026-10-30 |
+| FR-6 | Going back from the confirmation page never reaches a page that can pay again: the Guest sees the confirmation | Lisa | 2026-11-06 |
+| FR-8 | the Venue's identity and contact details | Lisa | 2026-11-06 |
+| FR-8 | "Keep your booking reference and give it at reception when you arrive." | Lisa | 2026-11-05 |
+| §4.3 | In every phase, the data store itself refuses a write that would exceed it, as the brief requires (confirmed for every phase on 2026-10-30) | — | 2026-10-27 |
+| FR-22 | Every Core page also works without horizontal scrolling at window widths from 1024 px, which covers a laptop with display scaling | Lisa | 2026-11-06 |
+| FR-23 | Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2 | Lisa | 2026-10-30 |
+| FR-23 | The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it | Lisa | 2026-11-06 |
+| FR-26 | A move costs nothing extra, because the price per Seat is the same in every Window in v1 | Lisa | 2026-10-30 |
+| FR-29 | Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 | Lisa | 2026-10-30 |
+| FR-33 | A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again | Lisa | 2026-10-30 |
+| FR-35 (appendix) | Other Guests see held Seats as taken, with no comment | Lisa | 2026-10-30 |
+| FR-38 (appendix) | The seed supplies the standard programme (FR-13), and v1 has no recurring schedule | Lisa | 2026-10-30 |
+| FR-39 (appendix) | A change that sets the Booking horizon to more than 1 month is refused | Lisa | 2026-11-03 |
+| FR-40 (appendix) | A Whole-sauna booking never loses its place this way | — | 2026-10-30 |
+| FR-40 (appendix) | In this PRD that happens only in Vision, under one-Sauna access and for heating (this reading of F3 confirmed) | Lisa | 2026-10-30 |
+| FR-41 (appendix) | Release is therefore never skipped for that reason | Lisa | 2026-10-31 |

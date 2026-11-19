@@ -38,7 +38,7 @@ When a Guest presses **Continue booking** on Book seats, the chosen Seats are he
 - After a Hold expires, another Guest can book those Seats (CT-4).
 - A browser session has at most one Hold per Window. Going back and choosing another number of Seats resizes that Hold in one step and keeps the Seats already held; if the extra Seats are not free, the old Hold stays and the Guest is told. Holds per source address are limited `[ASSUMPTION: the architecture sets the limit]`.
 - The Guest pressing Cancel releases the Hold at once. A failed payment keeps it until it expires, so the Guest can try again (FR-7).
-- The Guest is not told about the Hold: no page or email mentions it or shows a time limit. Other Guests see held Seats as taken, with no comment (Lisa, 2026-10-30; addendum M).
+- The Guest is not told about the Hold: no page or email mentions it or shows a time limit. Other Guests see held Seats as taken, with no comment (addendum M).
 - With cleanup switched off, an expired Hold no longer reduces Seats left.
 - Expiry never discards what the Guest has entered. The Guest can still pay, and FR-36 decides the outcome. `[NOTE FOR PM]` This keeps the fixed 10 minutes compatible with WCAG 2.2.1 (adjustable time limits); addendum A explains why.
 
@@ -85,7 +85,7 @@ An Administrator can create and edit Windows, set each Sauna's Capacity, the pri
 - A price change applies only to new Bookings. Existing Bookings keep the price paid. A Guest who has reached the review page is charged the price shown there, even if the price changes meanwhile.
 - A Window that has Bookings or Holds cannot be deleted or moved in time. Its Saunas can be Blocked instead (FR-40).
 - The Administrator can create and see Windows beyond the Booking horizon.
-- Windows are created one at a time. The seed supplies the standard programme (FR-13), and v1 has no recurring schedule (Vision; Lisa, 2026-10-30).
+- Windows are created one at a time. The seed supplies the standard programme (FR-13), and v1 has no recurring schedule (Vision).
 
 #### FR-39: Five Settings
 An Administrator can change five Settings. Every other rule is fixed in v1.
@@ -102,7 +102,7 @@ An Administrator can change five Settings. Every other rule is fixed in v1.
 - **FR-39.1** A changed Cutoff applies only to Bookings made after the change. Existing Bookings keep the Cutoff they were made under.
 - **FR-39.2** A changed Booking horizon, Booking deadline or Release time applies from the moment of the change to every Window it has not yet affected `[ASSUMPTION: these rules are applied when a booking or release happens, not stored per Booking]`.
 - **FR-39.3** The Booking horizon and Booking deadline apply to Seat bookings, Holds, Whole-sauna bookings and the target Window of every Change `[ASSUMPTION: as in the brief]`.
-- **FR-39.4** A change that sets the Booking horizon to more than 1 month is refused (Lisa, 2026-11-03).
+- **FR-39.4** A change that sets the Booking horizon to more than 1 month is refused.
 - **FR-39.5** A change that sets the Booking deadline later than 45 minutes before the end of a standard 1 h 30 min Window, that is, more than 45 minutes after its start, is refused. For a Window of another length (FR-38), the earlier of the setting and 45 minutes before its end applies `[ASSUMPTION: rule for Windows of another length]`.
 - **FR-39.6** The Release time is never later than the Booking deadline of a Window with a Whole-booking-only Sauna that has not been released (FR-41). A Release time is a clock time and a Booking deadline belongs to a Window, so the limit is checked per Window `[ASSUMPTION: the limit is checked per Window, not as one global time]`:
   - a change that sets the Release time later than such a Window's Booking deadline is refused, and the message names the Windows;
@@ -121,12 +121,12 @@ An Administrator can Block one, several or all Saunas for a period, and can lift
 - **FR-40.5** With Windows 15:00–16:30 and 16:30–18:00, a Block from 16:30 to 17:00 affects only the second. The first ends exactly when the Block starts (D5, rewritten so that the Windows do not overlap).
 - **FR-40.6** Seats in the Blocked Sauna are counted into other Saunas that are open for Seats, later ones included, where there is room. No Guest is affected (D2).
 - **FR-40.7** If Seat capacity falls below the Seats booked and held, the latest Seat bookings lose (D3):
-  - Holds that no longer fit end first, newest first, and their Guests hold nothing (FR-35). Seat bookings then lose by Entry time, the latest first, then the next, until the rest fit `[ASSUMPTION: as many lose as needed]`. A Whole-sauna booking never loses its place this way (decided 2026-10-30);
+  - Holds that no longer fit end first, newest first, and their Guests hold nothing (FR-35). Seat bookings then lose by Entry time, the latest first, then the next, until the rest fit `[ASSUMPTION: as many lose as needed]`. A Whole-sauna booking never loses its place this way;
   - each losing Booking is cancelled in full, regardless of Cutoffs;
   - each Guest chooses a refund or a Voucher, as in FR-42.
 - **FR-40.8** A Whole-sauna booking of a Blocked Sauna is cancelled regardless of its Cutoff, with the same choice (D4).
 - **FR-40.9** Lifting a Block counts Seats again so that INV-5 holds (D7).
-- **FR-40.10** A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating (this reading of F3 confirmed by Lisa, 2026-10-30).
+- **FR-40.10** A Block in a Window that has started counts Seats again like any other Block. The Overbooking fallback applies only if Seats booked exceed the new Seat capacity. F3's "no moves after the start" applies only where Placement is visible to Guests. In this PRD that happens only in Vision, under one-Sauna access and for heating.
 - **FR-40.11** When every Sauna is Blocked, the Window is not offered, and every Booking in it is cancelled as above (D6).
 
 #### FR-41: Whole-booking-only Saunas and the Release time
@@ -137,7 +137,7 @@ An Administrator can mark a Sauna in a Window as Whole-booking-only, and remove 
 - Marking is refused while Seats are placed in the Sauna in that Window, held Seats included (D8). Marking a Sauna that is not Bookable whole is refused. Marking is also refused if the Release time (when on) is later than the Window's Booking deadline (FR-39).
 - At the Release time on the day of the Window, a marked Sauna that is not Whole-sauna-booked becomes open for Seats and takes its place in the Fill order. Seats are counted again so that INV-5 holds. The release is a condition checked against the data store's clock (NFR-11), so it takes effect even if the platform was off at the Release time.
 - With the Release time turned off, a marked Sauna is never released.
-- The Release time never falls after a Window's Booking deadline (FR-39), so a marked Sauna is always released while its Window can still be booked. Release is therefore never skipped for that reason (decided 2026-10-31, Lisa).
+- The Release time never falls after a Window's Booking deadline (FR-39), so a marked Sauna is always released while its Window can still be booked. Release is therefore never skipped for that reason.
 
 #### FR-42: Overbooking fallback
 If the Seats booked in a Window ever exceed its Seat capacity, the Seat booking with the latest Entry time loses.

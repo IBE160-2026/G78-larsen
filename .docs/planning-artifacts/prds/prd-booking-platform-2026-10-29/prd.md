@@ -199,7 +199,7 @@ For the chosen date and number of Seats, a Guest sees every bookable Window with
 - If no Window on the date has room, the page offers up to three of the nearest Windows that do, the same day first, then the following days within the Booking horizon `[ASSUMPTION: same day first, then the following days, at most three]`.
 - A Window whose Booking deadline has passed is not offered.
 - No countdown, "people viewing" count, padded number or other urgency cue appears. Any text about scarcity states the true current Seats left.
-- The total is shown once, not per Window, for the chosen number and visible for the chosen Window (Lisa, 2026-11-05). This holds while the price is the same in every Window, and must change if per-Window prices arrive.
+- The total is shown once, not per Window, for the chosen number and visible for the chosen Window. This holds while the price is the same in every Window, and must change if per-Window prices arrive.
 - The total shown equals the number of Seats times the price per Seat, in NOK including VAT, and is the amount charged.
 
 #### FR-4: Seats, not Saunas
@@ -222,12 +222,12 @@ A Guest can enter a name and an email, and review the Booking before paying. Rea
 
 **Consequences (testable):**
 - The name is free text of 1–100 characters, and the email is a valid address of at most 254 characters `[ASSUMPTION: text limits]`. Nothing else is asked.
-- Details and Review are two separate pages (Lisa, 2026-11-05). Before the pay button, on Review, the Guest sees:
+- Details and Review are two separate pages. Before the pay button, on Review, the Guest sees:
   - the Window, the number of Seats, and the total price in NOK including VAT;
-  - the Guest's name and email (Lisa, 2026-11-06);
+  - the Guest's name and email;
   - the Venue's identity and contact details;
   - the booking terms, including that a booking for a fixed date has no right of withdrawal (angrerettloven § 22 m), what the Guest can and cannot Change afterwards, and that the Guest chooses a refund or a Voucher if Saunalöyly cancels (§9; on the page: "If Saunalöyly cancels your session, you choose a refund or a voucher.").
-- Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered (Lisa, 2026-11-05).
+- Until §4.8 is built, the terms state that a Booking cannot be changed or refunded, with no other route offered.
 - The Guest must accept the terms before paying. Links to the full terms and the privacy notice are present.
 - Going back keeps everything the Guest has entered.
 
@@ -237,11 +237,11 @@ A Guest can pay with a Simulated payment, and a successful payment creates the B
 **Consequences (testable):**
 - The pay button states both the obligation and the amount, for example "Pay NOK 500" (angrerettloven § 16).
 - The platform runs with no payment credentials and no external payment service.
-- The pay step, and every email that mentions a payment, carry the plain note "Simulated payment: no money moves" (Lisa, 2026-10-30).
+- The pay step, and every email that mentions a payment, carry the plain note "Simulated payment: no money moves".
 - A successful payment reduces the Window's Seats left by exactly the number of Seats booked.
-- The Simulated payment is synchronous in every phase (decided 2026-10-30): the charge is recorded in the same atomic step that creates the Booking, so a request that creates no Booking charges nothing.
+- The Simulated payment is synchronous in every phase: the charge is recorded in the same atomic step that creates the Booking, so a request that creates no Booking charges nothing.
 - Each review page carries a one-time key. Submitting the same review twice (by double click, reload or retry) never creates two Bookings or two charges, and a repeat returns the first outcome: a Guest who was booked sees the confirmation again, never "no Seat free".
-- Going back from the confirmation page never reaches a page that can pay again: the Guest sees the confirmation (Lisa, 2026-11-06).
+- Going back from the confirmation page never reaches a page that can pay again: the Guest sees the confirmation.
 
 #### FR-7: Failed payment
 A failed Simulated payment creates nothing. Realizes UJ-1.
@@ -259,11 +259,11 @@ After a successful Booking, the Guest sees a confirmation page and receives a si
   - the date and Window;
   - the number of Seats and the total paid;
   - the Guest's email;
-  - the Venue's identity and contact details (Lisa, 2026-11-06);
+  - the Venue's identity and contact details;
   - what happens next;
   - the booking terms;
   - a link to the "Before you come" section of the landing page (etiquette and safety).
-- In the Core, "what happens next" is the reception instruction: "Keep your booking reference and give it at reception when you arrive." (Lisa, 2026-11-05).
+- In the Core, "what happens next" is the reception instruction: "Keep your booking reference and give it at reception when you arrive.".
 - The email is stored in the Outbox. The confirmation page shows that email as sent. Which later emails a Guest sees is set in FR-17.
 - The confirmation page opens only in the browser session that paid, and for as long as that session lasts `[ASSUMPTION: the confirmation page is tied to the paying browser session]`. A reload in that session shows it again.
 - The Core confirmation contains no Manage link `[ASSUMPTION: the Manage link arrives with §4.8, when there is something to manage]`.
@@ -276,7 +276,7 @@ Each Booking covers exactly one Window. A Guest who wants several Windows makes 
 - A request for Seats in more than one Window is rejected as invalid input (FR-18).
 
 ### 4.3 Capacity integrity under concurrency *[Core]*
-**Description:** Capacity is a hard guarantee, and the most heavily tested part of the product. However many requests arrive at once, the Seats booked in a Window never exceed its Seat capacity. In every phase, the data store itself refuses a write that would exceed it, as the brief requires (decided 2026-10-27, confirmed for every phase on 2026-10-30), so the guarantee does not rest on application code alone. A request either gets all the Seats it asks for or none. Realizes UJ-2.
+**Description:** Capacity is a hard guarantee, and the most heavily tested part of the product. However many requests arrive at once, the Seats booked in a Window never exceed its Seat capacity. In every phase, the data store itself refuses a write that would exceed it, as the brief requires, so the guarantee does not rest on application code alone. A request either gets all the Seats it asks for or none. Realizes UJ-2.
 
 **Functional Requirements:**
 
@@ -428,12 +428,12 @@ Guests and the Administrator can use every Core page on a laptop screen, in the 
 
 **Consequences (testable):**
 - Every Core page works without horizontal scrolling at 1366×768 and 1920×1080 `[ASSUMPTION: these two sizes define "laptop screen"]`.
-- Every Core page also works without horizontal scrolling at window widths from 1024 px, which covers a laptop with display scaling (Lisa, 2026-11-06).
+- Every Core page also works without horizontal scrolling at window widths from 1024 px, which covers a laptop with display scaling.
 - All styling comes from one stylesheet. The fonts are the self-hosted, OFL-licensed files listed in the asset register (DR-3).
 - Error and sold-out messages state what happened and what the Guest can do next. "Sold out" is shown as information about availability, with alternatives, not as an error.
 
 #### FR-23: Accessible Core pages
-Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2 (Lisa, 2026-10-30). The legal minimum for private websites in Norway is WCAG 2.0 AA, which has no Reflow criterion. The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it (Lisa, 2026-11-06).
+Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2. The legal minimum for private websites in Norway is WCAG 2.0 AA, which has no Reflow criterion. The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it.
 
 **Consequences (testable):**
 - An automated accessibility check reports no level A or AA failures on the Core pages, except 1.4.10 Reflow, which the report lists as a known gap until FR-51. If FR-51 is not built, the README names the gap among the success criteria not delivered (DR-2).
@@ -482,7 +482,7 @@ Before the Cutoff, a Guest can move some or all Seats of a Seat booking to anoth
 - The move is atomic. If the target Window lacks room, nothing changes and the original Booking is untouched. For example, moving 3 Seats to a Window with 2 left is refused: the original Booking keeps its 3 Seats, and Seats left stays the same in both Windows (catalogue E5).
 - Moving only some Seats splits the Booking. The moved Seats become a new Booking in the target Window, with its own Booking reference and Manage link, emailed at once and shown on the result page (FR-17). The original Booking keeps its reference and link, with fewer Seats. Both keep the price paid per Seat and the Cutoff setting the original was made under. Moving all Seats moves the Booking and keeps its reference.
 - The target Window must be inside the Booking horizon and before its Booking deadline (FR-39).
-- A move costs nothing extra, because the price per Seat is the same in every Window in v1 (Lisa, 2026-10-30).
+- A move costs nothing extra, because the price per Seat is the same in every Window in v1.
 - Every move, partial or full, sends the booker a confirmation email, shown on the result page (FR-17, §7).
 - The freed Seats count in Seats left at once, and the Administrator's list shows the Change.
 - After the Cutoff, every Change is refused with an explanation.
@@ -521,7 +521,7 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
 - The Sauna is bookable whole, and the Window is inside the Booking horizon and before its Booking deadline.
 - It is not Blocked and not already Whole-sauna-booked.
 - The Seats booked in the Window, plus the Seats held once §4.11 exists, are no more than its Room ahead. An unreleased Whole-booking-only Sauna skips this test, because it holds no Seats.
-- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats. Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 (Lisa, 2026-10-30).
+- The Window has not started, or it has no Seat booking, or the Sauna is not open for Seats. Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12.
 
 **Consequences (testable):**
 - Take 20 Seats booked, with Sauna 1 full, Sauna 2 full and 3 Seats counted in Sauna 3:
@@ -583,7 +583,7 @@ Before its Cutoff (72 hours), a Guest with the Manage link can cancel a Whole-sa
 **Consequences (testable):**
 - On cancellation, the Guest chooses a Simulated refund or a Voucher valid for one year. Capacity is restored, and the Administrator sees the cancellation.
 - A move to a Window where the Sauna is not available whole (FR-29) is rejected, and the original Booking is untouched `[ASSUMPTION: a move keeps the same Sauna unless the Guest picks another one that is available]`.
-- A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again (Lisa, 2026-10-30).
+- A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again.
 - Every cancellation or move sends a confirmation email (§7).
 - After the Cutoff, every Change is refused with an explanation.
 
@@ -776,18 +776,18 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 ## 11. Success Metrics
 *Success criteria SC1 to SC10 are the brief's. A criterion that is not reached is reported as not delivered (DR-2).*
 
-| SC | Criterion | Phase |
-|---|---|---|
-| SC1 | Book Seats; the last Seat has exactly one winner | Core |
-| SC2 | Book a whole Sauna | If time 3 |
-| SC3 | Change Seats or take a Voucher | If time 2 |
-| SC4 | Cancel or change a Whole-sauna booking | If time 3 |
-| SC5 | Gift card | Step 2 |
-| SC6 | Door codes | Step 2 |
-| SC7 | Membership and period card | Vision, not built |
-| SC8 | Adjustable rules: the five Settings | If time 7 |
-| SC9 | Protection against hacking: validation, passwords, roles, HTTPS | Core, HTTPS at If time 1 |
-| SC10 | Responsive design | Laptop in the Core, mobile last in Step 2 |
+| SC | Criterion | Phase | FR |
+|---|---|---|---|
+| SC1 | Book Seats; the last Seat has exactly one winner | Core | FR-1 to FR-17 |
+| SC2 | Book a whole Sauna | If time 3 | FR-29 to FR-32 |
+| SC3 | Change Seats or take a Voucher | If time 2 | FR-25 to FR-28 |
+| SC4 | Cancel or change a Whole-sauna booking | If time 3 | FR-33 |
+| SC5 | Gift card | Step 2 | FR-43, FR-44 |
+| SC6 | Door codes | Step 2 | FR-45 to FR-50 |
+| SC7 | Membership and period card | Vision, not built | none (§4.17) |
+| SC8 | Adjustable rules: the five Settings | If time 7 | FR-39 |
+| SC9 | Protection against hacking: validation, passwords, roles, HTTPS | Core, HTTPS at If time 1 | FR-15, FR-18 to FR-21, FR-24, FR-25, FR-37 |
+| SC10 | Responsive design | Laptop in the Core, mobile last in Step 2 | FR-22, FR-23; FR-51 for mobile |
 
 **Primary**
 - **SM-1: Seats are booked end to end and never oversold.** This is SC1.
@@ -812,33 +812,31 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - **SM-C4: Visual polish.** Must not use up the freeze or the time for tests. Counterbalances SM-3.
 
 ## 12. Open Questions
-1. **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
-2. **How is "intuitive" verified, now that the informal three-person test is dropped?** Decided 2026-11-05 (Lisa): it has no separate measure. FR-22 and FR-23 are the only checks.
-3. **Seed data.** Decided 2026-11-01 (Lisa); the values are in addendum J.
-   - The Saunas are Rauha 7, Löyly 10, Kajo 12 and Lumo 15 Seats, 44 in total, filled in that order.
-   - The price is NOK 250 per Seat including VAT, the same in every Window (FR-26). It is illustrative (§9).
-   - The Venue is open every day 10:00–22:00, with eight back-to-back Windows of 1 h 30 min starting at 10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00 and 20:30, and no changeover gap. Q1 therefore applies to Door codes in Step 2.
-   - Private sauna prices are not set; they wait until §4.9 is planned.
-4. **Database engine.** Decided 2026-11-03 (Lisa): PostgreSQL, run by Docker as a container started from the README (Docker running PostgreSQL confirmed by Lisa, 2026-11-03). This replaces the decision of 2026-11-01 (SQLite in WAL mode with `BEGIN IMMEDIATE`), which was based on a spike of the Core case only. The reason for the change is not recorded. Consequences:
-   - The race test of FR-11 and the parallel tests of FR-32 now meet real multi-writer contention, against the same kind of data store the platform uses (NFR-6).
-   - The examiner installs Docker (NFR-1). The README starts the container and pins the PostgreSQL major version.
-   - The mechanism is a conditional update under Read Committed, with the Windows locked in start-time order (Q14) and a bounded retry on 40001/40P01 (FR-14, addendum A).
-   - The SQLite spike no longer applies. The store-level refusal of FR-10 (CHECK constraint and trigger) is re-proven on PostgreSQL, for the Core first and later for Whole-sauna bookings and Blocks (addendum A).
-   - The architecture keeps the SQL plain and the data access in one layer.
-   - The analysis of 2026-11-02 (the cost of switching later) is superseded by this decision: PostgreSQL is chosen from the Core, so no later switch is planned. Its warning still holds: every write unit locks the Windows it touches in a fixed order, in one function of the data layer, because code written for a database-wide lock can race under Read Committed.
-5. **Stored or derived Placement.** Decided in the architecture (AD-6): Placement is derived, never stored, as the research recommends. The model-based test proves it (FR-31).
-6. **Order of If-time items 3 to 6.** Decided 2026-11-01 (Lisa), after backcasting from 15 December (`backcasting-2026-11-01.md`): the likely v1 is the Core plus HTTPS, because the Administrator sign-in, booking list and Outbox are in the Core. Items 3 to 6 are probably out of reach, so their order is decided when If-time 2 is merged. Whatever is not reached is reported as not delivered (DR-2). Updated 2026-11-19 (Lisa): item 3 (§4.9) is planned and stays third (§10.1). The order of items 4 to 6 is decided when If-time 3 is merged.
-7. **Administrator cancellation of a single Booking.** Decided 2026-11-05 (Lisa): not in the Core, so the Booking list stays read-only. It is the only way some late-cancellation cases in the catalogue can arise, so those cases do not occur in the Core.
-8. **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
-9. **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
-10. **Trademark.** Decided 2026-10-31 (Lisa): keep "Saunalöyly". A check of "Löyly" found filed or registered marks in Australia, Canada, Denmark, the EU, Finland, the UK and the US (counts only; owners, classes and the Norwegian register were not checked), but the Venue is fictional and not used in trade. If the platform is ever used commercially, check the owners and classes (43 and 44) and rename if needed.
-11. **Gift-card validity (Step 2).** One year is common practice, but a three-year limitation period may still apply to a paid card. This is a legal reading, not legal advice.
-12. **Gaps before any real launch.** Norwegian pre-contract information if the service is marketed to Norwegian consumers, and the organisation number and VAT details. These are out of scope for the fictional exam version.
-13. **Heating cases I11 to I23.** Vision.
-14. **Lock unit.** Decided in the architecture (AD-3): the Window is the lock unit, and several Windows are locked in id (start-time) order. A spike on 2026-11-03 found this sufficient for Seat bookings, Whole-sauna bookings and Blocks (addendum A). The parallel tests of FR-11 prove it. The tests of FR-32 run when Whole-sauna booking is built.
-15. **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
-16. **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
-17. **Coach proposals from the brainstorm.** Decided 2026-11-06 (Lisa): the token budget per story is dropped. Lisa confirmed tests in every story (NFR-6) on 2026-10-30, and the freeze (§8.2) and the planning depth (§10.3) on 2026-11-01.
+*Only open questions are listed in full. Decided questions keep their numbers, so references such as "§12 Q3" still work: §12.2 gives each answer in one line, and addendum M.2 keeps the full text with dates.*
+
+### 12.1 Open
+- **Q1.** **H6: two valid codes on one door (Step 2).** With back-to-back Windows, the next Window's code is valid during the last 20 minutes of the current one. The options are to accept the overlap and tell Guests, to start validity at the Window start, or to leave a gap between Windows. Lisa deferred this on 2026-10-29, and addendum C explains it. Revisit before Door codes are planned.
+- **Q6.** **Order of If-time items 4 to 6.** Items 1 to 3 are planned (§10.1). The order of items 4 to 6 is decided when If-time 3 is merged. Whatever is not reached is reported as not delivered (DR-2).
+- **Q8.** **Real lock behaviour (Step 2).** Two different PINs on one lock, and editing a code after its validity has started, are untested. So are how fast a create, change or delete takes effect, and how silent failures show up.
+- **Q9.** **Late payment after a Hold expires.** The payment is synchronous (decided 2026-10-30), so a late payment either books or charges nothing. This flow has no primary source, and expiry drift is unknown. The architecture must prove it with the parallel tests of FR-36, using the data store's clock.
+- **Q11.** **Gift-card validity (Step 2).** One year is common practice, but a three-year limitation period may still apply to a paid card. This is a legal reading, not legal advice.
+- **Q12.** **Gaps before any real launch.** Norwegian pre-contract information if the service is marketed to Norwegian consumers, and the organisation number and VAT details. These are out of scope for the fictional exam version.
+- **Q13.** **Heating cases I11 to I23.** Vision.
+- **Q15.** **One-Sauna access (Vision).** May Bookings be repacked before the Send time? Is a Window offered for N Seats only when one Sauna has N free (catalogue G1)? Moved from Step 2 on 2026-10-30; revisit only if it comes back.
+- **Q16.** **Step 2 order.** The brief addendum puts Gradual opening first in Step 2, while brief.md leaves it out. The PRD treats Gradual opening as an optional mode of Door codes. One-Sauna access is in Vision in the PRD, the brief and the brief addendum (Lisa, 2026-10-30). Owner: Lisa.
+
+### 12.2 Decided
+| Q | Question | Answer |
+|---|---|---|
+| Q2 | How is "intuitive" verified? | No separate measure. FR-22 and FR-23 are the checks |
+| Q3 | Seed data | Addendum J: Saunas of 7, 10, 12 and 15 Seats, NOK 250 per Seat, eight Windows a day. Private sauna prices are chosen in the first §4.9 story |
+| Q4 | Database engine | PostgreSQL, run by Docker as a container |
+| Q5 | Stored or derived Placement | Derived, never stored (architecture AD-6) |
+| Q6 | Order of If-time items 3 to 6 | Item 3 (§4.9) is planned and stays third. Items 4 to 6 are still open (§12.1) |
+| Q7 | Administrator cancellation of a single Booking | Not in the Core. The Booking list stays read-only |
+| Q10 | Trademark | Keep "Saunalöyly", since the Venue is fictional and not used in trade |
+| Q14 | Lock unit | The Window, with several Windows locked in id order (architecture AD-3) |
+| Q17 | Coach proposals from the brainstorm | The token budget per story is dropped. Tests in every story, the freeze and the planning depth are kept |
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
