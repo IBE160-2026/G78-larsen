@@ -732,7 +732,8 @@ The part-1 assessment criteria map to this PRD as follows:
 
 | Status | FRs | Sections |
 |---|---|---|
-| Built now | FR-1 to FR-24 (+ FR-25 to FR-33 if time) | §4.1 to §4.9 |
+| Planned, built with `/goal` | FR-1 to FR-33: the Core FR-1 to FR-23, and If-time 1–3 FR-24 to FR-33 | §4.1 to §4.9 |
+| Floor if the build falls short | FR-1 to FR-24 (the Core plus HTTPS) | §4.1 to §4.7 |
 | Specified, not planned | FR-34 to FR-51 | §4.10 to §4.16, in `appendix-fr-34-51.md` |
 
 ### 10.1 In scope
