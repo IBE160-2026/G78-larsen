@@ -73,6 +73,10 @@ Lisa spurte om spinen samsvarer med `technology.md` (Bårds referanseoppsett for
 - **Ikke tatt inn fra `technology.md`:** TypeScript, Tailwind og shadcn, fordi PRD §8.2 og FR-22 krever JavaScript og ett stilark. `/docs` og `/openapi.json` er også slått av, fordi Swagger UI lastes fra en CDN, og FR-21 forbyr tredjepartskall.
 - **Reviews:** `reviews/review-{tech-currency,adversarial}-caddy-next-2026-11-19.md`. Det kritiske funnet (base-URL før FR-24) og alle høye funn er rettet. Det høye funnet om port i redirecten er rettet med site-adressen `localhost:8443` uten `https_port`.
 
+- **Kildene følger spinen** (`7eaf96d`):
+  - PRD NFR-1: Docker kjører hele plattformen med én kommando, og antagelsen er fjernet fra teksten og fra §13 (addendum M.3);
+  - EXPERIENCE.md: Next.js i stedet for «React SPA»;
+  - README: status per 2026-11-19, Node.js som forutsetning, og hvordan plattformen skal kjøres. Kommandoene for den tynne slicen gjelder til skjelett-storyen er bygget.
+
 ### Åpne punkter
-- PRD NFR-1 og antagelsen der sier fortsatt at Docker bare kjører databasen, med én kommando per del. README og EXPERIENCE.md («React SPA») må også oppdateres til Caddy og Next.js.
 - Påstandene om Caddy og Next.js er lest fra kildekode og dokumentasjon, ikke kjørt, fordi Docker ikke kjørte. Første story som setter opp compose-stakken, må prøve redirecten (`curl -i`) og `caddy adapt`.
