@@ -136,7 +136,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Seat capacity:** for a Window, the sum of Capacity over the Saunas that are open for Seats. In the Core, this is the sum of all Capacities.
 - **Seats left:** Seat capacity minus the Seats booked in the Window, and also minus the Seats held once Holds exist.
 - **Fill order:** the order, set by the Administrator, in which Seats are counted into Saunas. Each Sauna is filled before the next.
-- **Placement:** which Sauna each booked Seat is counted in. Placement is the platform's way of keeping count, not an assignment. Guests move freely between the Saunas open for Seats and are never told a Sauna.
+- **Placement:** which Sauna each booked Seat is counted in. Placement is the platform's way of keeping count, not an assignment. Guests with a Seat booking move freely between the Saunas open for Seats and are never told a Sauna.
 - **Room ahead:** for a Sauna S in a Window, the summed Capacity of the Saunas that come before S in the Fill order and are open for Seats. The research writes this as P(S).
 - **Block:** a period in which one or more Saunas cannot be booked and hold no Seats, for example during maintenance.
 - **Bookable whole:** a standing mark, set by the Administrator on a Sauna (FR-38), that lets it be sold as a Whole-sauna booking at all. Whole-booking-only is a different mark, set per Window, and applies only to a Sauna that is Bookable whole.
@@ -562,7 +562,7 @@ After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Bl
   - Sauna 2 is booked whole while the Window is still empty. When 9 Seats are then booked, 7 are counted in Sauna 1, Sauna 2 is skipped, and the other 2 are counted in Sauna 3: `[7,—,2,0]`. Seats left is 34 − 9 = 25 (B5).
   - Cancelling the Whole-sauna booking of Sauna 2 at `[7,—,12,4]` (23 Seats) gives `[7,10,6,0]`: 10 Seats move forward, 4 from Sauna 4 and 6 from Sauna 3 (B6).
   - B1, B2, B3 and B7 are written out in FR-29, and A6 and A7 in FR-12.
-- Guests are never told a Sauna. The Administrator can see the Placement of each Window.
+- A Guest with a Seat booking is never told a Sauna: Placement is not shown on any Guest page or in any Guest email (FR-4). Only the Administrator can see the Placement of each Window. A Whole-sauna booking is different: the Guest chooses the Sauna, and the confirmation names it (FR-30).
 - A model-based test applies random sequences of bookings, Changes (including partial moves), cancellations, Whole-sauna bookings, Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity changes and Fill order changes. After every step it checks INV-1 to INV-5 against a brute-force reference. Each If-time item adds its own actions to the test when it is built.
 
 #### FR-32: Seat and Whole-sauna requests never interleave
