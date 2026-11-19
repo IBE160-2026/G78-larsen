@@ -29,3 +29,17 @@ Artifacten https://claude.ai/artifact/5SXJPbSyKjuV4ZZbUN7VXs er slettet. Lenken 
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-19 kl. 13:02 — Lisa Larsen
+
+### Oppgave
+Commit og push.
+
+### Plan
+- Sjekke om noe var ukommittert, og pushe `main`.
+
+### Resultat
+Ingenting var ukommittert. 14 commits er pushet til `origin/main` (`7c425c4..46762c8`): PRD-endringene om FR-1, nummererte konsekvenser, beslutningslogg, §13 og §10-tabellen, samt sesjonsloggene. Denne loggoppføringen er pushet i samme omgang.
+
+### Åpne punkter
+Ingen.
