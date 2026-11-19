@@ -15,3 +15,17 @@ Lisa ba om å presisere at «Guests are never told a Sauna. The Administrator ca
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-19 kl. 19:22 — Lisa Larsen
+
+### Oppgave
+Pushe til origin.
+
+### Plan
+- `git push` på `main`.
+
+### Resultat
+9 commits pushet til `origin/main`: PRD-presiseringene av FR-29 (merket badstue), FR-31/FR-29 (B5) og FR-31/§3 (Placement bare for plassbooking), med sesjonsloggene. Denne loggoppføringen er pushet i samme omgang.
+
+### Åpne punkter
+Ingen.
