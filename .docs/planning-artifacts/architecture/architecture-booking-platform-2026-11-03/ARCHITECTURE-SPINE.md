@@ -4,11 +4,11 @@ type: architecture-spine
 purpose: build-substrate
 altitude: feature
 paradigm: 'Layered (api → services → db) around a database-enforced invariant kernel'
-scope: 'v1: the Core in full (PRD §4.1–4.6) and Whole-sauna booking (§4.9, planned 2026-11-19); later phases only where a Core choice would otherwise force a rewrite (PRD §10.3)'
-status: draft
+scope: 'v1: the Core in full (PRD §4.1–4.6) and Whole-sauna booking (§4.9). The planned v1 is the Core plus If-time 1–3 in that order (PRD §10.1, 2026-11-19); HTTPS (§4.7) and Changes (§4.8) are decided in their own amendments. Later phases only where a Core choice would otherwise force a rewrite (PRD §10.3)'
+status: final
 created: '2026-11-03'
 updated: '2026-11-19'
-binds: [FR-1..FR-23, FR-29..FR-33, NFR-1..NFR-11, DR-1..DR-5; shape-only for FR-24..FR-28 and FR-34..FR-42]
+binds: [FR-1..FR-23, FR-29..FR-32, FR-33 (capacity part; Manage link, refund or Voucher and result email wait for the If-time 2 amendment), NFR-1..NFR-11, DR-1..DR-5; shape-only for FR-24..FR-28 and FR-34..FR-42]
 sources:
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/addendum.md
@@ -50,7 +50,7 @@ flowchart LR
 - **Prevents:** rules scattered across routes, SQL in routes, and each story inventing its own error class and constraint mapping.
 - **Rule:** `api` imports `services`, `services` imports `db`, and all three may import `config`. `db` imports nothing above it. SQL text appears only in `db/` and `migrations/`. `api` holds no business rule and never opens a connection. Every refusal is one exception type, `services.errors.Refused(code, **facts)`:
   - `services` raises it;
-  - `db` translates store errors into it by constraint name;
+  - `db` translates store errors into it by constraint name. Every refusal a store trigger raises names itself (`RAISE … USING ERRCODE = '23514', CONSTRAINT = '<name>'`), and `db` maps by that name, at COMMIT too. An unnamed or unmapped store error is a 500, never a refusal, and its store text never reaches `message`;
   - `api/errors.py` maps codes to HTTP status (AD-16).
 
 ### AD-2: The store is the last word on capacity [ADOPTED]
@@ -63,7 +63,7 @@ flowchart LR
   - the recompute triggers;
   - the deferred `verify_window`.
 
-  Any new table or column that changes these numbers gets the same parts: a BEFORE trigger that locks the Window, an AFTER trigger that recomputes, inclusion in `verify_window`, a bypass test that writes around the API, and an entry in the test harness's `MUTATIONS`. Python may check the same rule first to give a better message, but never instead of the store. Rules that do not touch capacity (Booking horizon, Booking deadline, Cutoff, throttle, one-time keys) are decided and refused in `services`. The SQL helpers that compute them and the defensive CHECKs already in `0001` stay, and more may be added.
+  Any new table or column that changes these numbers gets the same parts: a BEFORE trigger that locks the Window, an AFTER trigger that recomputes, inclusion in `verify_window`, a bypass test that writes around the API, and an entry in the test harness's `MUTATIONS`. The story that adds a store rule also adds its `MUTATIONS` entry and the bypass test that turns red under it. Python may check the same rule first to give a better message, but never instead of the store. Rules that do not touch capacity (Booking horizon, Booking deadline, Cutoff, throttle, one-time keys) are decided and refused in `services`. The SQL helpers that compute them and the defensive CHECKs already in `0001` stay, and more may be added.
 
 ### AD-3: One user action = one transaction, Windows locked first [ADOPTED]
 
@@ -73,6 +73,7 @@ flowchart LR
   - **Locking:** an action that reads before it writes, or writes more than one statement, calls `db.lock_windows(c, ids)` with every Window it can touch before its first write. Several Windows are locked in id order inside that function. A single-statement write may rely on the BEFORE lock triggers.
   - **Scope:** everything the action produces is written in that transaction: Booking, payment record, Outbox email, one-time-key outcome and session change.
   - **Refusals:** a refusal that must keep a record (a sign-in failure, for example) is returned from `work`, so the transaction commits, and is raised after `db.run` returns. Only refusals that write nothing are raised inside `work`.
+  - **Booking-scoped actions:** an action that starts from an existing Booking (cancel, move) reads its `window_id` without a lock, calls `lock_windows` with that Window and any target, then re-reads the Booking (`FOR NO KEY UPDATE`). If `window_id` changed, it raises the retryable conflict and `db.run` starts it again. No row lock is taken before `lock_windows`, and time rules are judged only on the re-read.
   - **Waits:** no Window lock is held across a wait: network calls, sleeps, password hashing, or anything outside the process.
   - **Retry:** temporary conflicts (40001, 40P01) are retried only by `db.run`. The only retry inside services is the Booking-reference claim (AD-20).
 
@@ -83,7 +84,8 @@ flowchart LR
 - **Rule:**
   - **Clock:** every time rule reads `app_now()` inside the transaction, after the lock. Python never uses `datetime.now()` for a rule, and the SPA never uses the browser clock for one.
   - **Values:** every Venue rule value (Booking horizon, Booking deadline, Cutoffs, Release time, `venue_tz`) is a column of the `settings` row, with the PRD default. The Booking horizon is added in the Core.
-  - **Predicates:** each time-rule predicate is one SQL function (`booking_deadline(wid)`, `within_horizon(wid)`, `venue_date(wid)` …). The listing and the action both call it.
+  - **Predicates:** each time-rule predicate is one SQL function (`booking_deadline(wid)`, `within_horizon(wid)`, `venue_date(wid)` …). The listing and the action both call it. `window_started(wid)` (`app_now() >= lower(during)`) is the only started test; `already_started` and `whole_bookable` both call it.
+  - **Cutoffs:** each Booking stores its own `cutoff` (an interval before the Window starts), copied from the `settings` Cutoff for its kind when it is created and kept on a move or split. `change_allowed(booking_id)` is the one Cutoff predicate, so a changed setting applies only to new Bookings (FR-39). The column comes with the first Change epic (If-time 2); Bookings made before it get the setting's value then.
   - **Venue dates:** a cast of a `timestamptz` to `date` or `time` without `AT TIME ZONE settings.venue_tz` is forbidden. The pool sets `TimeZone = 'UTC'`.
   - **No jobs:** there are no background jobs or timers. A due effect is evaluated as a condition when it is read. For example, the booking list masks a Guest who is past retention.
   - **Catch-up:** effects are materialised only at startup or by a write that touches the row, through one function per effect in `services/catchup.py`.
@@ -112,7 +114,7 @@ flowchart LR
   - it makes `window_booked_seats()` count only active rows;
   - it restricts the `bookings` triggers to `INSERT`, `DELETE` and `UPDATE OF window_id, seats, status`.
 
-  A cancellation sets the status in the same transaction as its cause. A Change is a history row (from If-time 2), never a third status. A Block that would leave too little capacity first makes room in its own transaction (FR-40 D3 order) and then inserts the Block. The store keeps refusing an over-capacity Block.
+  A cancellation sets the status in the same transaction as its cause. A Change is a history row (from If-time 2), never a third status. History rows are written only by `services`, in the Change's transaction, never by a trigger. A Whole-sauna move leaves `entry_time` unchanged; it is used only by the Overbooking fallback for Seat bookings. A Block that would leave too little capacity first makes room in its own transaction (FR-40 D3 order) and then inserts the Block. The store keeps refusing an over-capacity Block.
 
 ### AD-8: Sessions are server-side rows with hashed tokens [ADOPTED]
 
@@ -129,13 +131,14 @@ flowchart LR
 
 ### AD-9: Repeated submits return the first outcome [ADOPTED]
 
-- **Binds:** FR-6, FR-7, FR-25 (later confirming actions)
+- **Binds:** FR-6, FR-7, FR-29, FR-25 and FR-33 (later confirming actions)
 - **Prevents:** a double click creating two Bookings or charges, a paying Guest seeing an error, and a failed payment that can never be retried.
 - **Rule:** the SPA creates a UUID when the Guest reaches the review page and sends it as `Idempotency-Key`. It reuses the same key for every retry until the booking is paid. The key lives with the booking draft in `sessionStorage`, so a reload in the same tab keeps it. After `409 invalid_key` the SPA never makes a new key on its own.
   - **Table:** `idempotency_keys(key UNIQUE, session_id, booking_id)` holds ids only, never personal data.
   - **Order:** the key is read as the first statement after `lock_windows`.
   - **Repeats:** a known key from the same session rebuilds the original response from the Booking and writes nothing. A key from another session is refused with `409 invalid_key`.
   - **What is stored:** only a success is stored. A refusal or a failed payment stores nothing, so the retry runs again.
+  - **Same request:** a known key whose Booking's `kind`, `window_id`, or `seats` or `sauna_id` differ from the request is refused with `409 invalid_key`. The SPA keeps one draft and one key per flow (`draft:seats`, `draft:whole`).
 
 ### AD-10: Administrator access is decided at the router [ADOPTED]
 
@@ -166,9 +169,9 @@ flowchart LR
   - **Sending:** `services.outbox.send(c, to, subject, body, *, booking_id=None)` is the only sender. It is called inside the action's transaction and returns the email id.
   - **Format:** bodies are plain English text, built in `services`.
   - **Links:** links are absolute, built from the configured base URL. Paths and anchors are constants in `config.links`.
-  - **Shared text:** text that appears both on a page and in an email (the booking terms, "what happens next") lives once in `content/`, and both the SPA build and `services` read it from there.
+  - **Shared text:** text that appears both on a page and in an email (the booking terms, "what happens next") lives once in `content/`, and both the SPA build and `services` read it from there. Text that differs by kind has one file per kind (`terms-seats`, `terms-whole`), and both select it by the Booking's `kind`.
   - **UI word:** all text that people read, in `content/`, email bodies and the SPA, says "session" for a Window (PRD §3). Code, API fields and the store keep Window.
-  - **Guest read:** the only Guest-facing Outbox read is `GET /api/bookings/{reference}/confirmation`. It is checked against the paying session (404 otherwise) and returns the Booking facts plus the stored email. The SPA route is `/confirmation/:reference`.
+  - **Guest read:** a Guest sees an email only with the action that sent it. The confirmation read `GET /api/bookings/{reference}/confirmation` is checked against the paying session (404 otherwise) and returns the Booking facts plus the stored email; the SPA route is `/confirmation/:reference`. Each Change returns its email in its own response (Manage-link session, from If-time 2).
   - **Administrator read:** only the Administrator API lists the Outbox.
   - **Retention:** retention clears the recipient and body of emails linked to an anonymised Booking.
 
@@ -210,14 +213,14 @@ flowchart LR
 - **Binds:** FR-2, FR-3, FR-11, FR-12, FR-14, FR-18, FR-22, NFR-5, NFR-9
 - **Prevents:** one refusal with two codes or two statuses, and the same refusal worded differently on different pages.
 - **Rule:**
-  - **Code table:** every refusal code is declared once in `api/errors.py`, with its status and facts, and the SPA mirrors that table. The table starts with the slice's codes.
+  - **Code table:** every refusal code is declared once in `api/errors.py`, with its status and facts, and the SPA mirrors that table. The table starts with the slice's codes. §4.9 adds `outside_horizon` (shared with the Core), `sauna_unavailable`, `price_differs` and `cutoff_passed`.
   - **Refusals on Review:** `no_seat_free` carries `seats_left`. At 0 the SPA says "No seat free", and above 0 it states the true number. A Window past its Booking deadline is refused with `deadline_passed`.
   - **Time facts:** the SPA may not use the browser clock (AD-4), so listings send what the pages show. Each Window carries `already_started`, and each listing carries `horizon_end` (a Venue date) and `horizon_days`. All three come from the AD-4 predicates and `settings`, and the SPA never computes them.
   - **Status codes:** 422 is used only for shape errors from Pydantic. Every rule judged against the store or the clock (horizon, deadline, capacity, Cutoff) is a 409 from `services` after the lock.
   - **Envelope:** refusals use the envelope from the Conventions. Its `message` is optional, is meant for developers, and never contains store text.
   - **Success bodies:** successful responses are bare JSON objects.
   - **Copy:** page copy lives in the SPA, email copy in `services`, and copy used by both in `content/` (AD-12).
-  - **Venue facts:** facts about the Venue that pages show (Saunas, prices, Window schedule, contact) come from the API, never hard-coded in the SPA.
+  - **Venue facts:** facts about the Venue that pages show (Saunas, prices including Whole-sauna prices, Window schedule, contact) come from the API, never hard-coded in the SPA.
 
 ### AD-17: The SPA reaches the server through one client module [ADOPTED]
 
@@ -234,8 +237,8 @@ flowchart LR
 - **Binds:** FR-13, FR-15, NFR-1, NFR-10, DR-2, DR-5
 - **Prevents:** a fresh clone with no bookable dates, duplicate Windows or sample Bookings on restart, reference values held in migrations, and a restart that undoes an Administrator change.
 - **Rule:** after migrations, startup applies `seeds/` in every environment:
-  - **Contents:** Saunas, Capacities, Fill order, prices, Setting values, the Window schedule, the Administrator and the sample Bookings.
-  - **Writes:** the seed writes a value only where the row is absent. After the first start, the store owns the value. A new reference column gets the seed value as its default in the same change.
+  - **Contents:** Saunas, Capacities, Fill order, Bookable-whole marks, Seat and Whole-sauna prices, Setting values, the Window schedule, the Administrator and the sample Bookings.
+  - **Writes:** the seed writes a value only where the row is absent, or where a reference column the seed owns is NULL; it never overwrites a value. After the first start, the store owns the value. A new reference column gets the seed value as its default in the same change, and a per-row reference column (such as `saunas.whole_price_ore`) is added nullable and filled by the seed.
   - **Windows:** Windows are generated by `windows.ensure_generated()` (AD-4), counting from the Venue date of `app_now()`.
   - **Sample Bookings:** they are created through `services.booking.create`, under one fixed seed session and fixed idempotency keys, so a rerun is a no-op.
   - **Validation:** the seed goes through the same validation as Administrator input (IV-6).
@@ -251,7 +254,7 @@ flowchart LR
 
 - **Binds:** FR-8, FR-16, FR-26, AD-18
 - **Prevents:** reference retries that abort the transaction or swallow a capacity refusal.
-- **Rule:** a reference is 8 characters of upper-case Crockford base32. `services.reference` inserts the Booking with `ON CONFLICT (reference) DO NOTHING RETURNING id` and tries a new candidate at most 5 times. It raises no exception and uses no savepoint. Every Booking creator uses it: the Guest flow, the seed and a split.
+- **Rule:** a reference is 8 characters of upper-case Crockford base32. `services.reference` inserts the Booking with `ON CONFLICT (reference) DO NOTHING RETURNING id` and tries a new candidate at most 5 times. It raises no exception and uses no savepoint. Every Booking creator uses it: the Seat flow, the Whole-sauna flow, the seed and a split.
 
 ### AD-21: The slice is reshaped, never loosened [ADOPTED]
 
@@ -282,43 +285,52 @@ flowchart LR
 ### AD-23: A Whole-sauna booking is a Booking, paired with its capacity row
 
 - **Binds:** FR-16, FR-29, FR-30, FR-33; `bookings`, `whole_bookings`, `saunas`
-- **Prevents:** two owners of the Booking reference, payments and Outbox emails; a cancelled Whole-sauna booking that still takes capacity; a cancelled Booking that no longer knows its Sauna.
+- **Prevents:** two owners of the Booking reference, payments and Outbox emails; a cancelled Whole-sauna booking that still takes capacity; a cancelled Booking that no longer knows its Sauna; two Booking shapes.
 - **Rule:**
-  - **One Booking table:** a Whole-sauna booking is a `bookings` row with `kind = 'whole'`, `sauna_id` set and `seats` NULL. A Seat booking has `kind = 'seats'`, `seats` 1–10 and `sauna_id` NULL. A CHECK ties the three columns. Reference (AD-20), status (AD-7), payments, Outbox emails, idempotency keys and Manage links attach to `bookings` only.
-  - **Capacity row:** `whole_bookings` stays the row the capacity triggers read, with `booking_id UNIQUE NOT NULL REFERENCES bookings`. It exists exactly while its Booking is active, with the same `window_id` and `sauna_id`. A deferred COMMIT check refuses any mismatch.
-  - **Counting:** `window_booked_seats()` counts active `kind = 'seats'` rows only.
-  - **Cancel:** set the status and delete the `whole_bookings` row in one transaction.
-  - **Move:** update `window_id` on both rows in one transaction, with both Windows locked in id order (AD-3). The reference is kept, and the move is a history row (AD-7).
-  - **Price:** `saunas.whole_price_ore` is one price per Sauna, owned by the seed (AD-18). The Booking stores `total_ore`, and `price_per_seat_ore` is NULL. A move to a Sauna whose `whole_price_ore` differs from the Booking's `total_ore` is refused with `price_differs`.
-  - **Cutoff:** the 72-hour Whole-sauna Cutoff is a `settings` column (AD-4).
+  - **One Booking table:** a Whole-sauna booking is a `bookings` row with `kind = 'whole'`, `sauna_id` set and `seats` NULL. A Seat booking has `kind = 'seats'`, `seats` 1–10 and `sauna_id` NULL. A CHECK ties the three columns, and a BEFORE UPDATE trigger refuses any change of `kind`. Reference (AD-20), status (AD-7), payments, Outbox emails, idempotency keys and Manage links attach to `bookings` only.
+  - **Capacity row:** `whole_bookings` stays the row the capacity triggers read, with `booking_id UNIQUE NOT NULL REFERENCES bookings`. It exists exactly while its Booking is active, with the same `window_id` and `sauna_id`. One function, `check_whole_pair(booking_id)`, is called by two `DEFERRABLE INITIALLY DEFERRED` constraint triggers: one on `bookings` (INSERT, `UPDATE OF kind, status, window_id, sauna_id`) and one on `whole_bookings` (INSERT, UPDATE, DELETE, checking the old and new `booking_id`). It raises `CONSTRAINT = 'whole_pairing'`, which is a 500 (AD-1).
+  - **Write order:** create writes the Booking first (AD-20), then `whole_bookings`. Cancel sets the status first, then deletes the capacity row. Move updates `bookings` first, then `whole_bookings`, with `window_id` and `sauna_id` together.
+  - **Counting:** `window_booked_seats()` counts active `kind = 'seats'` rows only. No other code sums `bookings.seats`.
+  - **Move:** a move may change the Window and, when the Guest picks another Sauna, the Sauna. It follows AD-3's Booking-scoped order. After the lock, `services` checks `within_horizon` and the Booking deadline of the target and `change_allowed` of the Booking (their own codes, AD-24), and the store judges `whole_bookable(target_wid, target_sid, booking_id)`. The reference is kept, the history row is written by `services` (AD-7), and `entry_time` is unchanged.
+  - **Price:** `saunas.whole_price_ore` is one price per Sauna, nullable and filled by the seed (AD-18). A NULL price means the Sauna is not offered whole. The Booking stores `total_ore`, and `price_per_seat_ore` is NULL. A move to another Sauna whose `whole_price_ore` differs from the Booking's `total_ore` is refused with `price_differs`; a move that keeps the Sauna keeps the price paid.
+  - **Cutoff:** the Whole-sauna Cutoff (72 hours) is a `settings` value, and each Booking keeps its own copy (AD-4).
+  - **Shape:** one serializer in `services` produces every Booking JSON and every email fact block: `kind`, `seats` (int or null), `sauna` (`{id, name}` or null), `window`, `total_ore`, `status`. Pages show the Sauna name for a Whole-sauna booking and never its Capacity.
+  - **Slice path:** the story that adds `kind` and `booking_id` removes the slice's whole-booking endpoint, so `services.whole` is the only writer of `whole_bookings`. Slice tests that wrote `whole_bookings` call a test helper `raw_whole(pg, wid, sid)`, which inserts a paired `kind = 'whole'` Booking and its capacity row in one transaction. This is a reshape under AD-21, and every assertion stays. The migration deletes `whole_bookings` rows that have no Booking; only dev and slice databases have them.
 
 ### AD-24: FR-29 is judged by one SQL predicate, on every write and every listing
 
 - **Binds:** FR-29, FR-30, FR-33; `trg_check_whole`, the Private sauna listing
-- **Prevents:** the Private sauna page offering a pair the booking then refuses, and a move that slips past FR-29 (in `0001` the check fires on INSERT only).
+- **Prevents:** the Private sauna page offering a pair the booking then refuses, a move that slips past FR-29 (in `0001` the check fires on INSERT only), a row judged against itself, and one refusal with several codes.
 - **Rule:**
-  - **Predicate:** `whole_bookable(wid, sid)` is the only SQL statement of the store-enforced part of FR-29: bookable whole, not Blocked, not booked whole by another Booking (a moved row never counts against itself), Seats booked plus held within Room ahead unless the Sauna is marked and unreleased, and the started-Window rule.
-  - **Store:** `trg_check_whole` calls it and fires on INSERT and on `UPDATE OF window_id, sauna_id` of `whole_bookings`.
-  - **Listing:** the FR-30 listing returns the pairs where `within_horizon`, the Booking deadline predicate and `whole_bookable` all hold (AD-4).
-  - **Refusal:** every FR-29 refusal is `409 sauna_unavailable`, raised in `services` after the lock or translated from the store (AD-1).
+  - **Predicate:** `whole_bookable(wid int, sid int, ignore_booking bigint DEFAULT NULL)` is the only SQL statement of the store-enforced part of FR-29. It judges as if the `whole_bookings` row of `ignore_booking` did not exist: the Sauna is bookable whole and has a `whole_price_ore`, is not Blocked, is not booked whole, and the Seats booked plus held fit within Room ahead unless `mark_closed(wid, sid)`. The started-Window clause is: not `window_started(wid)`, or no Seat booking, or `mark_closed(wid, sid)`. It never uses `sauna_open_for_seats` of the Sauna being booked.
+  - **Store:** `trg_check_whole` fires AFTER INSERT and AFTER `UPDATE OF window_id, sauna_id` of `whole_bookings`, calls `whole_bookable(NEW.window_id, NEW.sauna_id, NEW.booking_id)`, and raises `CONSTRAINT = 'whole_bookable'`. Bypass tests cover INSERT and UPDATE, including a started Window with Seat bookings.
+  - **Listing:** `GET /api/private-saunas?date=` returns `{saunas: [{id, name, capacity, whole_price_ore, windows: [{id, start, end, already_started}]}], horizon_end, horizon_days}`. It lists only the pairs where `within_horizon`, the Booking deadline predicate and `whole_bookable(wid, sid)` all hold. The SPA builds both views (by Window and by Sauna) from this response by regrouping only.
+  - **Refusal order:** outside the Booking horizon is `outside_horizon`, past the Booking deadline is `deadline_passed`, past the Cutoff is `cutoff_passed`, each checked in `services` after the lock in that order. Everything else in FR-29 is `409 sauna_unavailable`. In a Whole-sauna action, `db` maps `whole_bookable`, `booked_within_capacity` and the `(window_id, sauna_id)` unique key to `sauna_unavailable`.
 
-### AD-25: Placement has one implementation
+### AD-25: Placement has one implementation, shown only to Administrators
 
-- **Binds:** FR-31, FR-16 (the Administrator's Placement view)
-- **Prevents:** a second Placement algorithm in Python or in the SPA that drifts from the store.
-- **Rule:** the SQL function `placement(wid)` returns `(sauna_id, seats)` in Fill order and is the only computation of Placement. Every page and endpoint that shows Placement reads it. A Python brute-force Placement exists only in `tests/`, as the reference for AD-26.
+- **Binds:** FR-4, FR-31, FR-16 (the Administrator's Placement view)
+- **Prevents:** a second Placement algorithm in Python or in the SPA that drifts from the store, and a Sauna leaking into the Seat flow.
+- **Rule:**
+  - **Function:** `placement(wid)` returns one row per Sauna in Fill order: `(sauna_id, state, seats)`. `state` is `open`, `whole`, `blocked` or `marked`, and `seats` is 0 unless the Sauna is `open`. It places booked Seats only (INV-2); held Seats are reported apart by `window_held_seats`. It is the only computation of Placement. A Python brute-force Placement exists only in `tests/`, as the reference for AD-26.
+  - **Exposure:** `placement()` is read only under `/api/admin/`. No response outside `/api/admin/` names a Sauna for a Seat booking or shows a Window's Placement. A Sauna appears in Guest responses only for `kind = 'whole'` and in the Venue facts. A test walks the Seat flow's responses and emails and finds no Sauna name.
 
 ### AD-26: FR-31 is proven by one Hypothesis state machine through `services`
 
 - **Binds:** FR-31, FR-32 (sequential part), SM-5; every later If-time action that changes Placement
-- **Prevents:** one model test per feature, each with its own reference, and actions that never meet in one sequence.
-- **Rule:** `tests/test_fr31_placement_model.py` holds one Hypothesis `RuleBasedStateMachine`. Each action is one `@rule` that calls `services` in-process against the real PostgreSQL test database. An `@invariant` checks INV-1 to INV-5 and Seats left after every step, comparing `placement(wid)` with the brute-force reference. Each later If-time item (Blocks, marks, releases, Capacity and Fill order changes) adds its actions as rules to this machine. Concurrency stays in the parallel API tests (catalogue group C).
+- **Prevents:** one model test per feature, each with its own reference; actions that never meet in one sequence; examples that pollute each other; a test too slow for every `uv run pytest`.
+- **Rule:**
+  - **Machine:** `tests/test_fr31_placement_model.py` holds one Hypothesis `RuleBasedStateMachine`. Each action is one `@rule` that calls `services` in-process against the real PostgreSQL test database. An `@invariant` checks INV-1 to INV-5 and Seats left after every step, comparing `placement(wid)` with the brute-force reference. Each later If-time item (Blocks, marks, releases, Capacity and Fill order changes) adds its actions as rules to this machine.
+  - **Reset:** an `@initialize` rule truncates the mutable tables (`RESTART IDENTITY`), reseeds, and sets the clock. Windows lie far from every time edge, and the clock moves only through an explicit clock rule. The machine reads all test switches as off, whatever the local file says.
+  - **Settings:** `deadline=None`. `max_examples` and `stateful_step_count` come from a Hypothesis profile: `default`, small enough for every `uv run pytest`, and `thorough`, chosen with `HYPOTHESIS_PROFILE`. `.hypothesis/` is git-ignored.
+  - **Cancellations:** the machine and the group-C tests cancel Seats only through the §4.8 service (FR-27, giving up all Seats) and Whole-sauna bookings only through FR-33. Until those exist, those rules and C3/C4 are marked pending, not substituted. No test-only endpoint is added (AD-14).
+  - **Concurrency:** stays in the parallel API tests (catalogue group C, see Conventions).
 
 ## Consistency Conventions
 
 | Concern | Convention |
 | --- | --- |
-| Naming | PRD glossary terms in English. Tables are plural snake_case; columns, JSON fields and Python names are snake_case. API paths are lower-case plural nouns under `/api/`. React components use PascalCase files in `frontend/src/pages/` and `frontend/src/components/`. |
+| Naming | PRD glossary terms in English. `whole_bookings` is the slice's name for the Whole-sauna capacity row, kept because `0001` is frozen; text people read never says "whole booking". Tables are plural snake_case; columns, JSON fields and Python names are snake_case. API paths are lower-case plural nouns under `/api/`. React components use PascalCase files in `frontend/src/pages/` and `frontend/src/components/`. |
 | Ids | Internal ids are integers and are never shown to Guests. The Booking reference is the only Guest-facing id (AD-20). |
 | Time | Columns are `timestamptz`. The API sends ISO 8601 with an offset; a Venue date is `YYYY-MM-DD`. `venue_tz` is fixed to `Europe/Oslo` in v1, and the SPA formats with `Intl.DateTimeFormat` in that zone. |
 | Money | Integer øre in every field ending in `_ore`. The SPA formats it as "NOK 500". |
@@ -326,7 +338,7 @@ flowchart LR
 | Input | Pydantic models use `extra="forbid"` and the limits of FR-2 and FR-5. The SPA repeats them for UX only. |
 | Styling | One stylesheet, `frontend/src/styles.css`, with CSS custom properties for the PRD §6 palette. No UI library or CSS framework, and no fixed widths that would block FR-51. Fonts and images are self-hosted in `frontend/public/` and listed in `ASSETS.md`. |
 | Accessibility | Every route sets its page title (`EXPERIENCE.md`, Accessibility Floor), then focus moves to the page heading. |
-| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Browser and axe tests live in `tests/e2e/`. A pytest session fixture runs `npm run build` when `frontend/dist` is missing or older than `frontend/src`. axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
+| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Each group-C test (C1–C5, and a cross-Window Change against a Whole-sauna booking) asserts INV-1 to INV-5 on `placement(wid)` and Seats left after the run, with FR-11's 100 repetitions. Catalogue examples cited in an FR are example tests named by ID (`test_fr29_whole_sauna.py::test_b2`). Marks and Blocks needed before §4.13 are inserted as raw rows. Browser and axe tests live in `tests/e2e/`. A pytest session fixture runs `npm run build` when `frontend/dist` is missing or older than `frontend/src`. axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
 | Dev proxy | Vite proxies `/api` to `http://127.0.0.1:8000`, not `localhost`. |
 | Traceability | One branch and one PR per story, with FR numbers in commits. Session logs go in `.logs/<user>/` (DR-1, DR-4). |
 
@@ -344,7 +356,7 @@ flowchart LR
 | uvicorn | 0.54.0 |
 | argon2-cffi | 25.1.0 |
 | pytest | 9.2.0 |
-| hypothesis | 6.170.x (6.170.15 on 2026-11-19) |
+| hypothesis | 6.170.15 (latest on 2026-11-19; pinned in `uv.lock` when added) |
 | pytest-playwright / playwright | 0.10.0 / 1.64.1 |
 | Node.js | 24 LTS or 26 LTS (26.13+) |
 | Vite / @vitejs/plugin-react | 8.3.5 / 6.2.1 |
@@ -393,6 +405,7 @@ FastAPI serves the SPA with `app.frontend("/", directory="frontend/dist", fallba
 erDiagram
   saunas ||--o{ whole_bookings : "booked whole in"
   bookings ||--o| whole_bookings : "active capacity row (AD-23)"
+  saunas |o--o{ bookings : "booked whole (kind = whole)"
   saunas ||--o{ blocks : "blocked by"
   saunas ||--o{ marks : "marked in"
   windows ||--o{ bookings : has
@@ -417,7 +430,7 @@ src/booking_platform/
   app.py             # FastAPI app, lifespan (migrate, seed, catch-up), routers, SPA
   config.py          # BP_* settings, links, frozen test switches (leaf)
   api/               # public.py, admin.py, schemas.py, errors.py (code → status table)
-  services/          # booking, windows, auth, outbox, payment, reference, catchup, seed, errors
+  services/          # booking, whole, windows, auth, outbox, payment, reference, catchup, seed, errors
   db/                # __init__ (pool, run, lock_windows), migrate.py, one SQL module per area
   data/              # common-passwords.txt (FR-19)
 migrations/          # 0001_core.sql (the slice's schema.sql), 0002_…
@@ -443,12 +456,14 @@ ASSETS.md            # asset register (DR-3)
 | NFR-1, DR-2, DR-5 Run and seed | `app.py`, `seeds/`, README | AD-15, AD-18, AD-22 |
 | FR-24 HTTPS (If time 1) | `config.py`, startup | AD-8, AD-12, AD-22 |
 | FR-25 to FR-28 Changes and Vouchers (If time 2) | `services/booking.py`, new `services/voucher.py` | AD-3, AD-7, AD-8, AD-9, AD-13 |
-| FR-29 to FR-33 Whole-sauna booking (If time 3) | `services/whole.py`, `api/public.py`, `migrations/`, `tests/test_fr31_placement_model.py` | AD-2, AD-3, AD-6, AD-7, AD-23, AD-24, AD-25, AD-26 |
+| FR-29 to FR-33 Whole-sauna booking (If time 3) | `services/whole.py`, `api/public.py`, `api/admin.py` (Placement per Window, Whole-sauna bookings in the list), `migrations/`, `seeds/`, `tests/test_fr31_placement_model.py` | AD-2, AD-3, AD-6, AD-7, AD-9, AD-12, AD-13, AD-16, AD-20, AD-23, AD-24, AD-25, AD-26 |
 | FR-34 to FR-42 (If time 4 to 7) | the store already holds Blocks, marks and Holds | AD-2, AD-6, AD-7 |
 
 ## Deferred
 
-- **Manage-link flow, Voucher balances and refunds** (FR-25 to FR-28, and the refund or Voucher choice of FR-33): the spine is amended before the first If-time 2 story is written. AD-8 fixes the token storage, and addendum A's conditional update is the starting point for balances. §4.9 stories are written after that amendment.
+- **Manage-link flow, Voucher balances and refunds** (FR-25 to FR-28, and for FR-33 the refund or Voucher choice, `cancelled_at` and the cancel cause of FR-16): the spine is amended before the first If-time 2 story is written. AD-8 fixes the token storage, and addendum A's conditional update is the starting point for balances. Only FR-33 waits for this amendment; FR-29 to FR-32 do not. All If-time 1–3 stories are written before the `/goal` run (PRD §10.3), so this amendment and the HTTPS one land before that run.
+- **Whole-sauna prices and Bookable-whole marks:** Lisa chooses the values in the first §4.9 story, and they go into `seeds/` (AD-18).
+- **Fill order for started Windows** (FR-38, F2): If-time 7 adds a per-Window Fill-order snapshot that `placement(wid)` reads. Its signature stays.
 - **HTTPS certificate tooling and HSTS** (FR-24): with the If-time 1 epic. AD-22 already provides the switch.
 - **The D3/D6 make-room flow and the remedy page** (FR-40, FR-42): If-time 7. AD-7 fixes what the Core must already hold.
 - **Holds per source address** (FR-35) **and a per-IP sign-in throttle**: neither can be tested meaningfully on localhost. Revisit with If-time 5, or before any real deployment.
