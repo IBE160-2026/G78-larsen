@@ -11,7 +11,7 @@ Lisa spurte om spørsmålene i `tilbakemelding-prd.md` var avklart: «Hva er kje
 ### Resultat
 - `prd.md` §10: tabellen har nå tre rader. «Planned, built with `/goal`» er FR-1–FR-33 (Core FR-1–FR-23 og If-time 1–3 FR-24–FR-33, §4.1–§4.9). «Floor if the build falls short» er FR-1–FR-24 (Core pluss HTTPS, §4.1–§4.7). «Specified, not planned» er FR-34–FR-51.
 - Uhell: før redigeringen ble `prd.md` ved en feil publisert som en privat artifact på claude.ai (https://claude.ai/artifact/5SXJPbSyKjuV4ZZbUN7VXs, versjon 1, uten tabellendringen). Den er privat og ikke delt med noen. Lisa avgjør om den skal slettes.
-- Ikke committet.
+- Committet i `4d8545f`.
 
 ### Åpne punkter
 - Avgjør om den feilpubliserte artifacten av `prd.md` skal slettes.
