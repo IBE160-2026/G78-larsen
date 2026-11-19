@@ -17,3 +17,27 @@ Bare en vurdering. Ingen filer er endret.
 
 ### Åpne punkter
 - Avgjør om §4.8 skal få epic og stories nå, slik at `/goal`-kjøringen bygger den (PRD §10.3, backcasting).
+
+## 2026-11-19 kl. 11:52 — Lisa Larsen
+
+### Oppgave
+Lisa valgte alternativ A: rekkefølgen Core → HTTPS → §4.8 → §4.9 beholdes, §4.9 blir planlagt (epic og stories) slik at `/goal`-kjøringen bygger den, og en beslutningslinje om tilbakemeldingen legges inn i PRD-en.
+
+### Plan
+- Flytte §4.9 tilbake fra vedlegget til `prd.md`, og gi vedlegget nytt navn etter innholdet (FR-34–FR-51).
+- Oppdatere §0, §10-tabellen, §10.1 (beslutningslinje), §10.3, §12 Q6 og §13.
+- B (§4.8 og §4.9 foran HTTPS) og deling av §4.9 ble vurdert i samtalen og valgt bort.
+
+### Resultat
+- `appendix-fr-29-51.md` er omdøpt til `appendix-fr-34-51.md` (`git mv`) og har nå bare §4.10–§4.16. §4.9 står igjen i `prd.md` på samme sted som før. Begge deler er sjekket med `diff` mot forrige commit og er ordrett like.
+- `prd.md`:
+  - Erstatningsseksjonen heter nå «4.10 to 4.16 Specified, not planned», uten §4.9-raden.
+  - §10-tabellen: «Built now: FR-1 to FR-24 (+ FR-25 to FR-33 if time), §4.1 to §4.9» og «Specified, not planned: FR-34 to FR-51, §4.10 to §4.16».
+  - §10.1 har en ny beslutningslinje: `/goal`-kjøringen, flytting av §4.9 foran HTTPS er vurdert og valgt bort (FR-33 trenger Manage-lenke og Voucher fra §4.8, og HTTPS bør være på plass før Manage-lenker sendes), og §4.9 planlegges i stedet. Antagelsen om rekkefølgen gjelder nå punkt 4–6.
+  - §10.3: HTTPS, §4.8 og §4.9 får hver sin epic, og storiene skrives før `/goal`-kjøringen. Arkitekturen avgjør Whole-sauna booking sammen med epicen for If-time 3. FR-34–FR-42 ligger utenfor denne runden.
+  - §12 Q6 og §13 er oppdatert.
+- Ikke committet.
+
+### Åpne punkter
+- §1 og §10.3 sier fortsatt at sannsynlig v1 er «Core plus HTTPS» (backcasting 2026-11-01). Avgjør om det skal endres nå som §4.8 og §4.9 er planlagt for `/goal`-kjøringen.
+- Arkitekturen dekker bare Core. FR-29–FR-33 (Fill order, avledet Placement og FR-32 om at forespørsler ikke flettes) må avgjøres før storiene for §4.9 skrives.
