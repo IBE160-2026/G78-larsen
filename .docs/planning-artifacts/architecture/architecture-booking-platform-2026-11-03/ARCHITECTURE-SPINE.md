@@ -14,6 +14,7 @@ sources:
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/addendum.md
   - src/booking_platform/ and tests/ (Core slice, 2026-11-03)
   - .logs/lisa-larsen/issues.md
+  - .docs/planning-artifacts/architecture/technology.md (proxy and frontend rows, Lisa 2026-11-19)
 companions: []
 ---
 
@@ -21,11 +22,12 @@ companions: []
 
 ## Design Paradigm
 
-**Layered, around a database-enforced invariant kernel.** Three backend layers with one direction of dependency, and PostgreSQL as the final word on capacity. The browser runs a React SPA that knows the platform only through the HTTP API.
+**Layered, around a database-enforced invariant kernel.** Three backend layers with one direction of dependency, and PostgreSQL as the final word on capacity. Caddy is the only public entry. Behind it, a Next.js frontend and the FastAPI backend run as separate services, and the frontend knows the platform only through the HTTP API (as in `technology.md`).
 
 | Layer | Lives in | Owns |
 | --- | --- | --- |
-| SPA | `frontend/` | Pages, page copy, UX checks (never authoritative) |
+| proxy | `Caddyfile` | The only public entry: TLS, the HTTP redirect, response headers; `/api/*` to the backend, everything else to the frontend (AD-27) |
+| frontend | `frontend/` (Next.js) | Pages, page copy, UX checks (never authoritative) (AD-17) |
 | api | `src/booking_platform/api/` | HTTP: routing, Pydantic shape validation, role check, the code → status table |
 | services | `src/booking_platform/services/` | Application rules, one transaction per user action, email text, catch-up |
 | db | `src/booking_platform/db/` + `migrations/` | All SQL, pool, `run()` with retry, `lock_windows()`, translating store refusals; the schema enforces capacity and Placement |
@@ -33,7 +35,10 @@ companions: []
 
 ```mermaid
 flowchart LR
-  SPA["SPA (React)"] -->|"HTTP /api only"| API[api]
+  B[Browser] -->|"HTTPS :8443"| PX["proxy (Caddy)"]
+  PX -->|"/api/*"| API[api]
+  PX -->|"everything else"| FE["frontend (Next.js)"]
+  FE -.->|"public GETs only, API_INTERNAL_URL"| API
   API --> SVC[services]
   SVC --> DB[db]
   DB --> PG[("PostgreSQL: CHECK, triggers, deferred verify")]
@@ -83,7 +88,7 @@ flowchart LR
 - **Binds:** NFR-3, NFR-11, FR-13, FR-21, FR-39; Booking horizon, Booking deadline, Cutoff, Hold expiry, Release time, throttle, session expiry, retention, remedy limit
 - **Prevents:** a rule judged on two clocks or with two different edges, a value hard-coded in three places, and GET requests that take Window locks.
 - **Rule:**
-  - **Clock:** every time rule reads `app_now()` inside the transaction, after the lock. Python never uses `datetime.now()` for a rule, and the SPA never uses the browser clock for one.
+  - **Clock:** every time rule reads `app_now()` inside the transaction, after the lock. Python never uses `datetime.now()` for a rule, and neither the browser clock nor the Next.js server clock decides one.
   - **Values:** every Venue rule value (Booking horizon, Booking deadline, Cutoffs, Release time, `venue_tz`) is a column of the `settings` row, with the PRD default. The Booking horizon is added in the Core.
   - **Predicates:** each time-rule predicate is one SQL function (`booking_deadline(wid)`, `within_horizon(wid)`, `venue_date(wid)` …). The listing and the action both call it. `window_started(wid)` (`app_now() >= lower(during)`) is the only started test; `already_started` and `whole_bookable` both call it.
   - **Cutoffs:** each Booking stores its own `cutoff` (an interval before the Window starts), copied from the `settings` Cutoff for its kind (`cutoff_seats` 12 h, `cutoff_whole` 72 h, each with `CHECK >= interval '2 hours'`) when it is created and kept on a move or split. `change_allowed(booking_id)` (`app_now() < lower(during) - cutoff`) is the one Cutoff predicate, so a changed setting applies only to new Bookings (FR-39). The §4.8 migration adds `settings.cutoff_seats` and `bookings.cutoff interval NOT NULL`, filled from `cutoff_seats` (every Booking is a Seat booking then); the §4.9 migration adds `settings.cutoff_whole`.
@@ -97,7 +102,7 @@ flowchart LR
 
 - **Binds:** FR-3, FR-12, FR-16, FR-35
 - **Prevents:** the Guest and Administrator lists showing different numbers, and a stale counter hiding a release or an expired Hold.
-- **Rule:** every Seats left, Seats booked and Seat capacity shown anywhere comes from the SQL functions `seats_left()`, `window_booked_seats()` and `window_open_capacity()`. It never comes from the stored counters, and it is never computed in Python or in the SPA.
+- **Rule:** every Seats left, Seats booked and Seat capacity shown anywhere comes from the SQL functions `seats_left()`, `window_booked_seats()` and `window_open_capacity()`. It never comes from the stored counters, and it is never computed in Python or in the frontend.
 
 ### AD-6: Placement is derived, never stored [ADOPTED]
 
@@ -124,10 +129,10 @@ flowchart LR
 - **Rule:**
   - **Storage:** one `sessions` table holds anonymous and signed-in browsers, with a role per row. The cookie holds a 256-bit random token: HttpOnly, `SameSite=Strict`, `Path=/`, and `Secure` whenever `BP_HTTPS` is on (AD-27). The store keeps only the SHA-256 hash of the token.
   - **References:** everything references `sessions.id`. The foreign keys from `bookings` and `holds` are `ON DELETE SET NULL`, and the one from `idempotency_keys` is `CASCADE`. The slice's client-supplied `session_id` is replaced.
-  - **Creation:** the SPA calls `POST /api/session` when a Guest opens Book seats or an Administrator opens Sign-in, and after a `401 no_session` during a booking; `POST /api/manage/open` (AD-28) also creates one. No other page load creates a session, so Landing, Terms and Privacy notice set no cookie (FR-21; the PRD's cookie sentence adds opening a Manage link). That call creates an anonymous session, or returns the existing one if it is still valid. A Guest write without a session gets `401 no_session`.
+  - **Creation:** the frontend calls `POST /api/session` when a Guest opens Book seats or an Administrator opens Sign-in, and after a `401 no_session` during a booking; `POST /api/manage/open` (AD-28) also creates one. No other page load creates a session, so Landing, Terms and Privacy notice set no cookie (FR-21; the PRD's cookie sentence adds opening a Manage link). That call creates an anonymous session, or returns the existing one if it is still valid. A Guest write without a session gets `401 no_session`.
   - **Lifetimes:** anonymous sessions last 24 h and Administrator sessions 8 h, both sliding.
   - **Sign-in and sign-out:** sign-in rotates the token on the same row and sets its role, so the row id never changes. Sign-out deletes the row and, by cascade, its Manage grants. Expired rows are purged at startup.
-  - **CSRF:** every state-changing request must carry a JSON body and be same-origin: its `Origin` equals the base URL's origin, or, without `Origin`, it carries `Sec-Fetch-Site: same-origin`. It is never compared with `Host` (AD-27). There are no CSRF tokens.
+  - **CSRF:** every state-changing request must carry a JSON body and be same-origin: its `Origin` equals the base URL's origin, or, without `Origin`, it carries `Sec-Fetch-Site: same-origin`. It is never compared with `Host` (AD-27). Anything else is `403 cross_origin`, and no switch turns the check off. There are no CSRF tokens.
   - **Manage access:** a Manage-link grant (AD-28) is a row tied to the session, never a second cookie. The Administrator role never implies a grant, and a grant never implies a role, so both can exist in one browser.
   - **Link tokens:** every token carried in a link (Manage now; remedy, account confirmation and reset later) has at least 128 random bits, lives in `access_tokens` as a SHA-256 hash only (AD-28), and an invalid token gets the same response as an unknown one. Codes that people type (Vouchers, later Gift cards) follow AD-30 instead.
 
@@ -135,8 +140,8 @@ flowchart LR
 
 - **Binds:** FR-6, FR-7, FR-25, FR-26, FR-27, FR-28, FR-29, FR-33
 - **Prevents:** a double click creating two Bookings, charges or Changes, a paying Guest seeing an error, a failed payment that can never be retried, and a repeat answered from a Booking that a later Change has altered.
-- **Rule:** every confirming request carries an `Idempotency-Key` UUID made by the SPA.
-  - **Booking keys:** made when the Guest reaches the review page and reused for every retry until the booking is paid. The key lives with the draft in `sessionStorage` (`draft:seats`, `draft:whole`), so a reload in the same tab keeps it. After `409 invalid_key` the SPA never makes a new booking key on its own.
+- **Rule:** every confirming request carries an `Idempotency-Key` UUID made by the frontend.
+  - **Booking keys:** made when the Guest reaches the review page and reused for every retry until the booking is paid. The key lives with the draft in `sessionStorage` (`draft:seats`, `draft:whole`), so a reload in the same tab keeps it. After `409 invalid_key` the frontend never makes a new booking key on its own.
   - **Change keys:** made when a confirming step on the Manage page opens, in the slot `draft:change:<reference>:<action>`. The slot is deleted on success, on any refusal other than `503 try_again`, and when the Guest leaves the step; a reload of the same step reuses it. After `409 invalid_key` or `409 booking_changed` the Manage page reloads the Booking and opens a fresh step with a new key.
   - **Table:** `idempotency_keys(key UNIQUE, session_id, endpoint, request_hash, booking_id, change_id)`, with exactly one of `booking_id` and `change_id` set. `request_hash` is SHA-256 of the canonical outcome-defining fields (kind, Window, Seats, Sauna, Voucher part, reference, action, target Window, target Sauna, remedy, `version`), never of name, email or Voucher code. Ids and hashes only, never personal data.
   - **Order:** the key is read as the first statement after `lock_windows` (for a Change, after the Booking re-read).
@@ -146,11 +151,11 @@ flowchart LR
 ### AD-10: Administrator access is decided at the router [ADOPTED]
 
 - **Binds:** FR-16, FR-17, FR-20, IV-7, RB-1 to RB-4
-- **Prevents:** an Administrator endpoint that someone forgot to protect, and API typos that answer with the SPA.
+- **Prevents:** an Administrator endpoint that someone forgot to protect, and API typos that answer with a page.
 - **Rule:** every Administrator endpoint is under `/api/admin/`, on one router whose dependency requires an Administrator session.
   - Anonymous callers get 401, and non-Administrators get 403. Neither changes anything.
   - Asking for something that is not the caller's answers exactly like something that does not exist (404).
-  - Any unknown `/api/*` path returns the JSON 404 envelope and never the SPA.
+  - Any unknown `/api/*` path returns the JSON 404 envelope and never a page; Caddy sends every `/api/*` path to the backend (AD-27).
   - `/health` becomes `/api/health`.
 
 ### AD-11: Sign-in is throttled per email, serialised in the store [ADOPTED]
@@ -172,9 +177,9 @@ flowchart LR
   - **Sending:** `services.outbox.send(c, to, subject, body, *, booking_id=None, change_id=None)` is the only sender. It is called inside the action's transaction and returns the email id. Every email a Change sends carries its `change_id` (`outbox_emails.change_id`, FK `booking_changes`), so a repeat (AD-9) returns exactly those emails.
   - **Format:** bodies are plain English text, built in `services`.
   - **Links:** links are absolute, built from the configured base URL, which starts with `https://` whenever `BP_HTTPS` is on (FR-24, HT-4). Paths and anchors are constants in `config.links`. A Manage link is `<base>/manage#t=<token>` (AD-28); no token ever goes in a path or query string. Only an email that comes with a new token carries a Manage link (the confirmation and the split-off Booking's email).
-  - **Shared text:** text that appears both on a page and in an email (the booking terms, "what happens next") lives once in `content/`, and both the SPA build and `services` read it from there. Text that differs by kind has one file per kind (`terms-seats`, `terms-whole`), and both select it by the Booking's `kind`.
-  - **UI word:** all text that people read, in `content/`, email bodies and the SPA, says "session" for a Window (PRD §3). Code, API fields and the store keep Window.
-  - **Guest read:** a Guest sees an email only with the action that sent it. The confirmation read `GET /api/bookings/{reference}/confirmation` is checked against the paying session (404 otherwise) and returns the Booking facts plus the stored email; the SPA route is `/confirmation/:reference`. Each Change returns its emails in its own response (AD-29 lists them); the Manage page read never returns an email (AD-28).
+  - **Shared text:** text that appears both on a page and in an email (the booking terms, "what happens next") lives once in `content/`, and both the frontend build and `services` read it from there (format and copy step in AD-17). Text that differs by kind has one file per kind (`terms-seats`, `terms-whole`), and both select it by the Booking's `kind`.
+  - **UI word:** all text that people read, in `content/`, email bodies and the frontend, says "session" for a Window (PRD §3). Code, API fields and the store keep Window.
+  - **Guest read:** a Guest sees an email only with the action that sent it. The confirmation read `GET /api/bookings/{reference}/confirmation` is checked against the paying session (404 otherwise) and returns the Booking facts plus the stored email; the frontend route is `/confirmation/[reference]`. Each Change returns its emails in its own response (AD-29 lists them); the Manage page read never returns an email (AD-28).
   - **Administrator read:** only the Administrator API lists the Outbox.
   - **Retention:** retention clears the recipient and body of emails linked to an anonymised Booking.
 
@@ -193,12 +198,12 @@ flowchart LR
 
 - **Binds:** FR-7, FR-14, FR-36, FR-49, the Test switch in the glossary
 - **Prevents:** switches reachable through the API, test hooks scattered through the code, and switches that block startup.
-- **Rule:** `config/test-switches.toml` is git-ignored, and `config/test-switches.example.toml` (all switches off) is committed. The file is read once at startup into a frozen object in `config`. Switches are read only at named seams:
+- **Rule:** the switch file's path is `BP_TEST_SWITCHES` (default `config/test-switches.toml`, git-ignored); `config/test-switches.example.toml` (all switches off) is committed. A missing file means all switches off. The file is read once at startup into a frozen object in `config`. Switches are read only at named seams:
   - `payment.charge`: `payment = "ok" | "fail" | "hold"`. With `hold`, the charge raises before anything is written, and the action returns `409 payment_pending`. The test then moves the clock and resubmits with the same key.
   - `db.run`: `force_conflict` raises a real rollback after `work` has written. It applies only to runs made for an HTTP request, never to migrations, seeding or startup catch-up.
   - Later, the lock simulator.
 
-  No endpoint reads or changes a switch. The trigger-based FR-14 test that produces a real 40001 stays alongside.
+  No endpoint reads or changes a switch. The examiner's compose stack mounts `config/test-switches.toml` read-only, so the examiner uses a switch only by editing that file; each test layer writes its own temporary file and points `BP_TEST_SWITCHES` at it, never at the working tree's file. The trigger-based FR-14 test that produces a real 40001 stays alongside.
 
 ### AD-15: The schema changes only through numbered SQL migrations [ADOPTED]
 
@@ -212,29 +217,34 @@ flowchart LR
   - **Changes:** a merged migration is never edited.
   - **0001:** `0001` is the slice's `schema.sql`, moved unchanged.
 
-### AD-16: The server returns codes and facts; the SPA owns page copy [ADOPTED]
+### AD-16: The server returns codes and facts; the frontend owns page copy [ADOPTED]
 
 - **Binds:** FR-2, FR-3, FR-11, FR-12, FR-14, FR-18, FR-22, NFR-5, NFR-9
 - **Prevents:** one refusal with two codes or two statuses, and the same refusal worded differently on different pages.
 - **Rule:**
-  - **Code table:** every refusal code is declared once in `api/errors.py`, with its status and facts, and the SPA mirrors that table. The table starts with the slice's codes. §4.9 adds `outside_horizon` (shared with the Core), `sauna_unavailable`, `price_differs` and `cutoff_passed` (shared with §4.8). A move to a Window without room is the same `no_seat_free`, with the target's `seats_left`. §4.8 adds `booking_cancelled`, `booking_changed` (the Booking's `version` moved on; fact: the current Booking), `change_invalid` (fact `reason`: `seats_exceed` or `same_target`) and `voucher_invalid` (one code, without facts, for unknown, malformed, expired, used-up or raced Vouchers, FR-28). `cutoff_passed` carries `cutoff_at`. An unknown, expired or replaced Manage link, and a reference the session has no grant for, are the plain `404 not_found` (AD-10, AD-28).
-  - **Refusals on Review:** `no_seat_free` carries `seats_left`. At 0 the SPA says "No seat free", and above 0 it states the true number. A Window past its Booking deadline is refused with `deadline_passed`.
-  - **Time facts:** the SPA may not use the browser clock (AD-4), so listings send what the pages show. Each Window carries `already_started`, and each listing carries `horizon_end` (a Venue date) and `horizon_days`. All three come from the AD-4 predicates and `settings`, and the SPA never computes them.
+  - **Code table:** every refusal code is declared once in `api/errors.py`, with its status and facts, and the frontend mirrors that table. The table starts with the slice's codes. §4.9 adds `outside_horizon` (shared with the Core), `sauna_unavailable`, `price_differs` and `cutoff_passed` (shared with §4.8). A move to a Window without room is the same `no_seat_free`, with the target's `seats_left`. AD-8 adds `403 cross_origin`. §4.8 adds `booking_cancelled`, `booking_changed` (the Booking's `version` moved on; fact: the current Booking), `change_invalid` (fact `reason`: `seats_exceed` or `same_target`) and `voucher_invalid` (one code, without facts, for unknown, malformed, expired, used-up or raced Vouchers, FR-28). `cutoff_passed` carries `cutoff_at`. An unknown, expired or replaced Manage link, and a reference the session has no grant for, are the plain `404 not_found` (AD-10, AD-28).
+  - **Refusals on Review:** `no_seat_free` carries `seats_left`. At 0 the frontend says "No seat free", and above 0 it states the true number. A Window past its Booking deadline is refused with `deadline_passed`.
+  - **Time facts:** the frontend may not use the browser clock (AD-4), so listings send what the pages show. Each Window carries `already_started`, and each listing and the Venue facts carry `today` (the Venue date of `app_now()`), `horizon_end` (a Venue date) and `horizon_days`. They come from the AD-4 predicates and `settings`, and the frontend never computes them, in the browser or on the Next.js server.
   - **Status codes:** 422 is used only for shape errors from Pydantic. Every rule judged against the store or the clock (horizon, deadline, capacity, Cutoff) is a 409 from `services` after the lock.
   - **Envelope:** refusals use the envelope from the Conventions. Its `message` is optional, is meant for developers, and never contains store text.
   - **Success bodies:** successful responses are bare JSON objects.
-  - **Copy:** page copy lives in the SPA, email copy in `services`, and copy used by both in `content/` (AD-12).
-  - **Venue facts:** facts about the Venue that pages show (Saunas, prices including Whole-sauna prices, Window schedule, contact) come from the API, never hard-coded in the SPA.
+  - **Copy:** page copy lives in the frontend, email copy in `services`, and copy used by both in `content/` (AD-12).
+  - **Venue facts:** facts about the Venue that pages show (Saunas, prices including Whole-sauna prices, Window schedule, contact) come from the API, never hard-coded in the frontend.
 
-### AD-17: The SPA reaches the server through one client module [ADOPTED]
+### AD-17: The frontend is Next.js behind Caddy and reaches the backend only through `/api` [ADOPTED]
 
-- **Binds:** all of `frontend/`
-- **Prevents:** idempotency keys, error handling or credentials handled differently from page to page.
-- **Rule:** `frontend/src/api.js` is the only module that calls `fetch`.
-  - It uses relative `/api/…` URLs and same-origin cookies.
-  - It sets `Idempotency-Key` (AD-9) and turns the error envelope into one error type.
-  - No page talks to any other origin (FR-21).
-  - Routing uses `react-router` in Data mode (`createBrowserRouter`), never `react-router-dom` or framework mode.
+- **Binds:** all of `frontend/`; FR-1 to FR-23 pages, FR-21, FR-22, NFR-2
+- **Prevents:** idempotency keys, errors or credentials handled differently from page to page, a second place that holds a rule, a Guest's cookie travelling from server to server, a Seats left reused from a cache, and a dev setup that answers paths the compose stack does not.
+- **Rule:**
+  - **Framework:** Next.js with the App Router, in JavaScript (PRD §8.2), built with `output: 'standalone'` and run as its own service behind Caddy (AD-27). Routes are folders in `frontend/app/`. There is no `app/api/`, no `route.js`, no Server Action, no `middleware.js` and no `proxy.js`: Next.js never answers `/api` and never writes, judges a rule or reads a cookie.
+  - **Browser calls:** `frontend/lib/api.js` is the only module that calls `fetch` in the browser. It uses relative `/api/…` URLs and same-origin cookies, sets `Idempotency-Key` (AD-9) and turns the error envelope into one error type. Everything that needs a session (booking, Manage, Administrator) and every Window listing with Seats left go through it, from client components.
+  - **Server calls:** `frontend/lib/server-api.js` is the only server-side caller. It calls `API_INTERNAL_URL` (compose `http://backend:8000`, dev `http://127.0.0.1:8001`) only for public GETs that need no session and hold no Seats left (Venue facts: Saunas, prices, schedule, contact), always with `cache: 'no-store'`, never with a cookie and never for a write.
+  - **One origin:** `NEXT_PUBLIC_API_URL` stays empty, so every browser call is same-origin. No page or server call talks to any other origin (FR-21). Fonts load through `@font-face` in the one stylesheet from `public/`, images are plain `<img>`, and `next/font` and `next/image` are not used (FR-22, DR-3). Builds set `NEXT_TELEMETRY_DISABLED=1`.
+  - **Titles and focus:** each `page.js` is a Server Component that exports `metadata` with the page title and renders a client child. One client component in the root layout moves focus to the page's `h1` after each navigation and sets the "Error:" title prefix when a form shows errors.
+  - **Shared text:** `content/` holds JSON files (`{"paragraphs": [...]}`) at the repository root. A `predev`/`prebuild` script copies them into `frontend/content/` (git-ignored), and pages import them at build time; `services` reads the same files (AD-12).
+  - **Image:** `frontend/Dockerfile` follows Next's `with-docker` layout on `node:24-alpine`, with the repository root as build context: it copies `content/`, `public/` and `.next/static`, sets `HOSTNAME=0.0.0.0` and `PORT=3000`, and runs `node server.js`. A root `.dockerignore` keeps `node_modules`, `.venv`, `.next`, `config/test-switches.toml` and `.logs/` out of every build context.
+  - **Dev:** `next dev -H 127.0.0.1` on port 3000. When `NODE_ENV === 'development'`, `rewrites()` sends `/api/:path*` to `http://127.0.0.1:8001/api/:path*` with the `/api` prefix kept; the production build has no rewrites.
+  - **Not adopted from `technology.md`:** TypeScript, Tailwind CSS, shadcn/ui and other UI libraries (PRD §8.2 and FR-22: JavaScript, one stylesheet, no design system).
 
 ### AD-18: Reference data comes from `seeds/`, applied idempotently at every start [ADOPTED]
 
@@ -269,22 +279,23 @@ flowchart LR
   - the router-level Administrator access;
   - server sessions;
   - Seats 1–10;
-  - the migration runner.
+  - the migration runner;
+  - the compose stack (proxy, backend, frontend, db), with Caddy on plain HTTP until the FR-24 story (AD-27).
 
   The slice's tests are kept as regression proof. They sign in through a test fixture and fill Windows with several Bookings of at most 10 Seats each, or with raw inserts. No rule is loosened to keep a slice test green.
 
 ### AD-22: Deployment configuration comes from `BP_*` environment variables [ADOPTED]
 
 - **Binds:** NFR-1, DR-5, FR-24
-- **Prevents:** deployment values spread through the code, and Venue rules split between Python and the store.
+- **Prevents:** deployment values spread through the code, Venue rules split between Python and the store, and a base URL that is not the origin the browser actually uses.
 - **Rule:** `config.py` is the only reader of the `BP_*` environment variables:
   - the database URL;
-  - the base URL (default `https://localhost:8443` with HTTPS on, `http://localhost:8000` with it off);
-  - `BP_HTTPS` (default on), `BP_HTTPS_PORT` (8443), `BP_HTTP_PORT` (8000), `BP_CERT_DIR` (`certs/`) and `BP_HSTS_MAX_AGE` (3600), see AD-27;
-  - the host;
-  - the test variables already in use.
+  - `BP_BASE_URL`, which is always the origin the browser uses: dev `http://127.0.0.1:3000` (the default); the API test layer `http://127.0.0.1:<its port>`; compose `http://localhost:${HTTP_PORT}` before the FR-24 story and `https://localhost:${HTTPS_PORT}` from it on;
+  - `BP_HTTPS` (default off), which makes the session cookie `Secure` (AD-8). The FR-24 story turns it on in compose in the same PR that changes `BP_BASE_URL`. `config` refuses to start when `BP_HTTPS` is on and the base URL is not `https://`;
+  - host and port (default `127.0.0.1:8001` for dev; `0.0.0.0:8000` inside the container);
+  - `BP_TEST_SWITCHES` (AD-14) and the test variables already in use.
 
-  Each variable has a working local default, so no file is needed. Venue rules never live there (AD-4). Until the FR-24 story merges there is no `BP_HTTPS`, and the platform behaves as with it off; that story adds the variable and everything else in AD-27 in one PR. The platform runs as one process, without `--workers`; with HTTPS on it holds the two listeners of AD-27.
+  Each variable has a working local default, so no file is needed. Venue rules never live there (AD-4). Caddy reads its own variables (AD-27) and the frontend reads `API_INTERNAL_URL` (AD-17); neither reads `BP_*`. The backend runs as one uvicorn process, without `--workers`, started from the image's virtual environment (no `uv run` at runtime). FastAPI's `/docs` and `/openapi.json` are off (`docs_url=None`, `openapi_url=None`), because Swagger UI loads from a CDN (FR-21).
 
 ### AD-23: A Whole-sauna booking is a Booking, paired with its capacity row
 
@@ -308,13 +319,13 @@ flowchart LR
 - **Rule:**
   - **Predicate:** `whole_bookable(wid int, sid int, ignore_booking bigint DEFAULT NULL)` is the only SQL statement of the store-enforced part of FR-29. It judges as if the `whole_bookings` row of `ignore_booking` did not exist: the Sauna is bookable whole and has a `whole_price_ore`, is not Blocked, is not booked whole, and the Seats booked plus held fit within Room ahead unless `mark_closed(wid, sid)`. The started-Window clause is: not `window_started(wid)`, or no Seat booking, or `mark_closed(wid, sid)`. It never uses `sauna_open_for_seats` of the Sauna being booked.
   - **Store:** `trg_check_whole` fires AFTER INSERT and AFTER `UPDATE OF window_id, sauna_id` of `whole_bookings`, calls `whole_bookable(NEW.window_id, NEW.sauna_id, NEW.booking_id)`, and raises `CONSTRAINT = 'whole_bookable'`. Bypass tests cover INSERT and UPDATE, including a started Window with Seat bookings.
-  - **Listing:** `GET /api/private-saunas?date=` returns `{saunas: [{id, name, capacity, whole_price_ore, windows: [{id, start, end, already_started}]}], horizon_end, horizon_days}`. It lists only the pairs where `within_horizon`, the Booking deadline predicate and `whole_bookable(wid, sid)` all hold. The SPA builds both views (by Window and by Sauna) from this response by regrouping only. The Manage page's Whole-sauna move list is the same query with `ignore_booking` = the Booking.
+  - **Listing:** `GET /api/private-saunas?date=` returns `{saunas: [{id, name, capacity, whole_price_ore, windows: [{id, start, end, already_started}]}], horizon_end, horizon_days}`. It lists only the pairs where `within_horizon`, the Booking deadline predicate and `whole_bookable(wid, sid)` all hold. The frontend builds both views (by Window and by Sauna) from this response by regrouping only. The Manage page's Whole-sauna move list is the same query with `ignore_booking` = the Booking.
   - **Refusal order:** outside the Booking horizon is `outside_horizon`, past the Booking deadline is `deadline_passed`, past the Cutoff is `cutoff_passed`, each checked in `services` after the lock in that order. Everything else in FR-29 is `409 sauna_unavailable`. In a Whole-sauna action, `db` maps `whole_bookable`, `booked_within_capacity` and the `(window_id, sauna_id)` unique key to `sauna_unavailable`.
 
 ### AD-25: Placement has one implementation, shown only to Administrators
 
 - **Binds:** FR-4, FR-31, FR-16 (the Administrator's Placement view)
-- **Prevents:** a second Placement algorithm in Python or in the SPA that drifts from the store, and a Sauna leaking into the Seat flow.
+- **Prevents:** a second Placement algorithm in Python or in the frontend that drifts from the store, and a Sauna leaking into the Seat flow.
 - **Rule:**
   - **Function:** `placement(wid)` returns one row per Sauna in Fill order: `(sauna_id, state, seats)`. `state` is `open`, `whole`, `blocked` or `marked`, and `seats` is 0 unless the Sauna is `open`. It places booked Seats only (INV-2); held Seats are reported apart by `window_held_seats`. It is the only computation of Placement. A Python brute-force Placement exists only in `tests/`, as the reference for AD-26.
   - **Exposure:** `placement()` is read only under `/api/admin/`. No response outside `/api/admin/` names a Sauna for a Seat booking or shows a Window's Placement. A Sauna appears in Guest responses only for `kind = 'whole'` and in the Venue facts. A test walks the Seat flow's responses and emails, the `/api/manage/` responses for Seat bookings and their Change emails, and finds no Sauna name.
@@ -330,28 +341,25 @@ flowchart LR
   - **Changes:** §4.8 is built before §4.9, so the story that creates the machine includes as `@rule`s the Seat move (all and some Seats), the Voucher for some or all Seats, and the FR-33 move and cancel, over at least two Windows. Seats are cancelled only through FR-27 and Whole-sauna bookings only through FR-33; no test-only endpoint is added (AD-14). An `@invariant` also checks AD-31's ledger rule.
   - **Concurrency:** stays in the parallel API tests (catalogue group C, see Conventions).
 
-### AD-27: HTTPS is served by the platform itself, on one origin, with its own certificate
+### AD-27: Caddy is the only public entry and terminates HTTPS
 
-- **Binds:** FR-24, HT-1 to HT-4, NFR-1, SC9; `__init__.main`, `tls.py`, `app.py`, `config.py`, the test server fixture
-- **Prevents:** an extra install for the examiner, a second server owning TLS, an HTTP path that reaches the API, a second origin with its own cookie jar, a cookie or email link that drifts back to `http://`, a certificate that strict clients reject, and a local CA that could vouch for any site.
+- **Binds:** FR-24, HT-1 to HT-4, FR-25 (no referrer), NFR-1, SC9; `Caddyfile`, `docker-compose.yml`, the e2e fixture
+- **Prevents:** a second public entry, an HTTP path that reaches the backend or the frontend, a redirect to a port where nothing listens, headers that differ between responses, a second origin with its own cookie jar, two stacks fighting over one port, and a cookie or email link that drifts back to `http://`.
 - **Rule:**
-  - **Certificate:** `tls.ensure(cert_dir)` in `src/booking_platform/tls.py` is the only code that touches certificates. `main()` and the test fixture call it. It uses `cryptography`, ECDSA P-256 keys and SHA-256 signatures.
-    - **CA:** reused while `ca.pem` and `ca-key.pem` both exist and the CA is valid for more than 30 days more; otherwise a new CA is made, and with it a new leaf. The CA is valid 10 years, with critical `BasicConstraints(ca=True, path_length=0)`, critical `KeyUsage(key_cert_sign, crl_sign)`, a Subject Key Identifier, and a critical `NameConstraints` that permits only `DNS:localhost`, `IP:127.0.0.0/8` and `IP:::1/128`.
-    - **Leaf:** made again when it is missing, expires within 30 days, or does not verify against the current `ca.pem`. It is valid 365 days, with SAN `localhost`, `127.0.0.1` and `::1`, critical `BasicConstraints(ca=False)`, critical `KeyUsage(digital_signature)`, `ExtendedKeyUsage(serverAuth)`, and Subject and Authority Key Identifiers.
-    - **Files:** `certs/` is git-ignored; `ca-key.pem` is written owner-only where the OS supports it.
-  - **One origin:** the base URL's origin is the platform's only origin. With `BP_HTTPS` on, `config` derives the default base URL `https://localhost:<BP_HTTPS_PORT>` and refuses to start when the base URL is not `https://` on a certificate name. The HTTPS app answers a request whose `Host` is not the base URL's host and port with `308` to the base URL plus the same path and query. AD-8's same-origin check compares with the base URL, never with `Host`.
-  - **Listeners:** with `BP_HTTPS` on, `main()` calls `tls.ensure`, then binds every socket itself (both ports, each on `127.0.0.1` and on `::1` where available) before any server or lifespan starts. A busy port ends the process non-zero with one line naming the port and its `BP_*` variable. It then runs two `uvicorn.Server`s in one event loop on those sockets: the app with TLS, and a redirect-only ASGI app with `lifespan="off"`. If either server stops, `main()` stops the other and exits non-zero when either failed. Ctrl+C stops both without a traceback.
-  - **Redirect:** every HTTP request gets `308` with `Location` = base URL + the request's raw `raw_path` and `query_string` bytes (never decoded) and `Cache-Control: no-store`. A target holding CR, LF or bytes outside visible ASCII gets `400` without `Location`. The redirect app never calls the app, reads no body or cookie, and sets nothing.
-  - **Headers:** one pure ASGI wrapper, which `main()` puts around the whole app outside Starlette's error middleware, so error responses carry them too. It adds `Strict-Transport-Security: max-age=<BP_HSTS_MAX_AGE>` (no `includeSubDomains`, no `preload`) when HTTPS is on, `Referrer-Policy: no-referrer` always, `Cache-Control: no-store` on `/api/`, and `X-Robots-Tag: noindex` on `/manage` and `/api/manage/`.
-  - **Cookies and links:** with HTTPS on, the session cookie is `Secure` (AD-8), and every email link starts with the base URL (AD-12).
-  - **Environments:** the examiner and the tests run with HTTPS on. `uv run booking-platform dev` first sets `BP_HTTPS=0` and, unless already set, `BP_BASE_URL=http://127.0.0.1:5173` in `os.environ`, then calls `uvicorn.run(…, reload=True)`; it never calls `tls.py`. Vite listens on `127.0.0.1`.
-  - **Tests:** the fixture calls `tls.ensure` on a temp cert dir, then starts the `booking-platform` entry point with two free ports, `BP_BASE_URL=https://localhost:<port>` and that cert dir, and waits for `/api/health` over TLS. The slice fixture is reshaped to this under AD-21. HTTP clients verify with an `ssl.SSLContext` loaded from that `ca.pem`; Playwright uses `ignore_https_errors`. `tests/test_fr24_https.py` holds:
-    - HT-1, with a client that keeps no HSTS state: `308`, and nothing changed;
-    - HT-2, the headers on a 200, a 404 envelope and a static asset;
-    - HT-3, every `Set-Cookie` has `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, and the redirect listener answers byte for byte the same with and without a `Cookie` header;
-    - HT-4, every Outbox link starts with the test base URL.
-  - **Known limits:** browsers treat `localhost` as secure, so they still send `Secure` cookies to `http://localhost`. Chrome (since M132) and Firefox ignore HSTS from `localhost`, and Safari does not. HT-3 therefore checks the cookie attributes, and the README states the deviation from FR-24's "never sent over HTTP" on `localhost`.
-  - **README:** the browser warns once; importing `certs/ca.pem` is optional and trusts it only for the `localhost` names; `ca-key.pem` is never shared; the import is removed after grading; `curl -i http://localhost:8000/` shows HT-1; a production deployment would use a public certificate and one year of HSTS.
+  - **Entry:** Caddy (`caddy:2.11`) is the only service with a published web port, bound to `127.0.0.1`. One `handle /api/*` sends requests, with the path unchanged, to `{$BACKEND_UPSTREAM:backend:8000}`; a bare `/api` gets the backend's JSON 404 through the same route. Everything else goes to `{$FRONTEND_UPSTREAM:frontend:3000}`. The backend and the frontend are reachable only on the compose network. The database port is published as `127.0.0.1:${DB_PORT}` for dev and tests only. `/docs` and `/openapi.json` are not exposed (AD-22).
+  - **Modes:** one Caddyfile; the site address comes from `{$SITE_ADDRESS}`. The Core skeleton uses `http://localhost:{$HTTP_PORT}` (plain HTTP). From the FR-24 story it is `localhost:{$HTTPS_PORT}`: Caddy issues the certificate from its internal CA because the name is `localhost` (no `tls` line is written), and its automatic HTTPS redirects every request on the global `http_port {$HTTP_PORT}` to `https://localhost:{$HTTPS_PORT}` with the same path and query. `https_port` is not set. Railway sets `SITE_ADDRESS=http://:{$PORT}` and the two upstream variables; Railway terminates TLS. The global options set `skip_install_trust`.
+  - **Ports:** each Caddy port is published as the same host port, because the redirect and the base URL name it. `HTTP_PORT` (8000), `HTTPS_PORT` (8443) and `DB_PORT` (55432) come from the environment with those defaults, in both the Caddyfile and compose; another stack (e2e) sets other values.
+  - **Startup:** db, backend and frontend have healthchecks (`pg_isready`, `/api/health`, the frontend's `/`), and each service starts with `depends_on: condition: service_healthy`, so the backend migrates only after PostgreSQL is ready and `up --wait` really waits.
+  - **Headers:** `header` directives without `defer` add to every response, including Caddy's own redirects and errors: `Strict-Transport-Security: max-age={$HSTS_MAX_AGE:3600}` (no `includeSubDomains`, no `preload`) once HTTPS is on, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on `/api/*`, and `X-Robots-Tag: noindex` on `/manage*` and `/api/manage/*`. The backend and the frontend set none of these themselves. Caddy's access log stays off (AD-19).
+  - **Backend side:** the backend's cookie and links follow `BP_HTTPS` and `BP_BASE_URL` (AD-22). No v1 rule reads an `X-Forwarded-*` header.
+  - **Build order:** the Core skeleton runs proxy, backend, frontend and db in compose, with Caddy on `http://localhost:8000`, `BP_HTTPS` off and `BP_BASE_URL=http://localhost:8000`. The FR-24 story switches `SITE_ADDRESS`, `BP_HTTPS` and `BP_BASE_URL` together, adds the headers' HSTS line and HT-1 to HT-4, in one PR.
+  - **Tests (e2e layer):** the fixture starts the stack as compose project `booking_e2e` with an env file that sets its own `HTTP_PORT`, `HTTPS_PORT`, `DB_PORT`, database, `BP_BASE_URL` and `BP_TEST_SWITCHES`, runs `up --build --wait`, and ends with `down -v`. It copies Caddy's root out of the proxy (`/data/caddy/pki/authorities/local/root.crt`; Caddy sends the intermediate) and verifies with an `ssl.SSLContext` loaded from it; Playwright uses `ignore_https_errors`. It moves the clock and seeds rows through `DB_PORT`. `tests/e2e/test_fr24_https.py` holds:
+    - HT-1, with a client that keeps no HSTS state: `http://localhost:<HTTP_PORT>/x?y` answers with `Location: https://localhost:<HTTPS_PORT>/x?y`, and nothing changes;
+    - HT-2, the headers on a page, a 404 envelope, a static asset and a Caddy redirect;
+    - HT-3, every `Set-Cookie` has `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, and an HTTP request that carries the session cookie is answered by Caddy's redirect and leaves the session row unchanged;
+    - HT-4, every Outbox link starts with the stack's base URL.
+  - **Known limits:** browsers treat `localhost` as secure and still send `Secure` cookies to `http://localhost`, where Caddy only redirects. Chrome (since M132) and Firefox ignore HSTS from `localhost`. Caddy's internal root has no name constraints, so importing it is optional.
+  - **README:** `docker compose up --build --wait`, then `https://localhost:8443`; the browser warns once; how to copy Caddy's root (`docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt .`) and that importing it is optional and should be undone after grading; `curl -i http://localhost:8000/` shows HT-1; a production deployment would use a public certificate and one year of HSTS.
 
 ### AD-28: A Manage link is a fragment token exchanged for a grant on the session
 
@@ -361,7 +369,7 @@ flowchart LR
   - **Storage:** `access_tokens(id, purpose, booking_id, token_hash bytea UNIQUE, created_at, revoked_at)`. `purpose` is `manage` now; later items extend its CHECK and add their own nullable columns, and validity is decided per purpose in `services.manage`. The index `access_tokens_one_manage ON access_tokens (booking_id) WHERE purpose = 'manage' AND revoked_at IS NULL` is unique. Only `services.manage` writes the table.
   - **Issue:** `services.manage.issue(c, booking_id)` locks the Booking row `FOR NO KEY UPDATE` (after `lock_windows` when the action has one), revokes any unrevoked `manage` token of the Booking, then stores the SHA-256 hash of a new 256-bit token (`secrets.token_urlsafe(32)`). It returns the raw token only to build the email link. Only Booking creators call it: the Seat flow, the Whole-sauna flow, a split, the seed, and later FR-34. No Change revokes or issues a token, so the original Booking keeps its link (FR-26). No token is issued afterwards for Bookings made before §4.8, except the seed's (AD-18).
   - **Validity:** a token opens its Booking while it is unrevoked and `app_now()` is before the end of the Booking's current Window. Validity is judged by join and never stored, so a move changes it at once.
-  - **Open:** the SPA route `/manage` reads `#t=`, removes the fragment with `history.replaceState`, and sends `POST /api/manage/open {token}`. That call creates or reuses the session (AD-8), checks the token, upserts `manage_grants(session_id, token_id, last_used_at)` (UNIQUE `(session_id, token_id)`) and returns `{reference}`. The SPA then goes to `/manage/:reference`. An unknown, revoked or expired token is `404 not_found`.
+  - **Open:** the frontend route `/manage` (a client component) reads `#t=`, removes the fragment with `history.replaceState`, and sends `POST /api/manage/open {token}`. That call creates or reuses the session (AD-8), checks the token, upserts `manage_grants(session_id, token_id, last_used_at)` (UNIQUE `(session_id, token_id)`) and returns `{reference}`. The frontend then goes to `/manage/[reference]`. The fragment is read once, guarded against React Strict Mode's double effect. An unknown, revoked or expired token is `404 not_found`.
   - **Grant:** `manage_grant_valid(session_id, booking_id)` is the one predicate: `app_now() < last_used_at + interval '30 minutes'`, the token is valid as above, and it is unrevoked. Grants cascade with their session, so sign-out ends them. One session may hold grants for several Bookings. A split inserts a grant for the new Booking after the lock. Startup purges grants of expired sessions and of tokens whose Window has ended.
   - **Access:** every Guest route reached through a grant is under `/api/manage/{reference}/`, on one router. Its dependency checks the grant before the action and answers `404 not_found` otherwise, with or without a session (AD-8's `401 no_session` belongs to the booking flow only). It then touches `last_used_at` (AD-4). The action re-checks the grant by join after the Booking re-read.
   - **Routes per kind:** `POST …/seats/move {window_id, seats, version}` and `…/seats/voucher {seats, version}` for `kind = 'seats'`; `…/whole/move {window_id, sauna_id, version}` and `…/whole/cancel {remedy, version}` for `kind = 'whole'`. A route of the other kind answers `404 not_found`. Each is a confirming `POST` with a key (AD-9).
@@ -427,16 +435,16 @@ flowchart LR
 
 | Concern | Convention |
 | --- | --- |
-| Naming | PRD glossary terms in English. `whole_bookings` is the slice's name for the Whole-sauna capacity row, kept because `0001` is frozen; text people read never says "whole booking". Tables are plural snake_case; columns, JSON fields and Python names are snake_case. API paths are lower-case plural nouns under `/api/`. React components use PascalCase files in `frontend/src/pages/` and `frontend/src/components/`. |
+| Naming | PRD glossary terms in English. `whole_bookings` is the slice's name for the Whole-sauna capacity row, kept because `0001` is frozen; text people read never says "whole booking". Tables are plural snake_case; columns, JSON fields and Python names are snake_case. API paths are lower-case plural nouns under `/api/`. Routes are folders in `frontend/app/`; React components use PascalCase files in `frontend/components/`. |
 | Ids | Internal ids are integers and are never shown to Guests. The Booking reference is the only Guest-facing id (AD-20). |
-| Time | Columns are `timestamptz`. The API sends ISO 8601 with an offset; a Venue date is `YYYY-MM-DD`. `venue_tz` is fixed to `Europe/Oslo` in v1, and the SPA formats with `Intl.DateTimeFormat` in that zone. |
-| Money | Integer øre in every field ending in `_ore`. The SPA formats it as "NOK 500". |
+| Time | Columns are `timestamptz`. The API sends ISO 8601 with an offset; a Venue date is `YYYY-MM-DD`. `venue_tz` is fixed to `Europe/Oslo` in v1, and the frontend formats with `Intl.DateTimeFormat` in that zone. |
+| Money | Integer øre in every field ending in `_ore`. The frontend formats it as "NOK 500". |
 | Error envelope | `{"detail": {"error": "<code>", "message"?: "<dev text>", …facts}}`, ratified from the slice. 401 not signed in, sign-in refused or no session; 403 not allowed; 404 unknown or not yours; 409 rule refused; 422 shape (`invalid_input` with `fields`); 503 `try_again`. |
-| Input | Pydantic models use `extra="forbid"` and the limits of FR-2 and FR-5. The SPA repeats them for UX only. |
-| Styling | One stylesheet, `frontend/src/styles.css`, with CSS custom properties for the PRD §6 palette. No UI library or CSS framework, and no fixed widths that would block FR-51. Fonts and images are self-hosted in `frontend/public/` and listed in `ASSETS.md`. |
-| Accessibility | Every route sets its page title (`EXPERIENCE.md`, Accessibility Floor), then focus moves to the page heading. |
-| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Each group-C test (C1–C5, and a cross-Window Change against a Whole-sauna booking) asserts INV-1 to INV-5 on `placement(wid)` and Seats left after the run, with FR-11's 100 repetitions. Catalogue examples cited in an FR are example tests named by ID (`test_fr29_whole_sauna.py::test_b2`). Marks and Blocks needed before §4.13 are inserted as raw rows. Browser and axe tests live in `tests/e2e/`. The test server runs with HTTPS on (AD-27); clients verify against the run's own `ca.pem`. `tests/test_fr28_voucher.py` spends one Voucher from parallel bookings with FR-11's 100 repetitions and asserts `balance_ore >= 0` and that the Voucher charges never exceed `value_ore`. RB-4 and RB-5 run against `/api/manage/` (AD-28). A pytest session fixture runs `npm run build` when `frontend/dist` is missing or older than `frontend/src`. axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
-| Dev proxy | Vite proxies `/api` to `http://127.0.0.1:8000`, not `localhost`. |
+| Input | Pydantic models use `extra="forbid"` and the limits of FR-2 and FR-5. The frontend repeats them for UX only. |
+| Styling | One stylesheet, `frontend/app/styles.css` imported once in the root layout, with CSS custom properties for the PRD §6 palette. No UI library or CSS framework, and no fixed widths that would block FR-51. Fonts and images are self-hosted in `frontend/public/` and listed in `ASSETS.md`. |
+| Accessibility | Every route sets its page title through Next.js `metadata` (`EXPERIENCE.md`, Accessibility Floor), then focus moves to the page heading. |
+| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Each group-C test (C1–C5, and a cross-Window Change against a Whole-sauna booking) asserts INV-1 to INV-5 on `placement(wid)` and Seats left after the run, with FR-11's 100 repetitions. Catalogue examples cited in an FR are example tests named by ID (`test_fr29_whole_sauna.py::test_b2`). Marks and Blocks needed before §4.13 are inserted as raw rows. Two layers. The API layer (`tests/`) starts the backend itself with uv over HTTP, with `BP_BASE_URL=http://127.0.0.1:<port>`, its own `BP_TEST_SWITCHES` file and the `booking_test` database; every request goes through `tests/client.py::api_client`, which sends `Origin`, and `test_fr18_csrf.py` asserts `403 cross_origin`. It proves every rule, race and access check: FR-5 to FR-21, FR-25 to FR-33, RB-1 to RB-5, groups A to C. The e2e layer (`tests/e2e/`) runs against the compose stack behind Caddy (AD-27) and proves what only the full stack shows: pages, keyboard and axe (FR-1 to FR-8, FR-15 to FR-17, FR-22, FR-23, the Manage and Private sauna pages) and HT-1 to HT-4. `tests/test_fr28_voucher.py` spends one Voucher from parallel bookings with FR-11's 100 repetitions and asserts `balance_ore >= 0` and that the Voucher charges never exceed `value_ore`. RB-4 and RB-5 run against `/api/manage/` (AD-28). The e2e fixture builds the images with `docker compose build`. axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
+| Dev proxy | `next dev` rewrites `/api/:path*` to `http://127.0.0.1:8001/api/:path*`, not `localhost`, in development only (AD-17). |
 | Traceability | One branch and one PR per story, with FR numbers in commits. Session logs go in `.logs/<user>/` (DR-1, DR-4). |
 
 ## Stack
@@ -452,14 +460,13 @@ flowchart LR
 | psycopg + psycopg-pool | 3.3.7 / 3.3.3 |
 | uvicorn | 0.54.0 |
 | argon2-cffi | 25.1.0 |
-| cryptography | 50.0.2 (latest on 2026-11-19; pinned in `uv.lock` when added, AD-27) |
 | pytest | 9.2.0 |
 | hypothesis | 6.170.15 (latest on 2026-11-19; pinned in `uv.lock` when added) |
-| pytest-playwright / playwright | 0.10.0 / 1.64.1 |
-| Node.js | 24 LTS or 26 LTS (26.13+) |
-| Vite / @vitejs/plugin-react | 8.3.5 / 6.2.1 |
+| pytest-playwright / playwright | 0.10.0 / 1.64.1 (1.65.2 out on 2026-11-19; take it when the lockfile is next updated) |
+| Caddy (Docker image `caddy:2.11`) | 2.11.9 |
+| Node.js (frontend image `node:24-alpine`) | 24 LTS or 26 LTS (Next.js needs ≥ 20.9) |
+| Next.js | 16.4.6 |
 | React / React DOM | 19.3.1 |
-| react-router | 8.5.1 |
 | axe-core | 4.14.0 |
 
 ## Structural Seed
@@ -468,38 +475,35 @@ flowchart LR
 flowchart TB
   subgraph Laptop["Examiner / developer laptop"]
     B[Browser]
-    subgraph Py["uv run booking-platform (one process)"]
-      REDIR["HTTP :8000, 308 redirect only"]
-      STATIC["SPA (frontend/dist), HTTPS :8443"]
-      APIS["/api (FastAPI), HTTPS :8443"]
+    subgraph Dk["docker compose"]
+      PX["proxy: Caddy on 127.0.0.1, HTTPS :8443, HTTP :8000 redirects"]
+      BE["backend: uv run booking-platform :8000 (internal)"]
+      FE["frontend: Next.js standalone :3000 (internal)"]
+      PG[("db: postgres:18, 127.0.0.1:55432")]
     end
-    subgraph Dk["Docker"]
-      PG[("postgres:18 :55432")]
-    end
-    V["vite dev :5173 (dev only, proxies /api to HTTP :8000)"]
+    DEV["dev only: next dev 127.0.0.1:3000 + backend 127.0.0.1:8001"]
   end
-  B -.->|http| REDIR
-  B --> STATIC
-  B --> APIS
-  B -.->|dev| V
-  V -.-> APIS
-  APIS --> PG
+  B --> PX
+  PX -->|"/api/*"| BE
+  PX -->|"everything else"| FE
+  FE -.->|"public GETs"| BE
+  BE --> PG
+  B -.->|dev| DEV
+  DEV -.-> PG
 ```
 
-| Environment | Database | Backend | Frontend |
-| --- | --- | --- | --- |
-| dev | `booking` in Docker | `uv run booking-platform dev` (HTTP :8000, `--reload`) | `vite dev` (proxy `/api`) |
-| test | `booking_test`, recreated per run | `uv run booking-platform` as a subprocess, HTTPS on, own cert dir | `frontend/dist`, built by the session fixture when stale |
-| examiner | `booking` in Docker | `uv run booking-platform` (HTTPS :8443, redirect from :8000) | `npm run build` once, served at `https://localhost:8443` |
+| Environment | Database | Backend | Frontend | Entry |
+| --- | --- | --- | --- | --- |
+| dev | `booking_dev` in the compose db | `uv run booking-platform dev` (127.0.0.1:8001, `--reload`) | `npm --prefix frontend run dev` (127.0.0.1:3000, rewrites `/api`) | `http://127.0.0.1:3000` |
+| test, API layer | `booking_test` in the compose db, recreated per run | uvicorn subprocess on a free port, HTTP | none | direct, with `Origin` |
+| test, e2e layer | project `booking_e2e`, its own db container | compose `backend` | compose `frontend` | Caddy on the e2e ports, HTTPS |
+| examiner | `booking` in compose | compose `backend` | compose `frontend` | Caddy, `https://localhost:8443` |
 
 **Commands (README):**
-- `docker compose up -d db` starts the data store.
-- `npm --prefix frontend ci && npm --prefix frontend run build` builds the frontend.
-- `uv run playwright install chromium` installs the test browser, once.
-- `uv run booking-platform` starts the platform at `https://localhost:8443` (the first start creates `certs/`).
-- `uv run pytest` runs every test.
+- `docker compose up --build --wait` starts the platform at `https://localhost:8443`.
+- `npm --prefix frontend ci` and `uv run playwright install chromium` prepare the tests, once.
+- `uv run pytest` runs every test; it starts its own backend and its own compose stack.
 
-FastAPI serves the SPA with `app.frontend("/", directory="frontend/dist", fallback="index.html", check_dir=False)`, mounted after the API routers.
 
 ```mermaid
 erDiagram
@@ -536,9 +540,8 @@ erDiagram
 
 ```text
 src/booking_platform/
-  __init__.py        # main(): serve (HTTPS + redirect listener); dev; create-admin
-  tls.py             # local CA and certificate in BP_CERT_DIR (AD-27)
-  app.py             # FastAPI app, lifespan (migrate, seed, catch-up), routers, SPA
+  __init__.py        # main(): serve; dev (--reload); create-admin
+  app.py             # FastAPI app, lifespan (migrate, seed, catch-up), routers
   config.py          # BP_* settings, links, frozen test switches (leaf)
   api/               # public.py, admin.py, manage.py, schemas.py, errors.py (code → status table)
   services/          # booking, whole, windows, auth, outbox, payment, reference, manage, history, voucher, catchup, seed, errors
@@ -548,9 +551,12 @@ migrations/          # 0001_core.sql (the slice's schema.sql), 0002_…
 seeds/               # Saunas, prices, Settings, schedule, Administrator, sample Bookings
 content/             # text shared by pages and emails (terms, what happens next)
 config/              # test-switches.example.toml (the real file is git-ignored)
-frontend/            # Vite + React: src/api.js, src/pages/, src/components/, src/styles.css, public/
+frontend/            # Next.js: app/ (routes, styles.css), components/, lib/api.js, lib/server-api.js, public/, Dockerfile
 tests/               # test_fr<NN>_*.py; tests/e2e/ for browser and axe
-certs/               # generated at first start, git-ignored (AD-27)
+Caddyfile            # the proxy (AD-27)
+docker-compose.yml   # proxy, backend, frontend, db, with healthchecks
+.dockerignore        # node_modules, .venv, .next, test switches, .logs
+Dockerfile           # backend image, uv sync --locked
 ASSETS.md            # asset register (DR-3)
 .logs/<user>/        # session logs and issues.md (DR-1)
 ```
@@ -559,15 +565,15 @@ ASSETS.md            # asset register (DR-3)
 
 | Capability / Area | Lives in | Governed by |
 | --- | --- | --- |
-| FR-1 to FR-4 Find a Window | `frontend/src/pages`, `api/public.py`, `services/windows.py` | AD-4, AD-5, AD-16, AD-17 |
+| FR-1 to FR-4 Find a Window | `frontend/app`, `api/public.py`, `services/windows.py` | AD-4, AD-5, AD-16, AD-17 |
 | FR-5 to FR-9 Book and pay | `services/booking.py`, `payment.py`, `outbox.py`, `reference.py` | AD-3, AD-8, AD-9, AD-12, AD-13, AD-20 |
 | FR-10 to FR-14 Capacity under concurrency | `migrations/`, `db/` | AD-2, AD-3, AD-14, AD-21 |
 | FR-15 to FR-17 Admin sign-in, list, Outbox | `api/admin.py`, `services/auth.py` | AD-8, AD-10, AD-11, AD-12 |
 | FR-18 to FR-21 Security and personal data | `api/schemas.py`, `services/auth.py`, `services/catchup.py` | AD-4, AD-8, AD-10, AD-11, AD-19 |
 | FR-22, FR-23 Look and accessibility | `frontend/` | Conventions: Styling, Accessibility, Tests |
-| NFR-1, DR-2, DR-5 Run and seed | `app.py`, `seeds/`, README | AD-15, AD-18, AD-22 |
-| FR-24 HTTPS (If time 1) | `__init__.py`, `tls.py`, `app.py` (headers middleware), `config.py`, `tests/test_fr24_https.py` | AD-8, AD-12, AD-22, AD-27 |
-| FR-25 to FR-28 Changes and Vouchers (If time 2) | `api/manage.py`, `services/manage.py`, `services/booking.py`, `services/history.py`, `services/voucher.py`, `services/payment.py`, `api/public.py` (Voucher quote), `migrations/`, `frontend/src/pages` (Manage booking, Voucher field) | AD-3, AD-4, AD-7, AD-8, AD-9, AD-12, AD-13, AD-16, AD-17, AD-19, AD-20, AD-26, AD-27, AD-28, AD-29, AD-30, AD-31 |
+| NFR-1, DR-2, DR-5 Run and seed | `docker-compose.yml`, `Caddyfile`, `app.py`, `seeds/`, README | AD-15, AD-18, AD-22 |
+| FR-24 HTTPS (If time 1) | `Caddyfile`, `docker-compose.yml`, `config.py`, `tests/e2e/test_fr24_https.py` | AD-8, AD-12, AD-22, AD-27 |
+| FR-25 to FR-28 Changes and Vouchers (If time 2) | `api/manage.py`, `services/manage.py`, `services/booking.py`, `services/history.py`, `services/voucher.py`, `services/payment.py`, `api/public.py` (Voucher quote), `migrations/`, `frontend/app` (Manage booking, Voucher field) | AD-3, AD-4, AD-7, AD-8, AD-9, AD-12, AD-13, AD-16, AD-17, AD-19, AD-20, AD-26, AD-27, AD-28, AD-29, AD-30, AD-31 |
 | FR-29 to FR-33 Whole-sauna booking (If time 3) | `services/whole.py`, `api/public.py`, `api/admin.py` (Placement per Window, Whole-sauna bookings in the list), `migrations/`, `seeds/`, `tests/test_fr31_placement_model.py` | AD-2, AD-3, AD-6, AD-7, AD-9, AD-12, AD-13, AD-16, AD-20, AD-23, AD-24, AD-25, AD-26, AD-28, AD-29, AD-31 |
 | FR-34 to FR-42 (If time 4 to 7) | the store already holds Blocks, marks and Holds | AD-2, AD-6, AD-7 |
 
@@ -579,9 +585,9 @@ ASSETS.md            # asset register (DR-3)
 - **Keyed Voucher hashing:** an HMAC with a server key would protect codes in a stolen table; v1 accepts the unkeyed hash (AD-30). Revisit with Gift cards (Step 2), which hold paid value.
 - **Whole-sauna prices and Bookable-whole marks:** Lisa chooses the values in the first §4.9 story, and they go into `seeds/` (AD-18).
 - **Fill order for started Windows** (FR-38, F2): If-time 7 adds a per-Window Fill-order snapshot that `placement(wid)` reads. Its signature stays.
-- **Production TLS:** a public certificate and one year of HSTS belong to a real deployment, which is out of scope (AD-27 README note).
+- **Railway deployment and production TLS:** the Caddyfile already has the plain-HTTP mode for Railway (AD-27). The deployment, a production database, secrets, a public certificate, one year of HSTS and backups are out of scope for v1 (NFR-1, PRD §9).
 - **The D3/D6 make-room flow and the remedy page** (FR-40, FR-42): If-time 7. AD-7 fixes what the Core must already hold.
-- **Holds per source address** (FR-35) **and a per-IP sign-in throttle**: neither can be tested meaningfully on localhost. Revisit with If-time 5, or before any real deployment.
+- **Holds per source address** (FR-35) **and a per-IP sign-in throttle**: neither can be tested meaningfully on localhost. Revisit with If-time 5, or before any real deployment. Behind Caddy, the client address then comes only from Caddy's `X-Forwarded-For`, trusted through uvicorn's `forwarded_allow_ips` for the proxy alone.
 - **Door-code lock simulator** (FR-45 to FR-50): Step 2. AD-14 reserves its seam.
 - **Performance targets:** none (NFR-7).
 - **Dependency audit** (NFR-8): `uv run --with pip-audit pip-audit` and `npm audit` at the freeze.
