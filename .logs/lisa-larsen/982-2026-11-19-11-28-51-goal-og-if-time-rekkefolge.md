@@ -100,3 +100,17 @@ Kjøre kontrollrunden (reviewer gate) på arkitektur-spinen etter AD-23–AD-26,
 ### Åpne punkter
 - Lisa velger prisene for hel badstue og hvilke badstuer som kan bookes hele, i den første §4.9-storyen (seed-dataene).
 - Fristen lagres nå per booking (AD-4, FR-39). Kolonnen kommer med epicen for If-time 2 og påvirker også bookinger av enkeltplasser.
+
+## 2026-11-19 kl. 12:30 — Lisa Larsen
+
+### Oppgave
+Pushe dagens commits til origin.
+
+### Plan
+- `git push` på `main`.
+
+### Resultat
+16 commits pushet til `origin/main` (`6793ab8..b417d0b`): PRD-endringene, vedlegget, arkitektur-spinen med kontrollrunden og sesjonsloggene.
+
+### Åpne punkter
+Ingen nye.
