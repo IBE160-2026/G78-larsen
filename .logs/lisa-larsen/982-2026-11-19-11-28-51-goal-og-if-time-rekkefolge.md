@@ -41,3 +41,27 @@ Lisa valgte alternativ A: rekkefølgen Core → HTTPS → §4.8 → §4.9 behold
 ### Åpne punkter
 - §1 og §10.3 sier fortsatt at sannsynlig v1 er «Core plus HTTPS» (backcasting 2026-11-01). Avgjør om det skal endres nå som §4.8 og §4.9 er planlagt for `/goal`-kjøringen.
 - Arkitekturen dekker bare Core. FR-29–FR-33 (Fill order, avledet Placement og FR-32 om at forespørsler ikke flettes) må avgjøres før storiene for §4.9 skrives.
+
+## 2026-11-19 kl. 12:03 — Lisa Larsen
+
+### Oppgave
+1. Endre «likely v1 = Core plus HTTPS» i PRD-en nå som §4.8 og §4.9 er planlagt. 2. Begynne på arkitekturen for §4.9 (FR-29–FR-33).
+
+### Plan
+- PRD §1, §10.1 og §10.3: planlagt v1 = Core + If-time 1–3, med Core + HTTPS som gulv.
+- Arkitektur: `bmad-architecture` som oppdatering av `ARCHITECTURE-SPINE.md` (coaching). Gå gjennom det som alt er avgjort, finne punktene der stories kan bygges ulikt, og la Lisa avgjøre dem.
+
+### Resultat
+- `prd.md`: I §1 står det nå at planlagt v1 er Core pluss HTTPS, Change Seats or take a Voucher og Whole-sauna booking. Core alene beviser at en plass aldri oversselges, Whole-sauna booking og Placement beviser resten, og Core + HTTPS er gulvet (DR-2). §10.1 (beslutningslinjen) og §10.3 sier det samme.
+- Arkitektur (`architecture-booking-platform-2026-11-03/`): Lisa avgjorde:
+  - AD-23: heldagsbookingen er en rad i `bookings` (`kind = 'whole'`, `sauna_id` satt, `seats` NULL) og hører sammen med en rad i `whole_bookings` (`booking_id` UNIQUE) som bare finnes mens bookingen er aktiv, kontrollert ved COMMIT. Avbestilling setter status og sletter kapasitetsraden. Flytting oppdaterer begge radene, beholder referansen og skriver en historikkrad. `saunas.whole_price_ore`; ulik pris gir `price_differs`. Fristen på 72 t ligger i `settings`.
+  - AD-24: én SQL-funksjon, `whole_bookable(wid, sid)`, brukes av triggeren ved INSERT og UPDATE (lukker hullet der en flytting gikk forbi FR-29-sjekken i `0001`) og av Private sauna-lista. Avvisningskoden er `sauna_unavailable`.
+  - AD-25: `placement(wid)` er eneste utregning av Placement.
+  - AD-26: FR-31 testes med én Hypothesis-tilstandsmaskin (6.170.15, sjekket på PyPI) gjennom `services` mot ekte PostgreSQL. Senere If-time-punkter legger til sine handlinger der.
+  - Refusjon eller Voucher ved avbestilling (FR-33) avgjøres sammen med §4.8 (Deferred).
+- Spinen har `status: draft`. Lint-sjekken fant ett lavt, falskt treff (`{reference}` i AD-12). Kontrollrunden (reviewer gate) er ikke kjørt.
+- Ingenting er committet.
+
+### Åpne punkter
+- Kjør kontrollrunden (reviewer gate) på spinen (rubrikk, versjonssjekk og en motstander som prøver å finne to stories som følger alle AD-ene men likevel ikke passer sammen), rett funnene og sett `status: final`.
+- §4.8-tillegget til spinen må avgjøre refusjon og Voucher også for FR-33 før storiene for §4.9 skrives.
