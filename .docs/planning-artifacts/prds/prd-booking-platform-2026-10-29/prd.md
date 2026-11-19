@@ -532,7 +532,7 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
 - In a Window that has started, with 29 Seats booked at `[7,10,12,0]`, Sauna 4 cannot be booked whole, although no Seats are counted in it (H12).
 - A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
 - When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
-- With Sauna 1 marked Whole-booking-only and 5 Seats booked, Sauna 1 can still be booked whole (FR-41).
+- Before the Release time, a Whole-booking-only Sauna holds no Seats, so it skips the Room-ahead test (FR-41). With Sauna 1 marked and 5 Seats booked, the Seats are counted `[—,5,0,0]`, and Sauna 1 can be booked whole; Seats left stays 32. Without the mark, or after the Release time, the same 5 Seats are counted `[5,0,0,0]`, and Sauna 1 cannot be booked whole (B3).
 
 #### FR-30: Choose the Sauna
 For a chosen date, the Private sauna page lists each Sauna that can be booked whole, with its Capacity, its price and its free Windows. The Guest picks a Window in that list, or opens one Sauna and picks a Window there. Realizes UJ-5.
