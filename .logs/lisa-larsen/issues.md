@@ -135,3 +135,4 @@
 - [x] 2026-11-19 [arkitektur-https-og-endringer](973-2026-11-19-20-24-25-arkitektur-https-og-endringer.md) — PRD NFR-1 og antagelsen der, README og EXPERIENCE.md («React SPA») må oppdateres til Caddy + Next.js i Docker Compose (én kommando) (løst 2026-11-19: `7eaf96d`)
 - [ ] 2026-11-19 [arkitektur-https-og-endringer](973-2026-11-19-20-24-25-arkitektur-https-og-endringer.md) — Caddy- og Next.js-påstandene i AD-27 og AD-17 er ikke kjørt (Docker var av); første compose-story prøver redirecten med `curl -i` og `caddy adapt`
 - [ ] 2026-11-19 [favicon-svg](972-2026-11-19-20-25-17-favicon-svg.md) — flytt `favicon.svg` til `frontend/public/` og lenk den i Next.js-layouten når frontenden bygges; vurder PNG/ICO-reserve
+- [ ] 2026-11-19 [favicon-svg](972-2026-11-19-20-25-17-favicon-svg.md) — velg SL-favicon A–D (anbefalt B) eller behold dampmerket; oppdater `favicon.svg`, `DESIGN.md`, `EXPERIENCE.md` Open Item 9 og `ASSETS.md` (Finlandica-glyfer, OFL)
