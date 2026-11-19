@@ -2,7 +2,7 @@
 title: "Saunalöyly Booking Platform"
 status: final
 created: 2026-10-29
-updated: 2026-11-09
+updated: 2026-11-19
 ---
 
 # PRD: Saunalöyly Booking Platform
@@ -30,7 +30,7 @@ How to read it: every domain noun is defined once in the Glossary (§3) and used
 
 Saunalöyly is a fictional, Finnish-inspired sauna venue with four or more saunas, and this platform is how guests reserve a place in it. A guest picks a day and the number of seats, sees at once which time windows have room and what it will cost, and pays. No account is needed, no help is needed, and nothing on the page tries to rush them. Alternatively, a group can take a whole sauna for itself. The website feels like the sauna it sells: calm, honest and plain, in light wood, deep green, birch white and sky blue, with real Finnish sauna rooms and their traditional tools in view.
 
-The hard part is not the booking form. Individual seats and whole-sauna bookings draw on the same physical rooms. The platform must never sell a seat twice, never sell a sauna that guests are already booked into, and keep its numbers right when two people press Pay in the same second or an administrator closes a sauna for repairs. This PRD bets on one idea: **if the capacity rules are precise enough to test, one person can deliver a booking core that never oversells, and then grow it feature by feature without rewrites.** Every rule below is therefore written as a testable consequence. The riskiest rules are proven with parallel automated tests rather than argued.
+The hard part is not the booking form. Individual seats and whole-sauna bookings draw on the same physical rooms. The platform must never sell a seat twice, never sell a sauna that guests are already booked into, and keep its numbers right when two people press Pay in the same second or an administrator closes a sauna for repairs. This PRD bets on one idea: **if the capacity rules are precise enough to test, one person can deliver a booking core that never oversells, and then grow it feature by feature without rewrites.** Every rule below is therefore written as a testable consequence. The riskiest rules are proven with parallel automated tests rather than argued. For the version we will most likely deliver (the Core plus HTTPS), the bet is this: a Seat is never oversold under concurrent booking. Whole-sauna booking and Placement are the first extension, and they are tested only once §4.9 is built.
 
 The platform is a learning project: an exam submission for IBE160 (group G78), built by one person between 27 October and 15 December 2026, planned with BMAD and implemented with Claude Code. Payment, email and door locks are simulated, and heating is not built at all. The platform is built so that it could grow into a real service, but it does not pretend to be one. Its value for assessment is a working, AI-built application together with an honest record of how AI was used and how the result was checked. If it became a real service, it would compete on price, appeal and features. Its differences would be a Finnish-inspired identity for people who already like saunas, and seats and private saunas in one system. Neither is proven: the exam version tests no prices and no demand.
 
