@@ -48,3 +48,31 @@ Oppdatere arkitekturspinen med tillegget for HTTPS (§4.7, FR-24) og endringer o
   - `curl -i http://localhost:8000/` for HT-1;
   - avviket for Secure-cookies på localhost.
 - Hvordan en delt Seat-booking fordeler betalingen ved refusjon, avgjøres i If-time 7. Til da gir `refund()` 500 for bookinger som er delt.
+
+## 2026-11-19 kl. 21:30 — Lisa Larsen
+
+### Oppgave
+Lisa spurte om spinen samsvarer med `technology.md` (Bårds referanseoppsett for pytagoras-website-v2). Etter svaret ba hun om at proxy byttes til Caddy og frontend til Next.js, og at begge følger `technology.md`.
+
+### Plan
+- Sammenligne spinen med `technology.md`. Svaret var nei for Caddy, Next.js og Supabase: spinen hadde valgt bort Caddy og Next.js med vilje.
+- Sjekke versjonene: Caddy 2.11.9 og Next.js 16.4.6 (Node ≥ 20.9).
+- Lisa svarte på fire valg som `technology.md` ikke avgjør. Hun valgte alle anbefalingene:
+  - alt kjøres i Docker Compose;
+  - nettleseren gjør alle kall som trenger sesjon, og serveren henter bare offentlige data;
+  - testene kjører i to lag;
+  - Railway er bare en modus i Caddyfile.
+- Skrive om AD-17 og AD-27 og oppdatere de AD-ene som berøres. Reviewer-gate med teknologisjekk og hull-review.
+
+### Resultat
+- **Spinen** (`d946422`, `status: final`):
+  - **AD-27:** Caddy er den eneste inngangen og er bundet til 127.0.0.1. Lokalt serveres `localhost:8443` med Caddys interne CA, og HTTP på :8000 sendes videre til HTTPS. `SITE_ADDRESS` styrer tre moduser: Core på HTTP, HTTPS fra FR-24, og Railway. Caddy setter alle headerne. Tjenestene har healthchecks. e2e-stakken kjører som eget prosjekt på egne porter. HT-1 til HT-4 er beskrevet.
+  - **AD-17:** Next.js App Router i JavaScript. `lib/api.js` er den eneste kalleren i nettleseren, og `lib/server-api.js` henter bare Venue-fakta. Next svarer aldri på `/api`. Rewrites gjelder bare i dev. `metadata` står i server-sidene, og én komponent flytter fokus. `content/` lagres som JSON og kopieres inn i frontend. Docker-imaget følger Next sitt `with-docker`-eksempel.
+  - **Endret:** AD-8 (`403 cross_origin`), AD-14 (`BP_TEST_SWITCHES`), AD-16 (`today`), AD-21, AD-22 (`BP_BASE_URL` er alltid den origin nettleseren bruker, `/docs` er slått av), AD-28, konvensjonene (to testlag med kart over hva hvert lag beviser), stack, seed og Deferred.
+  - **Tatt ut:** `tls.py`, cryptography, Vite og react-router.
+- **Ikke tatt inn fra `technology.md`:** TypeScript, Tailwind og shadcn, fordi PRD §8.2 og FR-22 krever JavaScript og ett stilark. `/docs` og `/openapi.json` er også slått av, fordi Swagger UI lastes fra en CDN, og FR-21 forbyr tredjepartskall.
+- **Reviews:** `reviews/review-{tech-currency,adversarial}-caddy-next-2026-11-19.md`. Det kritiske funnet (base-URL før FR-24) og alle høye funn er rettet. Det høye funnet om port i redirecten er rettet med site-adressen `localhost:8443` uten `https_port`.
+
+### Åpne punkter
+- PRD NFR-1 og antagelsen der sier fortsatt at Docker bare kjører databasen, med én kommando per del. README og EXPERIENCE.md («React SPA») må også oppdateres til Caddy og Next.js.
+- Påstandene om Caddy og Next.js er lest fra kildekode og dokumentasjon, ikke kjørt, fordi Docker ikke kjørte. Første story som setter opp compose-stakken, må prøve redirecten (`curl -i`) og `caddy adapt`.
