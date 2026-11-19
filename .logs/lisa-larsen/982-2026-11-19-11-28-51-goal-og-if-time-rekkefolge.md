@@ -95,7 +95,7 @@ Kjøre kontrollrunden (reviewer gate) på arkitektur-spinen etter AD-23–AD-26,
   - `scope`/`binds` sier at FR-33 bare er dekket for kapasitetsdelen.
   - Deferred: §4.8-tillegget før `/goal`-kjøringen; badstuepriser velges av Lisa; F2 senere.
 - Lint etter rettingene: bare det kjente falske treffet. Spinen har nå `status: final`, og memloggen har fått `spine finalized`.
-- Spinen, memloggen og rapportene er ikke committet.
+- Spinen, memloggen og rapportene er committet i `dcb9cda`.
 
 ### Åpne punkter
 - Lisa velger prisene for hel badstue og hvilke badstuer som kan bookes hele, i den første §4.9-storyen (seed-dataene).
