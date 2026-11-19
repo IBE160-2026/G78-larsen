@@ -122,3 +122,4 @@
 - [x] 2026-11-10 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — lenke til Pixabay-siden for bilde 9176885 av tylijura (Löyly-bildet) mangler i `ASSETS.md` (DR-3) (løst 2026-11-10)
 - [x] 2026-11-10 [ux-design](986-2026-11-05-22-18-07-ux-design.md) — Löyly-bildet er en illustrasjon (Pixabay fører det under illustrations); Open Item 7 tillater KI-genererte bilder, men `DESIGN.md` sier «Photographs of real saunas and tools»; avgjør om ordlyden skal endres (løst 2026-11-10: «Photographs and/or illustrations of saunas and tools»)
 - [ ] 2026-11-19 [prd-satsing-i-visjon](984-2026-11-19-11-02-27-prd-satsing-i-visjon.md) — vurder om §4.9 (Whole-sauna booking) skal komme foran HTTPS i If time-rekkefølgen (§10), jf. `tilbakemelding-prd.md`
+- [ ] 2026-11-19 [goal-og-if-time-rekkefolge](982-2026-11-19-11-28-51-goal-og-if-time-rekkefolge.md) — avgjør om §4.8 skal få epic og stories nå, slik at `/goal`-kjøringen bygger den (anbefalt: ja, etter Core og HTTPS)
