@@ -22,3 +22,17 @@ Etter tilbakemelding på PRD-en: mange konsekvenser viste bare til katalog-ID-er
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-19 kl. 12:42 — Lisa Larsen
+
+### Oppgave
+Pushe til origin.
+
+### Plan
+- `git push` på `main`.
+
+### Resultat
+4 commits pushet til `origin/main` (`b417d0b..7c425c4`): loggen for pushen før, sesjonsloggen og PRD-endringen `19acd6e`.
+
+### Åpne punkter
+Ingen.
