@@ -840,14 +840,14 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 
 ## 13. Assumptions Index
 - §2.3: protagonist names are placeholders.
+- §3: reception staff use the Administrator Booking list, and v1 has no check-in marking.
 - FR-1: content of the "Before you come" section, apart from the two towels and the bathing rules.
 - FR-3: the nearest Windows with room come from the same day first, then the following days, at most three.
 - FR-5: names are 1–100 characters, and emails at most 254.
-- §3: reception staff use the Administrator Booking list, and v1 has no check-in marking.
-- FR-8: the Core confirmation has no Manage link.
 - FR-8: the confirmation page is tied to the paying browser session.
-- FR-13: the seed generates Windows from the run date.
+- FR-8: the Core confirmation has no Manage link.
 - FR-11: 100 race repetitions per test run.
+- FR-13: the seed generates Windows from the run date.
 - FR-15: the sign-in throttling thresholds (5 failed attempts, 15 minutes) are starting values, and the architecture may adjust them.
 - FR-16: the booking list is grouped by date and Window, with totals.
 - FR-22: "laptop screen" means 1366×768 and 1920×1080.
@@ -860,15 +860,19 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - FR-35: Holds per source address are limited; the architecture sets the limit.
 - FR-37: Guests sign in by email.
 - FR-39: changes to the Booking horizon, Booking deadline and Release time apply from the moment of the change.
-- FR-39: for a Window of another length, the earlier of the Booking deadline setting and 45 minutes before its end applies; the Booking horizon and Booking deadline apply to every way of taking capacity.
-- FR-40: a Block covers every overlapping Window; as many Bookings lose as needed.
+- FR-39: the Booking horizon and Booking deadline apply to every way of taking capacity, including the target Window of a Change.
+- FR-39: for a Window of another length, the earlier of the Booking deadline setting and 45 minutes before its end applies.
 - FR-39: the Release time limit (never later than the Booking deadline) is checked per Window, not as one global time.
+- FR-40: a Block affects every Window that overlaps its period, using half-open intervals.
+- FR-40: as many Seat bookings lose as are needed for the rest to fit.
 - FR-42: a refund is made if the Guest has not chosen within 30 days.
 - FR-43: Gift cards carry a 14-day right of withdrawal (legal reading).
-- FR-45: Administrator-entered codes can be changed until sent; every Sauna has a self-service lock in the seed data.
-- FR-48: H14 (widened to every way a Sauna becomes open) and H15 as in the brief.
+- FR-45: a code the Administrator enters can be changed until its email is sent.
+- FR-45: every Sauna has a self-service lock in the seed data.
+- FR-48: H14 as in the brief, widened to every way a Sauna becomes open.
+- FR-48: H15 as in the brief.
 - FR-49: H11 as recommended.
-- NFR-1: one command each to start the backend and frontend, and one to run all tests.
+- NFR-1: one command each to start the data store, the backend and the frontend, and one to run all tests.
 - NFR-3: Windows keep their local clock times across daylight-saving changes.
 - NFR-8: a dependency audit is run at the freeze.
 - §9: no waiting list.
