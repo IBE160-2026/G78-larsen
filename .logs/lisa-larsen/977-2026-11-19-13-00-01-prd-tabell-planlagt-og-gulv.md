@@ -15,3 +15,17 @@ Lisa spurte om spørsmålene i `tilbakemelding-prd.md` var avklart: «Hva er kje
 
 ### Åpne punkter
 - Avgjør om den feilpubliserte artifacten av `prd.md` skal slettes.
+
+## 2026-11-19 kl. 13:01 — Lisa Larsen
+
+### Oppgave
+Slette den feilpubliserte artifacten av `prd.md`.
+
+### Plan
+- Slette artifacten.
+
+### Resultat
+Artifacten https://claude.ai/artifact/5SXJPbSyKjuV4ZZbUN7VXs er slettet. Lenken virker ikke lenger, og den kan ikke gjenopprettes. Det åpne punktet i `issues.md` er lukket. Den lokale `prd.md` er ikke påvirket.
+
+### Åpne punkter
+Ingen.

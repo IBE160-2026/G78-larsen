@@ -128,4 +128,4 @@
 - [x] 2026-11-19 [goal-og-if-time-rekkefolge](982-2026-11-19-11-28-51-goal-og-if-time-rekkefolge.md) — kjør reviewer gate på arkitektur-spinen (AD-23–AD-26), rett funn og sett `status: final` (løst 2026-11-19: gate kjørt, funn rettet, spine final)
 - [ ] 2026-11-19 [goal-og-if-time-rekkefolge](982-2026-11-19-11-28-51-goal-og-if-time-rekkefolge.md) — §4.8-tillegget til spinen må også avgjøre refusjon/Voucher for FR-33 før §4.9-stories skrives
 - [ ] 2026-11-19 [goal-og-if-time-rekkefolge](982-2026-11-19-11-28-51-goal-og-if-time-rekkefolge.md) — velg Whole-sauna-priser og hvilke badstuer som kan bookes hele (seeds/), i første §4.9-story
-- [ ] 2026-11-19 [prd-tabell-planlagt-og-gulv](977-2026-11-19-13-00-01-prd-tabell-planlagt-og-gulv.md) — avgjør om den feilpubliserte private artifacten av prd.md (claude.ai/artifact/5SXJPbSyKjuV4ZZbUN7VXs) skal slettes
+- [x] 2026-11-19 [prd-tabell-planlagt-og-gulv](977-2026-11-19-13-00-01-prd-tabell-planlagt-og-gulv.md) — avgjør om den feilpubliserte private artifacten av prd.md (claude.ai/artifact/5SXJPbSyKjuV4ZZbUN7VXs) skal slettes (løst 2026-11-19: slettet)
