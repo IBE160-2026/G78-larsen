@@ -528,7 +528,7 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
   - Sauna 4 can be booked whole (20 ≤ 29), and Seats left becomes 9 (catalogue B1);
   - Sauna 3 cannot: 3 Seats are counted in it, and the 20 Seats would not fit in Saunas 1 and 2 (20 > 17) (B2).
 - With 1 Seat booked, it is counted in Sauna 1, so Sauna 1 cannot be booked whole (B3).
-- After the booking, Seats left drops at once by the Sauna's Capacity when the Sauna was open for Seats: in an empty Window, booking Sauna 4 whole takes Seats left from 44 to 29 (B7). Seats are then counted around the Sauna: with Sauna 2 booked whole, 9 Seats booked are counted `[7,—,2,0]` (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
+- After the booking, Seats left drops at once by the Sauna's Capacity when the Sauna was open for Seats: in an empty Window, booking Sauna 4 whole takes Seats left from 44 to 29 (B7). Seats are then counted around the Sauna (FR-31, B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
 - In a Window that has started, with 29 Seats booked at `[7,10,12,0]`, Sauna 4 cannot be booked whole, although no Seats are counted in it (H12).
 - A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
 - When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
@@ -559,7 +559,7 @@ After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Bl
   - Cancelling 5 Seats counted in Sauna 1 at `[7,10,12,3]` gives `[7,10,10,0]`: the Seats that move forward come from Sauna 4 first, then from Sauna 3 (A5).
   - Giving up 1 of 4 Seats at `[7,10,5,0]` gives `[7,10,4,0]` (A8, once §4.8 exists).
   - With Sauna 1 booked whole, Seat capacity is 37: Bookings of 10, 10, 10 and 7 Seats fill it, and a further request for 1 Seat is refused (B4, rewritten under the 10-Seat cap).
-  - With Sauna 2 booked whole in an empty Window, 9 Seats booked are counted `[7,—,2,0]` (B5).
+  - Sauna 2 is booked whole while the Window is still empty. When 9 Seats are then booked, 7 are counted in Sauna 1, Sauna 2 is skipped, and the other 2 are counted in Sauna 3: `[7,—,2,0]`. Seats left is 34 − 9 = 25 (B5).
   - Cancelling the Whole-sauna booking of Sauna 2 at `[7,—,12,4]` (23 Seats) gives `[7,10,6,0]`: 10 Seats move forward, 4 from Sauna 4 and 6 from Sauna 3 (B6).
   - B1, B2, B3 and B7 are written out in FR-29, and A6 and A7 in FR-12.
 - Guests are never told a Sauna. The Administrator can see the Placement of each Window.
