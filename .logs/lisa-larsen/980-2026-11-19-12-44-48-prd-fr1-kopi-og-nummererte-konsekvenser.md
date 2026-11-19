@@ -14,7 +14,7 @@ Tilbakemelding på PRD-en (medium): FR-1 blandet krav med ferdig tekst, og FR-39
 - `prd.md`, §0: En linje om nummererte konsekvenser og om at ferdig sidetekst ligger i UX-dokumentene.
 - `appendix-fr-34-51.md`: FR-39.1–FR-39.7 og FR-40.1–FR-40.11 er nummerert. Selve teksten er uendret.
 - `EXPERIENCE.md`, Voice and Tone: Ny tabell «Landing copy, verbatim» med beskrivelsen, alle punktene i «Before you come» og adressen og kontaktinfoen. Den erstatter avsnittet som viste til FR-1.
-- Ikke committet.
+- Committet i `9664b81`.
 
 ### Åpne punkter
 Ingen.
