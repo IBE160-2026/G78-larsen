@@ -313,7 +313,7 @@ Every Window applies to all Saunas, and no two Windows overlap. Realizes UJ-1.
 - Seed data or Administrator input with overlapping Windows is rejected: partly overlapping, identical and nested Windows alike. 15:00–16:30 and 16:30–18:00 are accepted (catalogue E1, E2).
 - The seed creates Windows from the day it runs through the end of the Booking horizon, following a schedule held in the seed data `[ASSUMPTION: the seed generates Windows from the run date]`. The schedule is the eight Windows a day of §12 Q3. Running it again adds only the missing Windows and creates no duplicates, so a fresh clone has bookable dates whenever it is started.
 - A Sauna that is unavailable for part of a Window is expressed as a Block. It never gets a different Window of its own (E3).
-- Windows are independent: a booking, cancellation or Whole-sauna booking in one Window never changes another (E2, E4, E6).
+- Windows are independent: a booking, cancellation or Whole-sauna booking in one Window never changes another. For example, cancelling Seats in the 14:30 Window leaves Seats left at 16:00 unchanged, and with Sauna 3 booked whole at 14:30, Seats booked at 16:00 are still counted in Sauna 3 (E2, E4, E6).
 
 #### FR-14: Temporary conflicts end cleanly
 A request that meets a temporary conflict in the data store is retried a bounded number of times. If it still fails, the Guest gets a clear message and nothing is written. Realizes UJ-2.
@@ -483,7 +483,7 @@ A Guest with the Manage link can open that Booking and nothing else. Realizes UJ
 Before the Cutoff, a Guest can move some or all Seats of a Seat booking to another Window that has room. Realizes UJ-4.
 
 **Consequences (testable):**
-- The move is atomic. If the target Window lacks room, nothing changes and the original Booking is untouched (catalogue E5).
+- The move is atomic. If the target Window lacks room, nothing changes and the original Booking is untouched. For example, moving 3 Seats to a Window with 2 left is refused: the original Booking keeps its 3 Seats, and Seats left stays the same in both Windows (catalogue E5).
 - Moving only some Seats splits the Booking. The moved Seats become a new Booking in the target Window, with its own Booking reference and Manage link, emailed at once and shown on the result page (FR-17). The original Booking keeps its reference and link, with fewer Seats. Both keep the price paid per Seat and the Cutoff setting the original was made under. Moving all Seats moves the Booking and keeps its reference.
 - The target Window must be inside the Booking horizon and before its Booking deadline (FR-39).
 - A move costs nothing extra, because the price per Seat is the same in every Window in v1 (Lisa, 2026-10-30).
@@ -514,6 +514,8 @@ A Guest can use a Voucher code to pay for a later Booking. Realizes UJ-4.
 
 Seats are counted into Saunas in the Fill order, so the last Saunas in the order stay free for groups as long as possible. A Sauna can be booked whole only if every Seat already booked in the Window still fits in the Saunas ahead of it. A Whole-sauna booking can be cancelled for a refund or a Voucher, or moved, until 72 hours before the start. Realizes UJ-5.
 
+The examples in §4.9 use the seed Saunas (addendum J): Saunas 1 to 4 hold 7, 10, 12 and 15 Seats (44 in total), filled in that order. `[7,10,5,0]` lists the Seats counted in Saunas 1 to 4, and `—` marks a Sauna that is booked whole or Blocked. The catalogue IDs in brackets are trace tags only; the expected outcome is written out here.
+
 `[NOTE FOR PM]` The strict rule protects groups, but it can refuse a Private sauna while the Venue still has room in total (catalogue B2). Comparable venues deliberately limit private use (addendum E). v1 models no limit beyond the Fill order.
 
 **Functional Requirements:**
@@ -528,9 +530,10 @@ A Guest can book a Sauna for a Window when all of these hold. Realizes UJ-5.
 **Consequences (testable):**
 - Take 20 Seats booked, with Sauna 1 full, Sauna 2 full and 3 Seats counted in Sauna 3:
   - Sauna 4 can be booked whole (20 ≤ 29), and Seats left becomes 9 (catalogue B1);
-  - Sauna 3 cannot (B2).
-- With 1 Seat booked, Sauna 1 cannot be booked whole (B3).
-- After the booking, Seats left drops at once by the Sauna's Capacity (B7) when the Sauna was open for Seats, and Seats are counted around the Sauna (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
+  - Sauna 3 cannot: 3 Seats are counted in it, and the 20 Seats would not fit in Saunas 1 and 2 (20 > 17) (B2).
+- With 1 Seat booked, it is counted in Sauna 1, so Sauna 1 cannot be booked whole (B3).
+- After the booking, Seats left drops at once by the Sauna's Capacity when the Sauna was open for Seats: in an empty Window, booking Sauna 4 whole takes Seats left from 44 to 29 (B7). Seats are then counted around the Sauna: with Sauna 2 booked whole, 9 Seats booked are counted `[7,—,2,0]` (B5). A Whole-booking-only Sauna that is not released is not in Seat capacity, so Seats left does not change.
+- In a Window that has started, with 29 Seats booked at `[7,10,12,0]`, Sauna 4 cannot be booked whole, although no Seats are counted in it (H12).
 - A Whole-sauna booking has no Hold. The review page says that the Sauna is not held while the Guest pays. FR-29 is checked again when the payment is submitted, and if the Sauna was taken meanwhile, nothing is charged (FR-36).
 - When two requests for the same Sauna and Window arrive at the same time, exactly one succeeds (C1).
 - With Sauna 1 marked Whole-booking-only and 5 Seats booked, Sauna 1 can still be booked whole (FR-41).
@@ -552,10 +555,17 @@ After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Bl
 - **INV-5:** no Sauna that is open for Seats and comes earlier in the Fill order has room while a later one holds Seats.
 
 **Consequences (testable):**
-- Catalogue groups A and B hold, with B4 rewritten as several Bookings under the 10-Seat cap (addendum A). Three examples:
-  - Cancelling 3 Seats counted in Sauna 1 at [7,10,5,0] gives [7,10,2,0] (A2).
-  - A Sauna emptied this way can be booked whole at once (A3).
-  - Cancelling a Whole-sauna booking counts the Seats forward again (B6).
+- Catalogue groups A and B hold, with these outcomes:
+  - Booking 5 Seats and then 4 in an empty Window gives `[7,2,0,0]`, and Seats left is 35 (A1).
+  - Cancelling 3 Seats counted in Sauna 1 at `[7,10,5,0]` gives `[7,10,2,0]`: Sauna 1 is full again, and Seats left is 25 (A2).
+  - Cancelling 2 more Seats counted in Sauna 1 gives `[7,10,0,0]`, and Sauna 3 can be booked whole at once (A3).
+  - Cancelling 2 Seats counted in Sauna 3 at `[7,10,5,0]` gives `[7,10,3,0]`, and no Seat moves (A4).
+  - Cancelling 5 Seats counted in Sauna 1 at `[7,10,12,3]` gives `[7,10,10,0]`: the Seats that move forward come from Sauna 4 first, then from Sauna 3 (A5).
+  - Giving up 1 of 4 Seats at `[7,10,5,0]` gives `[7,10,4,0]` (A8, once §4.8 exists).
+  - With Sauna 1 booked whole, Seat capacity is 37: Bookings of 10, 10, 10 and 7 Seats fill it, and a further request for 1 Seat is refused (B4, rewritten under the 10-Seat cap).
+  - With Sauna 2 booked whole in an empty Window, 9 Seats booked are counted `[7,—,2,0]` (B5).
+  - Cancelling the Whole-sauna booking of Sauna 2 at `[7,—,12,4]` (23 Seats) gives `[7,10,6,0]`: 10 Seats move forward, 4 from Sauna 4 and 6 from Sauna 3 (B6).
+  - B1, B2, B3 and B7 are written out in FR-29, and A6 and A7 in FR-12.
 - Guests are never told a Sauna. The Administrator can see the Placement of each Window.
 - A model-based test applies random sequences of bookings, Changes (including partial moves), cancellations, Whole-sauna bookings, Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity changes and Fill order changes. After every step it checks INV-1 to INV-5 against a brute-force reference. Each If-time item adds its own actions to the test when it is built.
 
@@ -563,11 +573,11 @@ After every booking, Change, cancellation, Whole-sauna booking, Block, lifted Bl
 Seat bookings, moves and cancellations and Whole-sauna bookings in the same Window are serialised, so each one completes on a consistent state. Realizes UJ-2 and UJ-5.
 
 **Consequences (testable):**
-- A Seat booking that races a Whole-sauna booking of the last Sauna able to take it: exactly one of them succeeds, never both (C2).
-- A cancellation that races a Whole-sauna booking: the Whole-sauna booking succeeds only if it is valid after the cancellation, and it is never made over a Sauna holding Seats (C3).
-- Two simultaneous cancellations never move a Seat twice or lose one (C4).
+- A Seat booking that races a Whole-sauna booking of the last Sauna able to take it: exactly one of them succeeds, never both. At `[7,10,12,0]`, Guest A books 1 Seat while Guest B books Sauna 4 whole: either A gets the Seat (`[7,10,12,1]`) and B is refused, or B gets Sauna 4 and A is refused (C2).
+- A cancellation that races a Whole-sauna booking: the Whole-sauna booking succeeds only if it is valid after the cancellation, and it is never made over a Sauna holding Seats. At `[7,10,2,0]` (19 Seats), 2 Seats counted in Sauna 1 are cancelled while Sauna 3 is requested whole: Sauna 3 is accepted only if the cancellation went first (`[7,10,0,0]`), and is refused otherwise (C3).
+- Two simultaneous cancellations never move a Seat twice or lose one: at `[7,10,12,4]` (33 Seats), two cancellations of 3 Seats each end at `[7,10,10,0]` (C4).
 - INV-1 to INV-5 hold after each completed request, under any interleaving (C5).
-- Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity decreases, Fill order changes and Window edits are serialised with Bookings and Holds in every Window they touch. When a Block races a booking for the last Seats, either the booking goes first and D2 or D3 then apply, or the Block goes first and the booking is judged on the reduced Seat capacity. The outcome is never a mix of the two (C6).
+- Blocks, lifted Blocks, Whole-booking-only marks, releases, Capacity decreases, Fill order changes and Window edits are serialised with Bookings and Holds in every Window they touch. When a Block races a booking for the last Seats, either the booking goes first and the Block then moves or cancels Seats as FR-40 says (D2, D3), or the Block goes first and the booking is judged on the reduced Seat capacity. The outcome is never a mix of the two (C6).
 - A Capacity decrease that races a Seat booking for the last Seats gives the same result as if one ran wholly before the other: the booking never lands in a Window the decrease has already filled, and the decrease never passes its check on stale Seat numbers (F1).
 - A Change that moves Seats from one Window to another, run in parallel with a Whole-sauna booking or an opposite Change in either Window, leaves INV-1 to INV-5 true in both Windows. No Seat is lost or counted twice.
 
