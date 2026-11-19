@@ -60,7 +60,7 @@ Lisa valgte alternativ A: rekkefølgen Core → HTTPS → §4.8 → §4.9 behold
   - AD-26: FR-31 testes med én Hypothesis-tilstandsmaskin (6.170.15, sjekket på PyPI) gjennom `services` mot ekte PostgreSQL. Senere If-time-punkter legger til sine handlinger der.
   - Refusjon eller Voucher ved avbestilling (FR-33) avgjøres sammen med §4.8 (Deferred).
 - Spinen har `status: draft`. Lint-sjekken fant ett lavt, falskt treff (`{reference}` i AD-12). Kontrollrunden (reviewer gate) er ikke kjørt.
-- Ingenting er committet.
+- Committet: PRD i `611854f`, arkitektur-spinen og memloggen i `dfb472b`.
 
 ### Åpne punkter
 - Kjør kontrollrunden (reviewer gate) på spinen (rubrikk, versjonssjekk og en motstander som prøver å finne to stories som følger alle AD-ene men likevel ikke passer sammen), rett funnene og sett `status: final`.
