@@ -65,3 +65,38 @@ Lisa valgte alternativ A: rekkefølgen Core → HTTPS → §4.8 → §4.9 behold
 ### Åpne punkter
 - Kjør kontrollrunden (reviewer gate) på spinen (rubrikk, versjonssjekk og en motstander som prøver å finne to stories som følger alle AD-ene men likevel ikke passer sammen), rett funnene og sett `status: final`.
 - §4.8-tillegget til spinen må avgjøre refusjon og Voucher også for FR-33 før storiene for §4.9 skrives.
+
+## 2026-11-19 kl. 12:29 — Lisa Larsen
+
+### Oppgave
+Kjøre kontrollrunden (reviewer gate) på arkitektur-spinen etter AD-23–AD-26, rette funnene og ferdigstille spinen.
+
+### Plan
+- Lint-sjekk med `lint_spine.py`, deretter fire uavhengige gjennomganger samtidig: sjekkliste, versjoner (Hypothesis), motstander (to stories som følger alle AD-ene men ikke passer sammen) og PRD §4.9 mot spinen.
+- Rette det som følger av PRD-en og eksisterende AD-er, og bare spørre Lisa om reelle produktvalg.
+
+### Resultat
+- Rapportene ligger i `architecture-booking-platform-2026-11-03/reviews/*-2026-11-19.md`: sjekkliste (3 høy, 10 middels, 7 lav), motstander (1 kritisk, 4 høy, 7 middels, 2 lav), versjoner (Hypothesis 6.170.15 bekreftet ved å installere den; 3 middels, 4 lav) og PRD mot spine (1 høy, 8 middels, 9 lav). Funnene overlappet mye.
+- Rettet i spinen:
+  - Kritisk: `whole_bookable` telte sin egen rad i triggeren, så regelen for startede økter kunne forsvinne. Den har nå `ignore_booking` og bruker `mark_closed`.
+  - Avvisningskoder: navngitte avvisninger fra databasen (`CONSTRAINT`). Rekkefølgen er `outside_horizon` → `deadline_passed` → `cutoff_passed` → `sauna_unavailable`.
+  - Paringssjekken (`check_whole_pair`) står på begge tabellene med fast skriverekkefølge, og `kind` kan ikke endres.
+  - Flytting kan bytte badstue. `price_differs` gjelder bare ved bytte til en annen badstue, og fristen sjekkes på målet.
+  - Endepunktet for heldagsbooking fra den første kodeversjonen fjernes, og testhjelperen `raw_whole` erstatter det.
+  - Én serializer for Booking-JSON.
+  - Låserekkefølge for handlinger som starter fra en booking: les, lås, les på nytt (AD-3).
+  - `window_started` og frist per booking med `change_allowed` (FR-39).
+  - Engangsnøkler er bundet til type og mål.
+  - E-post returneres i hvert endringssvar, og vilkårstekst finnes per type.
+  - Seed-dataene fyller tomme referansekolonner.
+  - `placement()` gir én rad per badstue med tilstand og vises bare for administratoren.
+  - Innstillinger for Hypothesis: nullstilling per eksempel, ingen deadline, profiler, klokke-regel.
+  - Testkonvensjoner for gruppe C og katalogeksempler.
+  - `scope`/`binds` sier at FR-33 bare er dekket for kapasitetsdelen.
+  - Deferred: §4.8-tillegget før `/goal`-kjøringen; badstuepriser velges av Lisa; F2 senere.
+- Lint etter rettingene: bare det kjente falske treffet. Spinen har nå `status: final`, og memloggen har fått `spine finalized`.
+- Spinen, memloggen og rapportene er ikke committet.
+
+### Åpne punkter
+- Lisa velger prisene for hel badstue og hvilke badstuer som kan bookes hele, i den første §4.9-storyen (seed-dataene).
+- Fristen lagres nå per booking (AD-4, FR-39). Kolonnen kommer med epicen for If-time 2 og påvirker også bookinger av enkeltplasser.
