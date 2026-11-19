@@ -35,16 +35,11 @@ Oppdatere arkitekturspinen med tillegget for HTTPS (§4.7, FR-24) og endringer o
   - Etter gaten: ingen Manage-lenke i e-posten etter en endring, én e-post per endring, minst 30 dager på en returnert Voucher, og ett år på hele beløpet ved Voucher-valget i FR-33.
 - **Reviews:** `reviews/review-{rubric,adversarial,tech-currency,reconcile-prd}-4-7-4-8-2026-11-19.md`. Til sammen 6 høye funn, alle samme tre saker. Rettet eller avgjort.
 - Lint viser bare falske treff på plassholdere (`{reference}` og `{token}` i API-stier).
-- Spinen, memlog og reviewene er ikke committet. Denne loggcommiten tar bare `.logs/`.
+- Spinen, memlog og reviewene er committet i `5ca5ded`.
+- PRD og addendum følger spinen (commit `PRD §7, FR-21, FR-24, FR-27, FR-28, FR-33 …`). §7: endrings-e-posten har ingen Manage-lenke, og en Voucher står i endringens ene e-post. FR-21: cookien settes også når en Manage-lenke åpnes. FR-24: avviket for HT-3 på localhost er notert. FR-27: én e-post per endring. FR-28: 30-dagersgrensen; antagelsen er fjernet fra teksten og fra §13. FR-33: ett år på hele beløpet. Alle sju står i addendum M.3, datert 2026-11-19.
 - **Lukket i issues.md:** endre spinen for Manage-lenke og vouchersaldo (2026-11-03) og refusjon/Voucher for FR-33 i §4.8-tillegget (2026-11-19).
 
 ### Åpne punkter
-- PRD-en må følge spinen:
-  - §7: endrings-e-posten har ingen Manage-lenke, og det er én e-post per endring, med Voucher-delen inni;
-  - FR-21: cookie-setningen skal også nevne at en Manage-lenke åpnes;
-  - FR-24: HT-3 «never sent over HTTP» kan ikke holde på localhost, så avviket må noteres;
-  - FR-28: en returnert Voucher får minst 30 dager;
-  - FR-33: Voucher-valget gir ett år på hele beløpet.
 - README (FR-24-storyen) skal forklare:
   - advarselen fra nettleseren, og at import av CA-en er valgfri og gjelder bare localhost;
   - at `ca-key.pem` aldri skal deles;
