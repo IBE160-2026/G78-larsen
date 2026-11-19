@@ -39,6 +39,8 @@ Oppdatere arkitekturspinen med tillegget for HTTPS (§4.7, FR-24) og endringer o
 - PRD og addendum følger spinen (commit `PRD §7, FR-21, FR-24, FR-27, FR-28, FR-33 …`). §7: endrings-e-posten har ingen Manage-lenke, og en Voucher står i endringens ene e-post. FR-21: cookien settes også når en Manage-lenke åpnes. FR-24: avviket for HT-3 på localhost er notert. FR-27: én e-post per endring. FR-28: 30-dagersgrensen; antagelsen er fjernet fra teksten og fra §13. FR-33: ett år på hele beløpet. Alle sju står i addendum M.3, datert 2026-11-19.
 - **Lukket i issues.md:** endre spinen for Manage-lenke og vouchersaldo (2026-11-03) og refusjon/Voucher for FR-33 i §4.8-tillegget (2026-11-19).
 
+- **Rydding i issues.md:** 4 utdaterte punkter er lukket: databasemotor, HTTPS som kjerne eller hvis-tid, `sauna_id` og §12 Q5/Q14. 5 punkter har fått en merknad om hva som nå er dekket: DS-29/DS-33, arkitektur/UX/epics, FR-34–FR-51 i epics, base-URL og README-sikkerhet.
+
 ### Åpne punkter
 - README (FR-24-storyen) skal forklare:
   - advarselen fra nettleseren, og at import av CA-en er valgfri og gjelder bare localhost;
