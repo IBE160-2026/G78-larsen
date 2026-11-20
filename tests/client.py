@@ -11,7 +11,10 @@ import ssl
 import httpx
 import psycopg
 
+from booking_platform.db.sessions import lifetime
+
 COOKIE = "bp_session"
+ADMIN = "'admin'"  # the role as an SQL literal, for lifetime()
 
 # One TLS context for every client: building one per client costs tens of milliseconds, and the races create
 # many clients (one per Guest session).
@@ -59,7 +62,7 @@ def admin_client(base: str, pg: psycopg.Connection) -> ApiClient:
     """A client with an Administrator session, inserted straight into the store until sign-in exists (Story 2.1)."""
     token = secrets.token_urlsafe(32)
     sid = pg.execute("INSERT INTO sessions (token_hash, role, created_at, expires_at) "
-                     "SELECT %s, 'admin', n, n + interval '8 hours' FROM (SELECT app_now() AS n) x RETURNING id",
+                     f"SELECT %s, 'admin', n, n + {lifetime(ADMIN)} FROM (SELECT app_now() AS n) x RETURNING id",
                      (token_hash(token),)).fetchone()[0]
     pg.commit()
     c = ApiClient(base_url=base, timeout=60, headers={"Origin": base}, verify=_TLS)

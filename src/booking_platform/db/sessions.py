@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import psycopg
 
-# Sliding lifetimes per role: anonymous 24 h, Administrator 8 h.
-_LIFETIME = "CASE role WHEN 'admin' THEN interval '8 hours' ELSE interval '24 hours' END"
+
+def lifetime(role_sql: str) -> str:
+    """The one source of the sliding lifetimes (AD-8): Administrator 8 h, anonymous 24 h. `role_sql` is the SQL
+    expression that yields the role (a column or a placeholder)."""
+    return f"CASE {role_sql} WHEN 'admin' THEN interval '8 hours' ELSE interval '24 hours' END"
 
 
 def create(c: psycopg.Connection, token_hash: bytes, role: str) -> int:
     return c.execute(
         "INSERT INTO sessions (token_hash, role, created_at, expires_at) "
-        "SELECT %(h)s, %(r)s, n, n + CASE %(r)s WHEN 'admin' THEN interval '8 hours' ELSE interval '24 hours' END "
+        f"SELECT %(h)s, %(r)s, n, n + {lifetime('%(r)s')} "
         "FROM (SELECT app_now() AS n) x RETURNING id",
         {"h": token_hash, "r": role}).fetchone()[0]
 
@@ -20,7 +23,7 @@ def resolve_and_touch(c: psycopg.Connection, token_hash: bytes) -> tuple[int, st
     """(id, role) of a still-valid session, sliding its expiry in the same statement; None when unknown or expired.
     Run as one autocommit statement (`db.statement`), outside every action transaction (AD-4)."""
     return c.execute(
-        f"UPDATE sessions SET expires_at = app_now() + {_LIFETIME} "
+        f"UPDATE sessions SET expires_at = app_now() + {lifetime('role')} "
         "WHERE token_hash = %s AND expires_at > app_now() RETURNING id, role", (token_hash,)).fetchone()
 
 
