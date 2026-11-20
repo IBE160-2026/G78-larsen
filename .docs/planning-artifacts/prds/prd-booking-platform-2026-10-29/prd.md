@@ -732,7 +732,7 @@ The part-1 assessment criteria map to this PRD as follows:
 
 | Status | FRs | Sections |
 |---|---|---|
-| Planned, built with `/goal` | FR-1 to FR-33: the Core FR-1 to FR-23, and If-time 1–3 FR-24 to FR-33 | §4.1 to §4.9 |
+| Planned, built interactively story by story | FR-1 to FR-33: the Core FR-1 to FR-23, and If-time 1–3 FR-24 to FR-33 | §4.1 to §4.9 |
 | Floor if the build falls short | FR-1 to FR-24 (the Core plus HTTPS) | §4.1 to §4.7 |
 | Specified, not planned | FR-34 to FR-51 | §4.10 to §4.16, in `appendix-fr-34-51.md` |
 
@@ -758,7 +758,7 @@ The part-1 assessment criteria map to this PRD as follows:
 
 The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: order of items 4 to 6]`. Backcasting from 15 December was run on 2026-11-01 (`backcasting-2026-11-01.md`); Lisa accepted the Core plus HTTPS as the likely v1 (2026-11-01). The order of items 4 to 6 is decided when If-time 3 is merged (§12 Q6).
 
-*Decided by Lisa on 2026-11-19, after the teacher's feedback on the PRD (§4.1):* the website will be built autonomously with a `/goal` command, so items 1 to 3 are planned with epics and stories and kept in this order. Moving §4.9 before HTTPS was considered and not chosen, because FR-33 needs the Manage link and Voucher from §4.8, and HTTPS should be in place before Manage links are sent. §4.9 is planned instead, so the domain logic is built. The planned v1 is therefore the Core plus If-time items 1 to 3, and the Core plus HTTPS is the floor.
+*Decided by Lisa on 2026-11-19, after the teacher's feedback on the PRD (§4.1):* items 1 to 3 are planned with epics and stories and kept in this order. *Changed by Lisa later on 2026-11-19, following the teacher's advice to test along the way and to stay involved:* the website is built interactively, one story at a time with `bmad-build`, with Lisa taking part in and reviewing each story, instead of autonomously with a `/goal` command. Moving §4.9 before HTTPS was considered and not chosen, because FR-33 needs the Manage link and Voucher from §4.8, and HTTPS should be in place before Manage links are sent. §4.9 is planned instead, so the domain logic is built. The planned v1 is therefore the Core plus If-time items 1 to 3, and the Core plus HTTPS is the floor.
 
 `[NOTE FOR PM]` The Core is deliberately narrower than the teacher's suggested minimum, which was SC1 to SC4 with an Administrator view. The teacher rated time and scope a high risk, and two other exams fall inside the build period. Vouchers stay in v1 (If time 2), although the teacher suggested Step 2, because changing Seats depends on them.
 
@@ -767,10 +767,11 @@ The relative order of items 4 to 6 is the brainstorm's proposal `[ASSUMPTION: or
 - **Vision:** everything in §4.17.
 
 ### 10.3 Planning depth
-*Decided by Lisa on 2026-11-01, after backcasting from 15 December (`backcasting-2026-11-01.md`).* The likely v1 is the Core plus HTTPS, and the first building window is only 3–4 days, so planning is kept lean. *Updated 2026-11-19 (Lisa):* the website is built with a `/goal` command, and the planned v1 is the Core plus If-time 1 to 3 (§10.1). The Core plus HTTPS is the floor.
+*Decided by Lisa on 2026-11-01, after backcasting from 15 December (`backcasting-2026-11-01.md`).* The likely v1 is the Core plus HTTPS, and the first building window is only 3–4 days, so planning is kept lean. *Updated 2026-11-19 (Lisa):* the planned v1 is the Core plus If-time 1 to 3 (§10.1), built interactively story by story. The Core plus HTTPS is the floor.
 - **Architecture.** It decides the Core in full. For later phases it records only what would force a Core rewrite: the per-Window capacity and booked columns, with the CHECK constraint and trigger that keep the store-level refusal of FR-10 extensible to Whole-sauna bookings and Blocks (addendum A). It adds one line each on derived Placement (Q5) and on Holds stored as data. The lock unit (Q14) is decided in the Core architecture, because PostgreSQL locks rows, not the whole database. Manage-link tokens are decided with the If-time 2 epic, and Whole-sauna booking (FR-29 to FR-33) with the If-time 3 epic. The payment model is already decided: synchronous in every phase (FR-6).
 - **Core stories.** All are written, in two batches: the skeleton stories before about 5 November, and the rest before 17 November.
-- **If-time.** HTTPS (§4.7), If-time 2 (§4.8) and If-time 3 (§4.9) each get an epic, and HTTPS comes first. Their stories are written before the `/goal` run (Lisa, 2026-11-19). If-time 4 to 7 get neither epics nor stories in this round.
+- **If-time.** HTTPS (§4.7), If-time 2 (§4.8) and If-time 3 (§4.9) each get an epic, and HTTPS comes first. Their stories are written before the build starts (Lisa, 2026-11-19). If-time 4 to 7 get neither epics nor stories in this round.
+- **Build.** One story at a time with `bmad-build`, in interactive sessions where Lisa takes part and reviews the work, each story with its own tests (NFR-6) and its own branch and pull request (Lisa, 2026-11-19). The stories are in `.docs/planning-artifacts/epics.md`. A story not reached by the feature cutoff is reported as not delivered (DR-2).
 - **Outside this round.** FR-34 to FR-42 (If-time 4 to 7), FR-43 to FR-51 (Step 2) and §4.17 (Vision). The epics document lists them as not planned in this round, so the readiness check does not count them as orphans.
 - Step 2 starts only when every v1 item built so far passes its tests.
 
