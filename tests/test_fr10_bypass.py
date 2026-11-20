@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import datetime as dt
 
-import httpx
 import psycopg
 import pytest
 from psycopg import errors
 
+from client import api_client
 from conftest import EARLY, clear, set_clock, state, win_start
 from test_fr10_through_the_api import fill, left, parallel
 
@@ -70,20 +70,20 @@ def test_whole_sauna_bookings_and_blocks_change_the_capacity_the_store_enforces(
     refused(pg, "INSERT INTO bookings (window_id, seats) VALUES (2, 33)")
 
 
-def test_a_block_that_would_leave_too_little_capacity_is_refused_by_the_api_as_well(api, pg):
+def test_a_block_that_would_leave_too_little_capacity_is_refused_by_the_api_as_well(api, admin, pg):
     fill(api, 40)  # Sauna 4 (the last in the Fill order) is the one that gives up Seats
     st = win_start(0)
-    r = api.post("/blocks", json=dict(sauna_id=4, start=st.isoformat(), end=(st + dt.timedelta(minutes=90)).isoformat()))
+    r = admin.post("/api/admin/blocks", json=dict(sauna_id=4, start=st.isoformat(), end=(st + dt.timedelta(minutes=90)).isoformat()))
     assert r.status_code == 409 and r.json()["detail"]["error"] in ("no_seat_free", "rule_refused")
     assert left(api) == 4
 
 
 def test_holds_count_in_the_store(api, pg):
-    accepted(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 40, 'a', app_now() + interval '5 minutes')")
+    accepted(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 40, NULL, app_now() + interval '5 minutes')")
     assert left(api) == 4
     refused(pg, "INSERT INTO bookings (window_id, seats) VALUES (1, 5)")
-    refused(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 5, 'b', app_now() + interval '5 minutes')")
-    refused(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 1, 'c', app_now() + interval '11 minutes')")
+    refused(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 5, NULL, app_now() + interval '5 minutes')")
+    refused(pg, "INSERT INTO holds (window_id, seats, session_id, expires_at) VALUES (1, 1, NULL, app_now() + interval '11 minutes')")
     accepted(pg, "INSERT INTO bookings (window_id, seats) VALUES (1, 4)")
     set_clock(pg, EARLY + dt.timedelta(minutes=6))  # the Hold has expired, no cleanup has run
     assert left(api) == 40
@@ -102,10 +102,10 @@ def test_marks_and_the_release_time_in_the_store(api, pg):
     refused(pg, "INSERT INTO bookings (window_id, seats) VALUES (1, 1)")
 
 
-def test_a_mark_is_refused_while_seats_are_placed_in_the_sauna(api, pg):
+def test_a_mark_is_refused_while_seats_are_placed_in_the_sauna(api, admin, pg):
     fill(api, 40)  # Seats reach into Sauna 4
     refused(pg, "INSERT INTO marks (window_id, sauna_id) VALUES (1, 4)")
-    r = api.post("/marks", json=dict(window_id=1, sauna_id=4))
+    r = admin.post("/api/admin/marks", json=dict(window_id=1, sauna_id=4))
     assert r.status_code == 409
 
 
@@ -125,11 +125,13 @@ def test_a_direct_write_races_the_api_for_the_last_seat(api, world, pg, database
                 except errors.CheckViolation:
                     return 409
 
+        guest = api_client(world)  # its session is made before the barrier
+
         def via_api():
-            with httpx.Client(base_url=world, timeout=30) as c:
-                return c.post("/bookings", json=dict(window_id=1, seats=1, session_id=f"api{r}")).status_code
+            return guest.post("/api/bookings", json=dict(window_id=1, seats=1)).status_code
 
         got = sorted(parallel([direct, via_api]))
+        guest.close()
         assert got == [201, 409], (r, got)
         assert state(pg)["real_booked"] == 44
 

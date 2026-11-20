@@ -12,14 +12,15 @@ from __future__ import annotations
 import pytest
 
 from booking_platform import db
+from test_fr10_through_the_api import fill
 
 ALWAYS = 10**9
 
-# (path, body, table the request writes to)
+# (path, body, table the request writes to); /api/admin/ paths are sent with the Administrator session
 WRITES = [
-    ("/bookings", dict(window_id=1, seats=3, session_id="s"), "bookings"),
-    ("/holds", dict(window_id=1, seats=3, session_id="s"), "holds"),
-    ("/whole-bookings", dict(window_id=1, sauna_id=4), "whole_bookings"),
+    ("/api/bookings", dict(window_id=1, seats=3), "bookings"),
+    ("/api/holds", dict(window_id=1, seats=3), "holds"),
+    ("/api/admin/whole-bookings", dict(window_id=1, sauna_id=4), "whole_bookings"),
 ]
 
 
@@ -28,14 +29,15 @@ def force_conflict(pg):
     """install(table, sqlstate, failures): the first `failures` writes to `table` raise `sqlstate`."""
     installed: list[str] = []
 
-    def install(table: str, sqlstate: str, failures: int) -> None:
+    def install(table: str, sqlstate: str, failures: int, constraint: str | None = None) -> None:
+        named = f", CONSTRAINT = '{constraint}'" if constraint else ""
         pg.execute("DROP SEQUENCE IF EXISTS force_conflict_attempts")
         pg.execute("CREATE SEQUENCE force_conflict_attempts")
         pg.execute(f"""
             CREATE OR REPLACE FUNCTION force_conflict() RETURNS trigger LANGUAGE plpgsql AS $$
             BEGIN
               IF nextval('force_conflict_attempts') <= {failures} THEN
-                RAISE EXCEPTION 'forced conflict' USING ERRCODE = '{sqlstate}';
+                RAISE EXCEPTION 'forced conflict' USING ERRCODE = '{sqlstate}'{named};
               END IF;
               RETURN NEW;
             END $$""")
@@ -71,10 +73,10 @@ def rows(pg, table: str) -> int:
 @pytest.mark.parametrize("sqlstate", ["40001", "40P01"], ids=["serialization_failure", "deadlock_detected"])
 @pytest.mark.parametrize("path,body,table", WRITES, ids=[w[2] for w in WRITES])
 def test_when_every_attempt_conflicts_the_guest_is_told_to_try_again_and_nothing_is_written(
-        api, pg, force_conflict, path, body, table, sqlstate):
+        api, admin, pg, force_conflict, path, body, table, sqlstate):
     force_conflict(table, sqlstate, ALWAYS)
 
-    r = api.post(path, json=body)
+    r = (admin if path.startswith("/api/admin/") else api).post(path, json=body)
 
     assert r.status_code == 503 and r.json() == {"detail": {"error": "try_again"}}, r.text
     assert force_conflict.attempts() == db.RETRIES, "bounded: exactly RETRIES attempts, no more, no fewer"
@@ -84,39 +86,39 @@ def test_when_every_attempt_conflicts_the_guest_is_told_to_try_again_and_nothing
 def test_a_failed_booking_leaves_the_guests_hold_untouched(api, pg, force_conflict):
     """/bookings deletes the session's Hold before it inserts the Booking. When the insert conflicts for good,
     that delete must be rolled back too: no partial data (FR-14)."""
-    assert api.post("/holds", json=dict(window_id=1, seats=5, session_id="s")).status_code == 200
+    assert api.post("/api/holds", json=dict(window_id=1, seats=5)).status_code == 200
     before = pg.execute("SELECT id, seats, expires_at FROM holds").fetchall()
     pg.rollback()
-    left_before = api.get("/windows/1").json()["seats_left"]
+    left_before = api.get("/api/windows/1").json()["seats_left"]
 
     force_conflict("bookings", "40001", ALWAYS)
-    r = api.post("/bookings", json=dict(window_id=1, seats=5, session_id="s"))
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=5))
 
     assert r.status_code == 503
     after = pg.execute("SELECT id, seats, expires_at FROM holds").fetchall()
     pg.rollback()
     assert after == before, "the Hold the Guest paid with is still there"
     assert rows(pg, "bookings") == 0
-    assert api.get("/windows/1").json()["seats_left"] == left_before == 39
+    assert api.get("/api/windows/1").json()["seats_left"] == left_before == 39
 
 
 @pytest.mark.parametrize("failures", [1, 2, db.RETRIES - 1])
 def test_a_conflict_that_clears_within_the_bound_is_retried_into_success(api, pg, force_conflict, failures):
     force_conflict("bookings", "40001", failures)
 
-    r = api.post("/bookings", json=dict(window_id=1, seats=3, session_id="s"))
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
 
     assert r.status_code == 201, r.text
     assert force_conflict.attempts() == failures + 1
     assert rows(pg, "bookings") == 1, "exactly one Booking: the failed attempts left nothing behind"
-    assert api.get("/windows/1").json()["seats_left"] == 41
+    assert api.get("/api/windows/1").json()["seats_left"] == 41
 
 
 def test_the_last_allowed_attempt_still_counts(api, pg, force_conflict):
     """Boundary: RETRIES-1 failures then success is a 201 (above); RETRIES failures is a 503."""
     force_conflict("bookings", "40001", db.RETRIES)
 
-    r = api.post("/bookings", json=dict(window_id=1, seats=3, session_id="s"))
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
 
     assert r.status_code == 503
     assert force_conflict.attempts() == db.RETRIES
@@ -125,21 +127,22 @@ def test_the_last_allowed_attempt_still_counts(api, pg, force_conflict):
 
 def test_try_again_and_no_seat_free_are_different_answers(api, pg, force_conflict):
     """FR-14: a definite loss (409 no_seat_free) is not the same message as retries used up (503 try_again)."""
-    assert api.post("/bookings", json=dict(window_id=1, seats=44, session_id="a")).status_code == 201
-    lost = api.post("/bookings", json=dict(window_id=1, seats=1, session_id="b"))
+    fill(api, 44)  # 44 Seats in Bookings of at most 10, each a 201 (AD-21)
+    lost = api.post("/api/bookings", json=dict(window_id=1, seats=1))
     assert lost.status_code == 409 and lost.json()["detail"]["error"] == "no_seat_free"
 
     force_conflict("bookings", "40001", ALWAYS)
-    retry = api.post("/bookings", json=dict(window_id=2, seats=1, session_id="c"))
+    retry = api.post("/api/bookings", json=dict(window_id=2, seats=1))
     assert retry.status_code == 503 and retry.json()["detail"]["error"] == "try_again"
     assert lost.json() != retry.json()
 
 
 def test_a_non_temporary_error_is_not_retried(api, pg, force_conflict):
     """Only 40001/40P01 are temporary. Any other store error must fail at once instead of being retried."""
-    force_conflict("bookings", "23514", ALWAYS)  # check_violation: the store's definite refusal
+    # check_violation: the store's definite refusal, named as every store refusal is (AD-1)
+    force_conflict("bookings", "23514", ALWAYS, constraint="booked_within_capacity")
 
-    r = api.post("/bookings", json=dict(window_id=1, seats=3, session_id="s"))
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
 
     assert r.status_code == 409, r.text
     assert force_conflict.attempts() == 1, "one attempt: a definite refusal is never retried"
@@ -148,10 +151,23 @@ def test_a_non_temporary_error_is_not_retried(api, pg, force_conflict):
 
 def test_the_service_recovers_after_the_conflicts_stop(api, pg, force_conflict):
     force_conflict("bookings", "40001", ALWAYS)
-    assert api.post("/bookings", json=dict(window_id=1, seats=3, session_id="s")).status_code == 503
+    assert api.post("/api/bookings", json=dict(window_id=1, seats=3)).status_code == 503
 
     pg.execute("DROP TRIGGER z_force_conflict ON bookings")
     pg.commit()
 
-    assert api.post("/bookings", json=dict(window_id=1, seats=3, session_id="s")).status_code == 201
+    assert api.post("/api/bookings", json=dict(window_id=1, seats=3)).status_code == 201
     assert rows(pg, "bookings") == 1
+
+
+def test_an_unnamed_store_error_is_a_500_without_store_text_and_is_not_retried(api, pg, force_conflict):
+    """AD-1: a store error with no constraint name, or an unmapped one, is never a refusal: 500 internal_error,
+    and the store's own text never reaches the response."""
+    force_conflict("bookings", "23514", ALWAYS)  # no CONSTRAINT name
+
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+
+    assert r.status_code == 500 and r.json() == {"detail": {"error": "internal_error"}}, r.text
+    assert "forced" not in r.text
+    assert force_conflict.attempts() == 1
+    assert rows(pg, "bookings") == 0

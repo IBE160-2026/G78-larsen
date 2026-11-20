@@ -11,9 +11,9 @@ import random
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-import httpx
 import psycopg
 
+from client import admin_client, api_client
 from conftest import EARLY, clear, set_clock, state, win_start
 
 ROUNDS = 100  # FR-11: 100 repetitions per run
@@ -31,28 +31,31 @@ def parallel(fns):
         return [f.result() for f in [ex.submit(go, fn) for fn in fns]]
 
 
-def book(base, seats, sid, wid=1):
-    with httpx.Client(base_url=base, timeout=30) as c:
-        return c.post("/bookings", json=dict(window_id=wid, seats=seats, session_id=sid, guest=sid))
+def book(c, seats, wid=1):
+    """A Booking by the session of client `c` (each former `session_id` is now a client with its own session)."""
+    return c.post("/api/bookings", json=dict(window_id=wid, seats=seats, guest="guest"))
 
 
-def hold(base, seats, sid, wid=1):
-    with httpx.Client(base_url=base, timeout=30) as c:
-        return c.post("/holds", json=dict(window_id=wid, seats=seats, session_id=sid))
+def hold(c, seats, wid=1):
+    return c.post("/api/holds", json=dict(window_id=wid, seats=seats))
+
+
+def guests(base, n):
+    """n clients, each with its own session, made before any barrier."""
+    return [api_client(base) for _ in range(n)]
 
 
 def fill(api, n, wid=1):
     """Book n Seats in Bookings of at most 10."""
-    todo, k = n, 0
+    todo = n
     while todo:
         part = min(10, todo)
-        assert api.post("/bookings", json=dict(window_id=wid, seats=part, session_id=f"fill{k}")).status_code == 201
+        assert api.post("/api/bookings", json=dict(window_id=wid, seats=part)).status_code == 201
         todo -= part
-        k += 1
 
 
 def left(api, wid=1):
-    return api.get(f"/windows/{wid}").json()["seats_left"]
+    return api.get(f"/api/windows/{wid}").json()["seats_left"]
 
 
 def test_seats_left_is_capacity_at_start(api):
@@ -63,7 +66,10 @@ def test_parallel_requests_never_book_more_than_is_left(api, world, pg):
     """FR-10 bullet 1: many requests together ask for more than is left; the Seats accepted never exceed it."""
     for r in range(20):
         clear(pg)
-        res = parallel([lambda i=i: book(world, 5, f"s{r}-{i}") for i in range(12)])  # 60 Seats asked, 44 exist
+        cs = guests(world, 12)
+        res = parallel([lambda c=c: book(c, 5) for c in cs])  # 60 Seats asked, 44 exist
+        for c in cs:
+            c.close()
         odd = [x.text for x in res if x.status_code not in (201, 409)]
         assert not odd, f"round {r}: {odd}"
         accepted = sum(5 for x in res if x.status_code == 201)
@@ -79,7 +85,9 @@ def test_the_last_seat_has_exactly_one_winner(api, world, pg):
         clear(pg)
         fill(api, 43)
         assert left(api) == 1
-        a, b = parallel([lambda: book(world, 1, f"A{r}"), lambda: book(world, 1, f"B{r}")])
+        ca, cb = guests(world, 2)
+        a, b = parallel([lambda: book(ca, 1), lambda: book(cb, 1)])
+        ca.close(), cb.close()
         assert sorted([a.status_code, b.status_code]) == [201, 409], (r, a.text, b.text)
         assert left(api) == 0
         assert state(pg)["booked"] == 44
@@ -88,11 +96,11 @@ def test_the_last_seat_has_exactly_one_winner(api, world, pg):
 def test_a_request_for_more_than_is_left_is_rejected_as_a_whole(api, pg):
     """FR-12: 42 of 44 booked, a request for 3 is rejected and nothing changes; with all 44 booked, 1 is rejected."""
     fill(api, 42)
-    r = api.post("/bookings", json=dict(window_id=1, seats=3, session_id="x"))
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
     assert r.status_code == 409 and r.json()["detail"]["error"] == "no_seat_free"
     assert left(api) == 2 and state(pg)["real_booked"] == 42
-    assert api.post("/bookings", json=dict(window_id=1, seats=2, session_id="y")).status_code == 201
-    r = api.post("/bookings", json=dict(window_id=1, seats=1, session_id="z"))
+    assert api.post("/api/bookings", json=dict(window_id=1, seats=2)).status_code == 201
+    r = api.post("/api/bookings", json=dict(window_id=1, seats=1))
     assert r.status_code == 409 and left(api) == 0
 
 
@@ -101,7 +109,9 @@ def test_two_guests_holding_the_last_seat_one_hold_succeeds(api, world, pg):
     for r in range(50):
         clear(pg)
         fill(api, 43)
-        a, b = parallel([lambda: hold(world, 1, f"A{r}"), lambda: hold(world, 1, f"B{r}")])
+        ca, cb = guests(world, 2)
+        a, b = parallel([lambda: hold(ca, 1), lambda: hold(cb, 1)])
+        ca.close(), cb.close()
         assert sorted([a.status_code, b.status_code]) == [200, 409], (r, a.text, b.text)
         assert left(api) == 0 and state(pg)["real_held"] == 1
 
@@ -113,27 +123,36 @@ def test_late_payment_races_another_guests_hold_for_the_last_seat(api, world, pg
         clear(pg)
         set_clock(pg, EARLY)
         fill(api, 43)
-        assert hold(world, 1, "A").status_code == 200  # A holds the last Seat
+        ca, cb = guests(world, 2)
+        assert hold(ca, 1).status_code == 200  # A holds the last Seat
         set_clock(pg, EARLY + dt.timedelta(minutes=11))  # A's Hold has expired; no cleanup has run
         assert left(api) == 1
-        pay, other = parallel([lambda: book(world, 1, "A"), lambda: hold(world, 1, "B")])
+        pay, other = parallel([lambda: book(ca, 1), lambda: hold(cb, 1)])
+        ca.close(), cb.close()
         won = sorted([pay.status_code in (200, 201), other.status_code in (200, 201)])
         assert won == [False, True], (r, pay.text, other.text)
         s = state(pg)
         assert s["real_booked"] + s["real_held"] == 44 and s["left"] == 0, s
 
 
-def test_a_hold_expires_without_any_cleanup(api, pg):
+def test_a_hold_expires_without_any_cleanup(api, world, pg):
     """FR-35: after expiry, other Guests can book those Seats, and Seats left shows them again."""
     for k in range(4):
         n = 10 if k < 3 else 14
-        assert api.post("/holds", json=dict(window_id=1, seats=n, session_id=f"h{k}")).status_code == 200
+        if n <= 10:
+            with api_client(world) as h:
+                assert h.post("/api/holds", json=dict(window_id=1, seats=n)).status_code == 200
+        else:  # above the API's 10 Seats: a raw Hold of the same length (AD-21)
+            pg.execute("INSERT INTO holds (window_id, seats, session_id, created_at, expires_at) "
+                       "SELECT 1, %s, NULL, n, n + interval '10 minutes' FROM (SELECT app_now() AS n) x", (n,))
+            pg.commit()
     assert left(api) == 0
-    assert api.post("/bookings", json=dict(window_id=1, seats=1, session_id="late")).status_code == 409
+    assert api.post("/api/bookings", json=dict(window_id=1, seats=1)).status_code == 409
     set_clock(pg, EARLY + dt.timedelta(minutes=10, seconds=5))
     assert left(api) == 44
     assert pg.execute("SELECT count(*) FROM holds").fetchone()[0] == 4  # the rows are still there
-    assert api.post("/bookings", json=dict(window_id=1, seats=44, session_id="late")).status_code == 201
+    pg.rollback()
+    fill(api, 44)  # 44 Seats in Bookings of at most 10, each a 201 (AD-21)
 
 
 def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
@@ -165,33 +184,38 @@ def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
     statuses: list[int] = []
     lock = threading.Lock()
 
+    # Every former session_id ("w<i>-<0..3>") is a client with its own session, and the Administrator calls use
+    # an Administrator session; all are made before the threads start.
+    guests_of = {i: [api_client(world) for _ in range(4)] for i in range(32)}
+    admin_of = {i: admin_client(world, pg) for i in range(32)}
+
     def one(i):
         r = random.Random(i)
-        with httpx.Client(base_url=world, timeout=60) as c:
-            for _ in range(25):
-                w = r.randint(1, 3)
-                kind = r.choice(["book", "book", "hold", "hold", "whole", "block", "unmark", "mark", "lift", "cancel"])
-                s = f"w{i}-{r.randint(0, 3)}"
-                if kind == "book":
-                    x = c.post("/bookings", json=dict(window_id=w, seats=r.randint(1, 6), session_id=s))
-                elif kind == "hold":
-                    x = c.post("/holds", json=dict(window_id=w, seats=r.randint(1, 6), session_id=s))
-                elif kind == "cancel":
-                    x = c.delete("/holds", params=dict(window_id=w, session_id=s))
-                elif kind == "whole":
-                    x = c.post("/whole-bookings", json=dict(window_id=w, sauna_id=r.randint(1, 4)))
-                elif kind == "block":
-                    st = win_start(r.randint(0, 2))
-                    x = c.post("/blocks", json=dict(sauna_id=r.randint(1, 4), start=st.isoformat(),
-                                                    end=(st + dt.timedelta(minutes=90)).isoformat()))
-                elif kind == "lift":
-                    x = c.delete(f"/blocks/{r.randint(1, 30)}")
-                elif kind == "mark":
-                    x = c.post("/marks", json=dict(window_id=w, sauna_id=r.randint(1, 4)))
-                else:
-                    x = c.delete("/marks", params=dict(window_id=w, sauna_id=r.randint(1, 4)))
-                with lock:
-                    statuses.append(x.status_code)
+        a = admin_of[i]
+        for _ in range(25):
+            w = r.randint(1, 3)
+            kind = r.choice(["book", "book", "hold", "hold", "whole", "block", "unmark", "mark", "lift", "cancel"])
+            c = guests_of[i][r.randint(0, 3)]
+            if kind == "book":
+                x = c.post("/api/bookings", json=dict(window_id=w, seats=r.randint(1, 6)))
+            elif kind == "hold":
+                x = c.post("/api/holds", json=dict(window_id=w, seats=r.randint(1, 6)))
+            elif kind == "cancel":
+                x = c.delete("/api/holds", params=dict(window_id=w))
+            elif kind == "whole":
+                x = a.post("/api/admin/whole-bookings", json=dict(window_id=w, sauna_id=r.randint(1, 4)))
+            elif kind == "block":
+                st = win_start(r.randint(0, 2))
+                x = a.post("/api/admin/blocks", json=dict(sauna_id=r.randint(1, 4), start=st.isoformat(),
+                                                          end=(st + dt.timedelta(minutes=90)).isoformat()))
+            elif kind == "lift":
+                x = a.delete(f"/api/admin/blocks/{r.randint(1, 30)}")
+            elif kind == "mark":
+                x = a.post("/api/admin/marks", json=dict(window_id=w, sauna_id=r.randint(1, 4)))
+            else:
+                x = a.delete("/api/admin/marks", params=dict(window_id=w, sauna_id=r.randint(1, 4)))
+            with lock:
+                statuses.append(x.status_code)
 
     try:
         for rnd_i in range(4):
@@ -207,6 +231,8 @@ def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
     finally:
         stop.set()
         mt.join()
+        for c in [*admin_of.values(), *(g for cs in guests_of.values() for g in cs)]:
+            c.close()
     bad = sorted({c for c in statuses if c >= 500 or c not in (200, 201, 409, 404, 422)})
     assert not bad, f"unexpected statuses: {bad}"
     assert not crashed, crashed
