@@ -14,7 +14,7 @@ Lisa ba om å starte `bmad-build` for Story 1.2: plattformen skal starte med én
   - Tre gjennomganger (Blind Hunter, Edge Case Hunter, Verification Gap), med vurdering av hvert funn i specens Review Triage Log.
 
 ### Resultat
-- **Commit:** `75853c2` på `story/1-2-compose-terms-privacy`. Ikke pushet, ingen PR ennå.
+- **Commit:** `75853c2` på `story/1-2-compose-terms-privacy`. Grenen er pushet til `origin`, og PR #2 er opprettet med `gh` (Lisa ba om begge): https://github.com/IBE160-2026/G78-larsen/pull/2. Lisa merger selv.
 - **Stakken:** proxy (Caddy 2.11), backend, frontend og db i `docker-compose.yml`, med helsesjekkene fra AD-27 og `depends_on: service_healthy`.
   - Caddy er eneste publiserte webport (`127.0.0.1:8000`) og den eneste som setter `Referrer-Policy` og `Cache-Control`. Next.js' egen `Cache-Control` fjernes med `header_down`.
   - Images: rot-`Dockerfile` for backend (uv 0.12.24, uten `uv run`) og `frontend/Dockerfile` (with-docker-oppsett på `node:24-alpine`).
