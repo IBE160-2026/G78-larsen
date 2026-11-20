@@ -357,3 +357,81 @@ def test_a_draft_date_that_has_left_the_horizon_is_dropped_without_an_error(page
     assert page.locator(".cal-grid input:checked").count() == 0
     assert page.locator(".question-date .notice, .field-error, [data-error-summary]").count() == 0
     assert page.locator(".session-row").count() == 0
+
+
+# ------------------------------------------------------------------ the month buttons, a failed read, an emptied field
+
+
+def _active_text(page: Page) -> str:
+    return page.evaluate("() => document.activeElement ? document.activeElement.textContent : ''")
+
+
+def test_a_month_button_that_disappears_hands_focus_to_the_other(page: Page, base_url, db):
+    """A 31-day horizon always spans two or three months, whatever the date of the run."""
+    db.execute("UPDATE settings SET booking_horizon_days = 31")
+    db.commit()
+    try:
+        open_page(page, base_url)
+        next_month = page.get_by_role("button", name="Next month", exact=True)
+        previous_month = page.get_by_role("button", name="Previous month", exact=True)
+        first = page.locator(".cal-month").inner_text()
+        assert previous_month.count() == 0 and next_month.count() == 1
+        # forward to the last month: "Next month" goes, and focus moves to "Previous month"
+        a11y.tab_to(page, next_month)
+        while True:
+            shown = page.locator(".cal-month").inner_text()
+            a11y.press(page, "Enter")
+            page.wait_for_function("(m) => document.querySelector('.cal-month').textContent !== m", arg=shown)
+            if next_month.count() == 0:
+                break
+            assert _active_text(page) == "Next month"
+        page.wait_for_function("() => document.activeElement && document.activeElement.textContent === "
+                               "'Previous month'")
+        a11y.assert_focus_visible(page)
+        assert page.locator(".cal-end").count() == 1
+        # back to the first month: "Previous month" goes, and focus moves to "Next month"
+        while previous_month.count():
+            shown = page.locator(".cal-month").inner_text()
+            a11y.press(page, "Enter")
+            page.wait_for_function("(m) => document.querySelector('.cal-month').textContent !== m", arg=shown)
+        page.wait_for_function("() => document.activeElement && document.activeElement.textContent === 'Next month'")
+        a11y.assert_focus_visible(page)
+        assert page.locator(".cal-month").inner_text() == first
+    finally:
+        db.rollback()
+        db.execute("UPDATE settings SET booking_horizon_days = 28")
+        db.commit()
+
+
+def test_a_failed_first_read_shows_the_notice_in_the_date_question(page: Page, base_url):
+    page.route(re.compile(r".*/api/windows(\?.*)?$"),
+               lambda route: route.fulfill(status=500, content_type="application/json",
+                                           body='{"detail": {"error": "internal_error"}}'))
+    page.goto(base_url + "/book-seats")
+    notice = page.locator(".question-date .notice")
+    notice.wait_for()
+    assert _norm(notice.inner_text()) == "The sessions could not be loaded, please try again."
+    assert page.locator(".cal-grid").count() == 0
+    assert page.locator("#date").is_editable()
+    assert page.get_by_role("button", name="Continue booking").is_enabled()
+    a11y.check_axe(page)
+
+
+def test_emptying_the_date_field_clears_the_date_and_the_chosen_session(page: Page, base_url, full_day):
+    open_page(page, base_url)
+    choose_by_typing(page, full_day, 2)
+    page.locator(".session-row:not(.unavailable)").first.click()
+    assert page.locator(".session-row input:checked").count() == 1
+    page.fill("#date", "")
+    a11y.press(page, "Tab")  # leaving the field commits it
+    page.wait_for_function("() => document.querySelectorAll('.session-row').length === 0")
+    assert page.locator(".cal-grid input:checked").count() == 0
+    assert page.locator("#seats-2").is_checked()  # the number is not a date choice, so it stays
+    assert page.locator(".field-error").count() == 0
+    draft = json.loads(page.evaluate("sessionStorage.getItem('draft:seats')"))
+    assert (draft["date"], draft["seats"], draft["window_id"]) == (None, 2, None)
+    a11y.tab_to(page, page.get_by_role("button", name="Continue booking"))
+    a11y.press(page, "Enter")
+    summary = page.locator("[data-error-summary]")
+    summary.wait_for()
+    assert [_norm(t) for t in summary.locator("a").all_inner_texts()] == ["Choose a date", "Choose a session"]
