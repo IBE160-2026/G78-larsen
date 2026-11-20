@@ -1,0 +1,19 @@
+{
+  "name": "booking-platform-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/run-next.mjs dev -H 127.0.0.1 -p 3000",
+    "build": "node scripts/run-next.mjs build",
+    "start": "node scripts/run-next.mjs start -H 127.0.0.1 -p 3000"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.1"
+  }
+}

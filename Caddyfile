@@ -1,0 +1,29 @@
+# The proxy (AD-27): the only public entry. `/api` and `/api/*` go to the backend with the path unchanged,
+# everything else to the frontend. The mode (HTTP now, HTTPS from FR-24) lives in docker-compose.yml.
+{
+	http_port {$HTTP_PORT:8000}
+	skip_install_trust
+	servers {
+		protocols h1 h2
+	}
+}
+
+{$SITE_ADDRESS} {
+	# Caddy alone sets these headers; the backend and the frontend set none of them (AD-27).
+	header Referrer-Policy no-referrer
+
+	@api path /api /api/*
+	@manage path /manage* /api/manage /api/manage/*
+	header @api Cache-Control no-store
+	header @manage X-Robots-Tag noindex
+
+	handle @api {
+		reverse_proxy {$BACKEND_UPSTREAM:backend:8000}
+	}
+	handle {
+		reverse_proxy {$FRONTEND_UPSTREAM:frontend:3000} {
+			# Next.js adds its own Cache-Control to pages and assets; only Caddy sets cache headers (AD-27)
+			header_down -Cache-Control
+		}
+	}
+}

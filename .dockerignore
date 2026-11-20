@@ -1,0 +1,11 @@
+# Build context for both images (repository root). Each Dockerfile copies named paths only (AD-17).
+**/node_modules
+**/.next
+.venv
+.git
+.logs
+.docs
+config/test-switches.toml
+frontend/content
+**/__pycache__
+.pytest_cache

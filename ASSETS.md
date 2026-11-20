@@ -20,7 +20,12 @@ They are in `.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/
 
 ## Fonts
 
-Not added yet. Finlandica and Source Sans 3 (SIL Open Font License) are listed here when they are self-hosted.
+Both fonts are self-hosted in `frontend/public/fonts/` and loaded through `@font-face` in `frontend/app/styles.css`, so no font is requested from another origin (FR-21). They come from [`github.com/google/fonts`](https://github.com/google/fonts) under the [SIL Open Font License 1.1](https://openfontlicense.org/), which allows use, embedding and redistribution with the licence. Each variable font was converted once from `.ttf` to `.woff2` with fonttools, without subsetting, so every glyph and feature of the source is kept: both have ö, Finlandica has `tnum`, and Source Sans 3's default figures are already tabular (all ten digits are equally wide). The licence texts are in `frontend/font-licenses/`.
+
+| File | Used on | Source and licence | Notes |
+|---|---|---|---|
+| `fonts/finlandica-variable.woff2` | Every page: headings and the Wordmark | [`ofl/finlandica/Finlandica[wght].ttf`](https://github.com/google/fonts/tree/main/ofl/finlandica) (google/fonts commit `a60a77e`), Finlandica 1.064, © 2015 The Finlandica Project Authors, SIL OFL 1.1 ([`OFL-Finlandica.txt`](frontend/font-licenses/OFL-Finlandica.txt)) | Variable weight 400–700. SHA-256 `097c7b41…3b6f` |
+| `fonts/source-sans-3-variable.woff2` | Every page: all text | [`ofl/sourcesans3/SourceSans3[wght].ttf`](https://github.com/google/fonts/tree/main/ofl/sourcesans3) (google/fonts commit `914ec11`), Source Sans 3 3.052, © 2010–2020 Adobe, with Reserved Font Name "Source", SIL OFL 1.1 ([`OFL-SourceSans3.txt`](frontend/font-licenses/OFL-SourceSans3.txt)) | Variable weight 200–900, upright only. SHA-256 `f336c96e…dccb` |
 
 ## Known exception
 

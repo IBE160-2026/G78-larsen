@@ -21,9 +21,9 @@ Det vanskelige er kapasiteten: plasser og hele badstuer trekker på de samme rom
 | PRD | Ferdig. Planlagt v1 er Core + If-time 1–3 (HTTPS, endringer og Vouchere, hel badstue) |
 | UX | Ferdig ([EXPERIENCE.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPERIENCE.md), [DESIGN.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/DESIGN.md)) |
 | Arkitektur | Ferdig ([arkitekturspine](.docs/planning-artifacts/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md)): FastAPI + PostgreSQL, Next.js som frontend og Caddy som eneste inngang, alt i Docker Compose |
-| Epics og stories | Ferdig ([epics](.docs/planning-artifacts/epics.md)). Implementering pågår: Story 1.1 (backendstruktur) |
-| Applikasjon | **Core-skiva på spinens backendstruktur (Story 1.1).** `src/booking_platform/` er delt i `api/` → `services/` → `db/` med `config.py` som løv. Skjemaet endres bare gjennom nummererte migrasjoner i `migrations/`. Alle stier ligger under `/api`, Administrator-endepunktene under `/api/admin/`, og økter er rader på serveren med hashet token i en informasjonskapsel. Ingen innlogging, betaling, e-post eller frontend ennå |
-| Automatiserte tester | Skivas tester for FR-10/11/12/14/35/36/41 med påstandene beholdt, mens oppsettet er omformet (stier under `/api`, økter fra serveren, Administrator-økt fra en fixture, høyst 10 plasser per forespørsel eller rå innsettinger). Én endring i oppførsel: en avvisning fra databasen uten navngitt constraint gir nå 500 (`internal_error`), så retry-testen for en definitiv avvisning tvinger fram en navngitt constraint. I tillegg kommer tester for CSRF (FR-18), tilgang (FR-20), økter (FR-21), inndata (FR-2), migrasjoner (DR-4) og testbrytere (`tests/`). Resten kommer sammen med hver story (PRD NFR-6) |
+| Epics og stories | Ferdig ([epics](.docs/planning-artifacts/epics.md)). Implementering pågår: Story 1.1 (backendstruktur) er ferdig, Story 1.2 (compose-stakken, vilkår og personvern) |
+| Applikasjon | **Core-skiva på spinens backendstruktur (Story 1.1).** `src/booking_platform/` er delt i `api/` → `services/` → `db/` med `config.py` som løv. Skjemaet endres bare gjennom nummererte migrasjoner i `migrations/`. Alle stier ligger under `/api`, Administrator-endepunktene under `/api/admin/`, og økter er rader på serveren med hashet token i en informasjonskapsel. Story 1.2 la til compose-stakken (Caddy, FastAPI, Next.js og PostgreSQL), Next.js-frontenden med ett stilark og selvhostede fonter, og sidene for bookingvilkår (`/terms`) og personvern (`/privacy`). `/` er en midlertidig startside til Story 1.3. Ingen innlogging, betaling eller e-post ennå |
+| Automatiserte tester | Skivas tester for FR-10/11/12/14/35/36/41 med påstandene beholdt, mens oppsettet er omformet (stier under `/api`, økter fra serveren, Administrator-økt fra en fixture, høyst 10 plasser per forespørsel eller rå innsettinger). Én endring i oppførsel: en avvisning fra databasen uten navngitt constraint gir nå 500 (`internal_error`), så retry-testen for en definitiv avvisning tvinger fram en navngitt constraint. I tillegg kommer tester for CSRF (FR-18), tilgang (FR-20), økter (FR-21), inndata (FR-2), migrasjoner (DR-4), testbrytere og asset-registeret (DR-3) (`tests/`), og e2e-tester i nettleser mot hele stakken: ruting gjennom Caddy, feilsider, `<noscript>`, personvern (FR-21) og tilgjengelighet med axe-core og tastatur (FR-22, FR-23) (`tests/e2e/`). Resten kommer sammen med hver story (PRD NFR-6) |
 
 Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres når appen finnes: installasjon, testbrukere, miljøvariabler og skjermbilder legges til da.
 
@@ -32,18 +32,42 @@ Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres n
 - [uv](https://docs.astral.sh/uv/) (installerer Python 3.12 etter behov, se `.python-version`)
 - Git
 - [Node.js](https://nodejs.org/) 24 LTS eller nyere (tester og utvikling av frontend)
-- [Docker](https://www.docker.com/) (kjører databasen nå, og hele plattformen når skjelettet er bygget)
+- [Docker](https://www.docker.com/) med Docker Compose (kjører hele plattformen)
 
-Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Start den med `docker compose up -d --wait db` (port 55432 på `127.0.0.1`; sett `DB_PORT` for en annen, og da også `BP_DATABASE_URL`). Når skjelett-storyen er bygget, starter `docker compose up --build --wait` hele plattformen (Caddy, FastAPI, Next.js og PostgreSQL) på `http://localhost:8000`, og på `https://localhost:8443` når HTTPS-storyen (FR-24) er bygget. Se spinens Structural Seed. Til da gjelder kommandoene under, som starter backend alene.
+Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Hele plattformen kjører i Docker Compose: Caddy er eneste inngang, sender `/api` og `/api/*` til FastAPI og resten til Next.js. Plattformen kjører over HTTP til HTTPS-storyen (FR-24) er bygget.
 
 ## Kom i gang
+
+Én kommando starter hele plattformen:
 
 ```sh
 git clone https://github.com/IBE160-2026/G78-larsen.git
 cd G78-larsen
-uv sync                         # installerer Python og avhengigheter i .venv
-docker compose up -d --wait db  # starter PostgreSQL 18 i en container (port 55432)
-uv run booking-platform dev     # starter API-et på http://127.0.0.1:8001 med automatisk omstart
+docker compose up --build --wait   # bygger og starter proxy, backend, frontend og db; venter til alle er friske
+```
+
+Åpne så `http://localhost:8000` (bruk `localhost`, ikke `127.0.0.1`: Caddy svarer bare for `localhost`). Bare Caddy har en publisert webport (`127.0.0.1:8000`); backend og frontend nås bare på det interne compose-nettverket. Databasen er i tillegg publisert på `127.0.0.1:55432` for utvikling og API-testene.
+
+### Drift lokalt
+
+```sh
+docker compose ps                    # status og helsesjekker for de fire tjenestene
+docker compose logs backend proxy    # logger fra backend og Caddy
+docker compose restart backend       # leser testbryterne på nytt (se under)
+docker compose down                  # stopper og fjerner containerne; data blir liggende
+docker compose down -v               # fjerner også volumene: databasen og Caddys data
+```
+
+Testbrytere: kopier `config/test-switches.example.toml` til `config/test-switches.toml`, endre den og kjør `docker compose restart backend`. Mappen `config/` er montert skrivebeskyttet i backend, og uten filen er alle brytere av.
+
+### Utvikling uten Docker for backend og frontend
+
+```sh
+uv sync                              # installerer Python og avhengigheter i .venv
+docker compose up -d --wait db       # starter bare PostgreSQL 18 (port 55432)
+uv run booking-platform dev          # API-et på http://127.0.0.1:8001 med automatisk omstart
+npm --prefix frontend ci             # én gang: frontendens avhengigheter
+npm --prefix frontend run dev        # Next.js på http://127.0.0.1:3000; /api/* sendes videre til 127.0.0.1:8001
 ```
 
 `uv run booking-platform dev` oppretter databasen `booking_dev` første gang, kjører migrasjonene i `migrations/` og svarer på `http://127.0.0.1:8001/api/health`. `uv run booking-platform serve` gjør det samme uten automatisk omstart.
@@ -56,16 +80,34 @@ Konfigurasjonen leses bare fra `BP_*`-miljøvariabler, og alle har en standardve
 | `BP_BASE_URL` | `http://127.0.0.1:3000` | Opprinnelsen nettleseren bruker; skrivende forespørsler må komme derfra (CSRF) |
 | `BP_HTTPS` | `off` | Gjør øktkapselen `Secure`; krever at `BP_BASE_URL` begynner med `https://` |
 | `BP_HOST`, `BP_PORT` | `127.0.0.1`, `8001` | Hvor backend lytter |
-| `BP_ROOT` | repoets rot | Rot for `migrations/` og `config/` |
+| `BP_ROOT` | repoets rot | Rot for `migrations/` og `config/` (imaget setter `/app`) |
 | `BP_TEST_SWITCHES` | `config/test-switches.toml` | Testbrytere. Kopier `config/test-switches.example.toml` dit for å bruke dem; mangler filen, er alle av |
+
+Docker Compose og frontenden leser i tillegg disse (de er ikke `BP_*`, og backend leser dem ikke):
+
+| Variabel | Standard | Betydning |
+|---|---|---|
+| `HTTP_PORT` | `8000` | Porten Caddy lytter på og publiserer på `127.0.0.1`; også i `BP_BASE_URL` i compose |
+| `DB_PORT` | `55432` | Databaseporten på `127.0.0.1` (en annen verdi krever en tilsvarende `BP_DATABASE_URL`) |
+| `SWITCHES_DIR` | `./config` | Mappen som monteres skrivebeskyttet som `/app/config` i backend (testbryterne) |
+| `API_INTERNAL_URL` | compose: `http://backend:8000`, ellers `http://127.0.0.1:8001` | Hvor frontendens server kaller backend (`frontend/lib/server-api.js`) |
 
 ### Tester
 
+To forberedelser, én gang:
+
 ```sh
-uv run pytest            # starter databasen, oppretter booking_test på nytt og starter backend som en egen prosess
+npm --prefix frontend ci             # frontendens avhengigheter, også axe-core som e2e-testene bruker
+uv run playwright install chromium   # nettleseren til e2e-testene
 ```
 
-`uv run pytest` kjører først `docker compose up -d --wait db`, så Docker må kjøre. Testene sender ekte HTTP-forespørsler til en ekte backend-prosess (`uv run booking-platform serve`) mot ekte PostgreSQL, og skriver også rett til databasen for å omgå API-et (FR-10). Hele settet tar ca. to minutter. `BP_TEST_MUTATE=<navn>` slår av én beskyttelse i databasen (se `MUTATIONS` i `tests/conftest.py`) for å vise at testene da feiler.
+Deretter:
+
+```sh
+uv run pytest            # API-testene og e2e-testene
+```
+
+`uv run pytest` kjører to lag, så Docker må kjøre. API-laget (`tests/`) kjører først `docker compose up -d --wait db`, oppretter `booking_test` på nytt og starter backend som en egen prosess. E2e-laget (`tests/e2e/`) starter hele stakken som et eget compose-prosjekt, `booking_e2e`, på ledige porter (så det aldri kolliderer med stakken på 8000), kjører Playwright og axe-core mot den og fjerner den med `down -v` til slutt. Testene sender ekte HTTP-forespørsler til en ekte backend-prosess (`uv run booking-platform serve`) mot ekte PostgreSQL, og skriver også rett til databasen for å omgå API-et (FR-10). Hele settet tar ca. to–tre minutter, mer første gang imagene bygges. `BP_TEST_MUTATE=<navn>` slår av én beskyttelse i databasen (se `MUTATIONS` i `tests/conftest.py`) for å vise at testene da feiler.
 
 ### Hverdagskommandoer
 
@@ -84,7 +126,12 @@ uv lock --upgrade        # oppgrader låste versjoner
 src/booking_platform/   Python-pakke (backend): api/ → services/ → db/, config.py
 migrations/             Nummererte SQL-migrasjoner (0001_core.sql er skivas opprinnelige skjema)
 config/                 Eksempel på testbryterfil (den ekte filen committes ikke)
-tests/                  API-tester mot ekte backend og PostgreSQL
+frontend/               Next.js (App Router, JavaScript): app/ (sider og styles.css), components/, lib/, public/fonts/
+tests/                  API-tester mot ekte backend og PostgreSQL; tests/e2e/ kjører nettleser og axe mot hele stakken
+Caddyfile               Proxyen: eneste inngang, ruting og svarhoder
+docker-compose.yml      De fire tjenestene (proxy, backend, frontend, db) med helsesjekker
+Dockerfile              Backend-imaget (frontend/Dockerfile er frontend-imaget)
+ASSETS.md               Register over fonter og bilder med kilde og lisens (DR-3)
 .docs/                  Planlegging og research (se under)
 .logs/<bruker>/         Sesjonslogger: oppgave, plan, resultat og åpne punkter per økt
 _bmad/                  BMad Method-konfigurasjon
