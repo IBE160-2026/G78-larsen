@@ -14,5 +14,15 @@
     {"id": 2, "name": "Löyly", "capacity": 10, "fill_order": 2},
     {"id": 3, "name": "Kajo", "capacity": 12, "fill_order": 3},
     {"id": 4, "name": "Lumo", "capacity": 15, "fill_order": 4}
+  ],
+  "schedule": [
+    {"start": "10:00", "end": "11:30"},
+    {"start": "11:30", "end": "13:00"},
+    {"start": "13:00", "end": "14:30"},
+    {"start": "14:30", "end": "16:00"},
+    {"start": "16:00", "end": "17:30"},
+    {"start": "17:30", "end": "19:00"},
+    {"start": "19:00", "end": "20:30"},
+    {"start": "20:30", "end": "22:00"}
   ]
 }

@@ -13,6 +13,7 @@ export const STATUS = Object.freeze({
   rule_refused: 409,
   already_exists: 409,
   deadline_passed: 409,
+  outside_horizon: 409,
   release_after_deadline: 409,
   invalid_input: 422,
   internal_error: 500,

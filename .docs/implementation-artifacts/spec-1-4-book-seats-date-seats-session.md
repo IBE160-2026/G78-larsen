@@ -2,7 +2,8 @@
 title: 'Story 1.4: A Guest picks a date, a number of seats and a session'
 type: 'feature'
 created: '2026-11-20'
-status: 'ready-for-dev'
+status: 'done'
+baseline_commit: '4cadaa73173691fc186977274265a734b74fc243'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -79,13 +80,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `migrations/0005_windows_horizon.sql` -- columns, `window_schedule`, predicates, `t_settings` recreated -- AD-4, AD-18
-- [ ] `seeds/venue.json`, `services/{seed,venue,windows}.py`, `db/{venue,seats}.py`, `db/windows.py` (new), `app.py` -- schedule seed and validation, `ensure_generated`, listing with `nearest` -- FR-3, FR-13, NFR-3
-- [ ] `api/{public,schemas,errors}.py`, `frontend/lib/api.js` -- `GET /api/windows`, `outside_horizon` -- AD-16
-- [ ] `tests/conftest.py`, `tests/test_fr13_windows.py`, `tests/test_fr03_listing.py` -- matrix rows; `test_e1`, `test_e2`, DST refusals, idempotent generation, DST clock times, independence, `already_started`, nearest order and limit
-- [ ] `frontend/app/book-seats/page.js` (server: metadata "Book seats", `connection()`, venue price) and `frontend/components/{BookSeats,DateCalendar,SeatPicker,SessionList,TotalBlock,ErrorSummary,FieldError,NearestSessions}.js`, `frontend/lib/{copy,draft,dates}.js`, `app/styles.css` -- the page as the ACs list -- FR-2–4, UX-DR9/12/13/17–21/26/33–35
-- [ ] `tests/e2e/test_fr02_book_seats.py`, `tests/e2e/test_fr21_privacy.py` -- keyboard-only flow, title, axe, first view at 1366×768 with eight Sessions, no horizontal scroll, stacking below 1200 px, Error summary and "Error: " title, draft restore on reload, one cookie, same-origin requests
-- [ ] `README.md` -- status and the generation sentence
+- [x] `migrations/0005_windows_horizon.sql` -- columns, `window_schedule`, predicates, `t_settings` recreated -- AD-4, AD-18
+- [x] `seeds/venue.json`, `services/{seed,venue,windows}.py`, `db/{venue,seats}.py`, `db/windows.py` (new), `app.py` -- schedule seed and validation, `ensure_generated`, listing with `nearest` -- FR-3, FR-13, NFR-3
+- [x] `api/{public,schemas,errors}.py`, `frontend/lib/api.js` -- `GET /api/windows`, `outside_horizon` -- AD-16
+- [x] `tests/conftest.py`, `tests/test_fr13_windows.py`, `tests/test_fr03_listing.py` -- matrix rows; `test_e1`, `test_e2`, DST refusals, idempotent generation, DST clock times, independence, `already_started`, nearest order and limit
+- [x] `frontend/app/book-seats/page.js` (server: metadata "Book seats", `connection()`, venue price) and `frontend/components/{BookSeats,DateCalendar,SeatPicker,SessionList,TotalBlock,ErrorSummary,FieldError,NearestSessions}.js`, `frontend/lib/{copy,draft,dates}.js`, `app/styles.css` -- the page as the ACs list -- FR-2–4, UX-DR9/12/13/17–21/26/33–35
+- [x] `tests/e2e/test_fr02_book_seats.py`, `tests/e2e/test_fr21_privacy.py` -- keyboard-only flow, title, axe, first view at 1366×768 with eight Sessions, no horizontal scroll, stacking below 1200 px, Error summary and "Error: " title, draft restore on reload, one cookie, same-origin requests
+- [x] `README.md` -- status and the generation sentence
 
 **Acceptance Criteria:**
 - Given `uv run pytest`, then every test passes, those of Stories 1.1–1.3 included.
@@ -97,6 +98,40 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+Iteration 0 (blind-hunter = BH, edge-case-hunter = EC, verification-gap = VG):
+
+| # | Source | Finding | Verdict | Evidence | Route |
+|---|---|---|---|---|---|
+| 1 | BH, EC | `_transition_days`: `first.replace(year+10)` raises on 29 Feb | medium | `check_schedule` runs in the seed validator with `dt.date.today()`; on 2028-02-29 startup stops with an unrelated message | patch |
+| 2 | BH, VG | e2e `test_a_typed_date_is_checked_on_enter` builds `{d}.{m}.{y+1}`, invalid on 29 Feb | low | real clock; fix is a direct correction | patch |
+| 3 | BH, EC | `horizon_end()`/`within_horizon()` add days in the session zone (UTC, `db/__init__.py:38`), not `venue_tz` | low | 28 days across a DST change is 672 h, so the horizon end shifts an hour in Venue time and `horizon_end` can be the wrong date near midnight; direct correction in the new 0005 | patch |
+| 4 | EC | `generate()` reads `horizon_end()` twice; `app_now()` uses `clock_timestamp()` | medium | if Venue midnight passes between INSERT and UPDATE, the mark moves past a date never generated and that date never gets Windows | patch |
+| 5 | BH | every listing takes the advisory lock and runs the INSERT | false | the spec's Decisions require `ensure_generated()` on every listing; one Venue, a no-op insert | reject |
+| 6 | BH, EC | horizon check and listing in separate transactions | low | the spec requires the check before `ensure_generated()`; disagreement only within ms of midnight; the fix restructures the flow | reject |
+| 7 | BH | listing queries use per-row functions, no index | false | no named harm at the size of one Venue's horizon (≈ 230 rows a month) | reject |
+| 8 | BH, EC | a failed date-less first read shows no calendar and no Notice | medium | `facts` stays null and `SessionList` shows `sessionsUnavailable` only with a date | patch |
+| 9 | BH | the "please try again" Notice has no retry action | false | EXPERIENCE.md asks only for the Notice text | reject |
+| 10 | BH, EC | a restored draft dropped silently (outside horizon, Window gone, no seats chosen) | low | rare, the spec asks for no Notice, the fix adds branches | reject |
+| 11 | BH, EC | emptying the date field and leaving it keeps the old date and session | medium | `commitText` returns early on empty text; field and grid disagree and Continue goes on with the old date | patch |
+| 12 | BH, EC | a date typed before `facts` arrives skips the bookable check | low | narrow window at load; a 409 then resets the date; the fix adds a branch | reject |
+| 13 | BH | month navigation unmounts the pressed button, focus drops to `<body>` | medium | "Next month" vanishes on the last month and "Previous month" on the first; keyboard users lose their place (FR-23) | patch |
+| 14 | BH | non-bookable days are bare numbers in the radiogroup; `cal-past` unused | low | design says plain numbers; axe passes | reject |
+| 15 | BH, VG | e2e never drives Nearest sessions, the no-room Notices, a disabled row, the cleared Notice or the outside-horizon draft reset | medium | VG pre-verified: every e2e Window has 44 Seats and no frontend test runner exists | patch |
+| 16 | BH | `sessionCleared` wording unconfirmed and not recorded | false | recorded as an open point in `.logs/lisa-larsen/issues.md` | reject |
+| 17 | BH | spec `in-review` vs sprint `in-progress` | false | the workflow sets sprint status `review` only after review | reject |
+| 18 | BH, EC | task names `db/venue.py`, which is unchanged | false | the fix would edit this spec | reject |
+| 19 | BH | `GET /api/windows/{id}` keeps its old shape | false | the spec says keep `get_window` as it is | reject |
+| 20 | BH | changed seed schedule ignored without a log line; no Window to midnight | false | AD-18: the seed never overwrites; midnight-crossing rows are out of the schedule's design | reject |
+| 21 | BH | README: missing "og" before "landingssiden"; "øktkapselen" not a word | low | direct correction | patch |
+| 22 | BH | docstring lines in `seed.py`/`app.py` badly wrapped | low | direct correction | patch |
+| 23 | EC | `_ISO_DATE` uses `^…$` and `\d` | low | `$` allows a trailing newline and `\d` other digits; pydantic refuses most, but the guard should not depend on it; direct correction | patch |
+| 24 | EC | Continue while the re-read is loading or failed keeps a session without room for the new number | medium | the old `windows` already carry `seats_left`, but `onContinue` does not check them | patch |
+| 25 | EC | a response resolving after cleanup overwrites the state | low | `.then` does not check `signal.aborted`; one-line guard | patch |
+| 26 | EC | draft with integer `window_id` and non-ISO date | low | needs a hand-edited `sessionStorage` | reject |
+| 27 | EC | `page.js` TypeError when `data` is null | false | `GET /api/venue` always returns an object (`server-api.js:23`) | reject |
+| 28 | EC | nearest says "No room for N seats on <day>" for a date with no Windows | low | such a date is never offered or accepted from `dates`; only a stale draft reaches it | reject |
+| 29 | VG | the seed's re-check against the store's `venue_tz` is untested | medium (unverified impact) | no path can change `venue_tz` yet | defer |
 
 ## Verification
 

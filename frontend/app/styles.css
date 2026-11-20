@@ -513,3 +513,350 @@ a {
 .find-us > :last-child {
   grid-column: 3;
 }
+
+/* ------------------------------------------------------------------ forms (DESIGN.md, Components) */
+
+/* Text field: label above, input --control-height high on --color-surface, hint below. */
+.text-field {
+  display: block;
+  width: 100%;
+  height: var(--control-height);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-text);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.hint {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-muted);
+  font-size: var(--type-hint-size);
+  line-height: var(--type-hint-line);
+  font-weight: var(--type-hint-weight);
+}
+
+/* Field error: hint-sized, in --color-error, directly under its field; the border does not change. */
+.field-error {
+  margin-top: var(--space-1);
+  color: var(--color-error);
+  font-size: var(--type-hint-size);
+  line-height: var(--type-hint-line);
+}
+
+/* Error summary: surface fill, 1 px error line, no title; each entry a link in the error colour. */
+.error-summary {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.error-summary ul {
+  list-style: none;
+}
+
+.error-summary a {
+  color: var(--color-error);
+  text-decoration: underline;
+}
+
+/* A button that reads as a Text link ("Next month"): underlined, never colour alone. */
+.link-button {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--color-link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ Book seats (UX-DR17-21; DESIGN.md, Layout) */
+
+.main.book {
+  padding: var(--space-5) var(--space-9);
+}
+
+/* Two columns under the heading: the date at --date-column, seats and Sessions fluid; stacked below 1200 px. */
+.book-cols {
+  display: grid;
+  grid-template-columns: var(--date-column) minmax(0, 1fr);
+  gap: var(--space-8);
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 1199px) {
+  .book-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.question {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The numbered question sits --space-2 above its control. */
+.q {
+  display: block;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-md-size);
+  line-height: var(--type-heading-md-line);
+  font-weight: var(--type-heading-md-weight);
+}
+
+.question-sessions {
+  margin-top: var(--space-4);
+}
+
+.question-date .notice {
+  margin-top: var(--space-3);
+}
+
+.question-sessions .notice {
+  margin-bottom: var(--space-2);
+}
+
+.loading {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Date calendar: month line, weekday line, then a seven-column grid of day cells. */
+.cal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+}
+
+.cal-month {
+  font-weight: 600;
+}
+
+.cal-nav {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.cal-weekdays,
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-weekdays {
+  margin-top: var(--space-1);
+  font-size: var(--type-calendar-day-size);
+  line-height: var(--type-label-line);
+  font-weight: 600;
+}
+
+.cal-grid {
+  margin-top: var(--space-1);
+  font-size: var(--type-calendar-day-size);
+  line-height: var(--type-calendar-day-line);
+  font-weight: var(--type-calendar-day-weight);
+}
+
+.cal-day,
+.cell {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+/* The native radio covers its cell, invisible; the cell beside it carries the look and the focus ring. */
+.cal-day input,
+.cell input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.cal-day span,
+.cal-no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--calendar-cell-height);
+}
+
+.cal-day span,
+.cell span {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cal-no {
+  background: var(--color-unavailable);
+  color: var(--color-muted);
+}
+
+.cal-day input:checked + span,
+.cell input:checked + span {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 1.5px solid var(--color-button-edge);
+  font-weight: var(--type-calendar-day-selected-weight);
+}
+
+.cal-day input:focus-visible + span,
+.cell input:focus-visible + span {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.cal-end {
+  margin-top: var(--space-2);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+}
+
+/* Seat picker: ten equal cells, --control-height high. */
+.seat-picker {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.cell span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height);
+  font-size: var(--type-button-size);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Session list: rows with one rule between each and a rule closing the list. */
+.session-rows {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.session-row {
+  display: grid;
+  grid-template-columns: 32px minmax(112px, max-content) minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: var(--session-row-height);
+  padding: 0 var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-session-time-line);
+  cursor: pointer;
+}
+
+.session-row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-link);
+}
+
+.session-time {
+  padding-right: var(--space-3);
+  font-size: var(--type-session-time-size);
+  font-weight: var(--type-session-time-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-started {
+  padding-left: var(--space-3);
+}
+
+.session-row.selected {
+  background: var(--color-surface);
+  box-shadow: inset 3px 0 0 var(--color-button-edge);
+  font-weight: 600;
+}
+
+.session-row.selected .session-time {
+  font-weight: var(--type-session-time-selected-weight);
+}
+
+.session-row.unavailable {
+  background: var(--color-unavailable);
+  cursor: default;
+}
+
+/* Nearest sessions: Text links inside the Notice, rows at least --session-row-height, ruled like the list. */
+.nearest {
+  margin-top: var(--space-2);
+  list-style: none;
+}
+
+.nearest li {
+  display: flex;
+  align-items: center;
+  min-height: var(--session-row-height);
+  border-top: 1px solid var(--color-border);
+}
+
+/* The Book seats rail: DOM order total, Continue, Wordmark, notes; the Wordmark is drawn first (EXPERIENCE.md). */
+.rail-book {
+  display: flex;
+  flex-direction: column;
+}
+
+.rail-book .wordmark {
+  order: -1;
+}
+
+.total-block {
+  margin-bottom: var(--space-3);
+}
+
+.total {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-total-line);
+}
+
+.total-amount {
+  font-size: var(--type-total-size);
+  line-height: var(--type-total-line);
+  font-weight: var(--type-total-weight);
+}
+
+.total-note {
+  color: var(--color-muted);
+  font-size: var(--type-total-note-size);
+  line-height: var(--type-total-note-line);
+  font-weight: var(--type-total-note-weight);
+}
+
+.rail-note {
+  margin-top: var(--space-4);
+  color: var(--color-muted);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.rail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}

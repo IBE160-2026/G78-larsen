@@ -24,6 +24,7 @@ STATUS: dict[str, int] = {
     "rule_refused": 409,  # a named store rule (FR-29, FR-41)
     "already_exists": 409,  # one of the slice's UNIQUE keys
     "deadline_passed": 409,  # past the Window's Booking deadline (FR-39)
+    "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
     "invalid_input": 422,  # a shape error from Pydantic, with `fields`
     "internal_error": 500,  # an unmapped store error or a bug; never carries store text

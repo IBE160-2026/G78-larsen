@@ -1,16 +1,11 @@
-"""SQL for Windows, Seats left, Holds and Seat bookings. Every function takes the connection of the caller's
-transaction (`db.run`)."""
+"""SQL for one Window, Seats left, Holds and Seat bookings; the dated listing is in `db.windows`. Every function takes
+the connection of the caller's transaction (`db.run`)."""
 
 from __future__ import annotations
 
 import psycopg
 
 _WINDOW = "SELECT id, lower(during), upper(during), seats_left(id) FROM windows"
-
-
-def list_windows(c: psycopg.Connection) -> list[tuple]:
-    """(id, start, end, seats_left) of every Window; Seats left is read from the rows (AD-5)."""
-    return c.execute(_WINDOW + " ORDER BY id").fetchall()
 
 
 def get_window(c: psycopg.Connection, window_id: int) -> tuple | None:

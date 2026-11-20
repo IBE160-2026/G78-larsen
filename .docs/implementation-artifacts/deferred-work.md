@@ -22,3 +22,6 @@
 - source_spec: `.docs/implementation-artifacts/spec-1-3-landing-page-venue.md`
   summary: Test `frontend/lib/venue-format.js` for a price with øre (25050, 25005), whole hours (120) and minutes only (45) when an Administrator story lets price and Session length change.
   evidence: Only 25000 and 90 are checked end to end, and the frontend has no unit-test runner (verification-gap VG2).
+- source_spec: `.docs/implementation-artifacts/spec-1-4-book-seats-date-seats-session.md`
+  summary: Add a test that `seed.apply()` checks the schedule's daylight-saving rule against the store's `settings.venue_tz`, not the Europe/Oslo default.
+  evidence: Every schedule test uses the default zone, so reverting `apply` to `load(directory)` passes the suite; it matters once an Administrator can change `venue_tz`.
