@@ -9,7 +9,7 @@ import psycopg
 import pytest
 from psycopg import errors
 
-from client import api_client
+from client import api_client, booking_body, new_key
 from conftest import EARLY, set_clock, win_start
 from test_fr10_through_the_api import fill, hold, left
 
@@ -34,11 +34,11 @@ def test_a_hold_ends_at_the_booking_deadline_when_that_comes_first(api, pg):
 def test_nothing_can_be_held_booked_or_booked_whole_after_the_booking_deadline(api, admin, pg):
     set_clock(pg, win_start(0) + dt.timedelta(minutes=6))
     for c, path, body in [(api, "/api/holds", dict(window_id=1, seats=1)),
-                          (api, "/api/bookings", dict(window_id=1, seats=1)),
+                          (api, "/api/bookings", booking_body(1, 1)),
                           (admin, "/api/admin/whole-bookings", dict(window_id=1, sauna_id=4))]:
-        r = c.post(path, json=body)
+        r = c.post(path, json=body, headers=new_key())
         assert r.status_code == 409 and r.json()["detail"]["error"] == "deadline_passed", (path, r.text)
-    assert api.post("/api/bookings", json=dict(window_id=2, seats=1)).status_code == 201  # the next Window is open
+    assert api.book(2, 1).status_code == 201  # the next Window is open
 
 
 def test_a_payment_after_the_hold_expired_books_only_if_the_seats_are_free(api, world, pg):
@@ -46,13 +46,13 @@ def test_a_payment_after_the_hold_expired_books_only_if_the_seats_are_free(api, 
     a, b, c = api, api_client(world), api_client(world)
     assert a.post("/api/holds", json=dict(window_id=1, seats=10)).status_code == 200
     set_clock(pg, EARLY + dt.timedelta(minutes=11))
-    assert a.post("/api/bookings", json=dict(window_id=1, seats=10)).status_code == 201  # Seats still free
+    assert a.book(1, 10).status_code == 201  # Seats still free
     assert pg.execute("SELECT count(*) FROM holds").fetchone()[0] == 0  # the Hold was consumed
 
     assert b.post("/api/holds", json=dict(window_id=2, seats=10)).status_code == 200
     set_clock(pg, EARLY + dt.timedelta(minutes=23))
     fill(c, 40, wid=2)  # someone else took them, in Bookings of at most 10, each a 201 (AD-21)
-    r = b.post("/api/bookings", json=dict(window_id=2, seats=10))
+    r = b.book(2, 10)
     assert r.status_code == 409 and r.json()["detail"]["error"] == "no_seat_free"
     assert left(api, 2) == 4
 
@@ -146,7 +146,7 @@ def _seats_placed(api, admin, pg):
 
 
 def _started_with_seat_bookings(api, admin, pg):
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=1)).status_code == 201
+    assert api.book(1, 1).status_code == 201
     set_clock(pg, win_start(0) + dt.timedelta(minutes=2))  # started, before the Booking deadline
 
 

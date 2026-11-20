@@ -26,6 +26,9 @@ STATUS: dict[str, int] = {
     "deadline_passed": 409,  # past the Window's Booking deadline (FR-39)
     "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
+    "invalid_key": 409,  # an Idempotency-Key already used by another session or for another request (AD-9)
+    "payment_pending": 409,  # the payment is held (test switch `payment = "hold"`, AD-14); nothing written
+    "payment_failed": 409,  # the payment failed (test switch `payment = "fail"`, FR-7); nothing written
     "invalid_input": 422,  # a shape error from Pydantic, with `fields`
     "internal_error": 500,  # an unmapped store error or a bug; never carries store text
     "try_again": 503,  # retries used up (FR-14)

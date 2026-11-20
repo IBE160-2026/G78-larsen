@@ -10,9 +10,10 @@ from __future__ import annotations
 import datetime as dt
 
 import httpx
+import pytest
 
 from client import COOKIE, _TLS, admin_client, api_client, token_hash
-from conftest import EARLY, set_clock, start_backend
+from conftest import EARLY, raw_booking, set_clock, start_backend
 
 
 def rows(pg, sql, params=()):
@@ -25,7 +26,7 @@ def rows(pg, sql, params=()):
 def test_a_guest_write_without_a_session_is_401_and_writes_nothing(world, pg):
     with api_client(world, session=False) as anon:
         for r in [anon.post("/api/holds", json=dict(window_id=1, seats=1)),
-                  anon.post("/api/bookings", json=dict(window_id=1, seats=1)),
+                  anon.book(1, 1),
                   anon.delete("/api/holds", params=dict(window_id=1))]:
             assert r.status_code == 401 and r.json() == {"detail": {"error": "no_session"}}, r.text
         anon.cookies.set(COOKIE, "not-a-real-token", domain="127.0.0.1")
@@ -103,11 +104,22 @@ def test_expired_sessions_are_purged_at_startup(api, world, pg, database, tmp_pa
     pg.execute("INSERT INTO holds (window_id, seats, session_id, created_at, expires_at) "
                "SELECT 1, 2, id, n, n + interval '10 minutes' FROM sessions, (SELECT app_now() AS n) x "
                "WHERE token_hash = sha256('expired')")
+    # the expired session also paid for a Booking under a key (Story 1.5)
+    booking_id = pg.execute(raw_booking(2, 3) + " RETURNING id").fetchone()[0]
+    pg.execute("UPDATE bookings SET session_id = (SELECT id FROM sessions WHERE token_hash = sha256('expired')) "
+               "WHERE id = %s", (booking_id,))
+    pg.execute("INSERT INTO idempotency_keys (key, session_id, endpoint, request_hash, booking_id) "
+               "SELECT gen_random_uuid(), id, 'POST /api/bookings', sha256('x'), %s FROM sessions "
+               "WHERE token_hash = sha256('expired')", (booking_id,))
     pg.commit()
     second = start_backend(database, tmp_path, name="purge")
     try:
         assert rows(pg, "SELECT count(*) FROM sessions WHERE token_hash = sha256('expired')") == [(0,)]
         assert rows(pg, "SELECT session_id FROM holds") == [(None,)]  # ON DELETE SET NULL
+        # the Booking stays, without its session, and still takes its Seats; the key went with the session
+        assert rows(pg, "SELECT session_id, status FROM bookings WHERE id = %s", (booking_id,)) == [(None, "active")]
+        assert rows(pg, "SELECT window_booked_seats(2)") == [(3,)]
+        assert rows(pg, "SELECT count(*) FROM idempotency_keys WHERE booking_id = %s", (booking_id,)) == [(0,)]
         assert rows(pg, "SELECT count(*) FROM sessions WHERE id = %s", (api.session_id,)) == [(1,)]  # still valid
     finally:
         second.stop()
@@ -115,7 +127,7 @@ def test_expired_sessions_are_purged_at_startup(api, world, pg, database, tmp_pa
 
 def test_no_token_cookie_or_body_reaches_the_backend_log(api, backend):
     marker = "Body-Marker-Ada-Lovelace-7d1f"
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=1, guest=marker)).status_code == 201
+    assert api.book(1, 1, name=marker).status_code == 201
     assert api.post("/api/holds", json=dict(window_id=2, seats=1)).status_code == 200
     log = backend.output()
     assert "POST /api/bookings" in log  # the access log is on, and it is the right file
@@ -135,3 +147,25 @@ def test_the_cookie_is_secure_when_https_is_on(database, tmp_path):
     assert r.status_code == 200, r.text
     attrs = [a.strip().lower() for a in r.headers["set-cookie"].split(";")]
     assert "secure" in attrs and "httponly" in attrs and "samesite=strict" in attrs
+
+
+@pytest.mark.parametrize("path", ["/api/bookings", "/api/holds"])
+def test_a_sign_out_racing_a_write_is_no_session_not_not_found(api, pg, path):
+    """The session row is deleted between the request's session check and its insert (a trigger in the test database
+    deletes it inside the write, exactly in between). The foreign key refuses the insert, and the answer is
+    `401 no_session`, never `404 not_found` (db/refusals.py). Nothing is written."""
+    table = "bookings" if path == "/api/bookings" else "holds"
+    pg.execute("CREATE OR REPLACE FUNCTION sign_out_now() RETURNS trigger LANGUAGE plpgsql AS $$ "
+               "BEGIN DELETE FROM sessions WHERE id = NEW.session_id; RETURN NEW; END $$")
+    pg.execute(f"CREATE TRIGGER z_sign_out_now BEFORE INSERT ON {table} FOR EACH ROW EXECUTE FUNCTION sign_out_now()")
+    pg.commit()
+    try:
+        r = api.book(1, 1) if table == "bookings" else api.post(path, json=dict(window_id=1, seats=1))
+        assert r.status_code == 401 and r.json() == {"detail": {"error": "no_session"}}, r.text
+    finally:
+        pg.rollback()
+        pg.execute(f"DROP TRIGGER z_sign_out_now ON {table}")
+        pg.execute("DROP FUNCTION sign_out_now()")
+        pg.commit()
+    assert rows(pg, "SELECT (SELECT count(*) FROM bookings), (SELECT count(*) FROM holds), "
+                    "(SELECT count(*) FROM idempotency_keys), (SELECT count(*) FROM sessions)") == [(0, 0, 0, 1)]

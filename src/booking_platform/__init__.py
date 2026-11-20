@@ -21,7 +21,8 @@ def main(argv: list[str] | None = None) -> None:
 
     try:
         settings, _ = config.load()
-        seed.load()  # the seed file is checked before anything starts; it is applied after the migrations (AD-18)
+        seed.load()  # the seed files are checked before anything starts; they are applied after the migrations (AD-18)
+        seed.load_bookings()
     except (config.ConfigError, seed.SeedError) as e:
         print(f"booking-platform: {e}", file=sys.stderr)
         sys.exit(2)

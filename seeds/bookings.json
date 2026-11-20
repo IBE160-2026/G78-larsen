@@ -1,0 +1,16 @@
+{
+  "bookings": [
+    {"key": "5eed0000-0000-4000-8000-000000000001", "days": 1, "start": "14:30", "seats": 2, "name": "Ingrid Berg", "email": "ingrid.berg@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000002", "days": 2, "start": "17:30", "seats": 10, "name": "Ola Nordmann", "email": "ola.nordmann@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000003", "days": 2, "start": "17:30", "seats": 10, "name": "Kari Hansen", "email": "kari.hansen@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000004", "days": 2, "start": "17:30", "seats": 10, "name": "Per Johansen", "email": "per.johansen@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000005", "days": 2, "start": "17:30", "seats": 10, "name": "Liv Olsen", "email": "liv.olsen@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000006", "days": 2, "start": "17:30", "seats": 2, "name": "Aino Virtanen", "email": "aino.virtanen@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000007", "days": 3, "start": "19:00", "seats": 10, "name": "Jonas Lie", "email": "jonas.lie@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000008", "days": 3, "start": "19:00", "seats": 10, "name": "Siri Dahl", "email": "siri.dahl@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000009", "days": 3, "start": "19:00", "seats": 10, "name": "Erik Moe", "email": "erik.moe@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000010", "days": 3, "start": "19:00", "seats": 10, "name": "Nora Bakke", "email": "nora.bakke@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000011", "days": 3, "start": "19:00", "seats": 4, "name": "Mikko Laine", "email": "mikko.laine@example.com"},
+    {"key": "5eed0000-0000-4000-8000-000000000012", "days": 5, "start": "10:00", "seats": 4, "name": "Olav Strand", "email": "olav.strand@example.com"}
+  ]
+}

@@ -15,11 +15,10 @@ COPY frontend/app/ ./app/
 COPY frontend/components/ ./components/
 COPY frontend/lib/ ./lib/
 COPY frontend/public/ ./public/
-# The shared text (`content/`, AD-12) when present; Story 1.3 adds it. run-next.mjs copies it into
-# frontend/content before `next build`. The bracket glob matches nothing until then, and the always-present
-# package.json keeps the instruction valid.
-COPY frontend/package.json conten[t]/ /repo/content/
-RUN rm -f /repo/content/package.json && npm run build
+# The shared text (`content/`, AD-12): run-next.mjs copies it into frontend/content before `next build`, and the
+# pages import it at build time.
+COPY content/ /repo/content/
+RUN npm run build
 
 FROM node:24-alpine AS runner
 WORKDIR /app

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import shutil
 import socket
 import subprocess
 import time
@@ -129,11 +130,26 @@ class Backend:
         return self.log.read_text(encoding="utf-8", errors="replace")
 
 
+def root_without_sample_bookings(workdir: Path) -> Path:
+    """A `BP_ROOT` like the repository's, without `seeds/bookings.json`: for a second backend started on a `world` that
+    a test counts Bookings in (the sample Bookings would land in the Windows it generates)."""
+    root = workdir / "root-no-sample-bookings"
+    if not root.exists():
+        shutil.copytree(config.paths.MIGRATIONS, root / "migrations")
+        shutil.copytree(config.paths.CONTENT, root / "content")
+        (root / "seeds").mkdir()
+        shutil.copy(config.paths.SEEDS / "venue.json", root / "seeds" / "venue.json")
+        (root / "config").mkdir()
+    return root
+
+
 def start_backend(database_url: str, workdir: Path, *, switches: str = "", name: str = "backend",
-                  wait: bool = True, env: dict[str, str] | None = None) -> Backend:
+                  wait: bool = True, env: dict[str, str] | None = None, sample_bookings: bool = True) -> Backend:
     """Start `uv run booking-platform serve` on a free port with its own base URL and switch file; its output
-    goes to a log file in `workdir`."""
+    goes to a log file in `workdir`. With `sample_bookings=False` it runs without `seeds/bookings.json`."""
     workdir.mkdir(parents=True, exist_ok=True)
+    if not sample_bookings:
+        env = {"BP_ROOT": str(root_without_sample_bookings(workdir)), **(env or {})}
     port = free_port()
     switch_file = workdir / f"{name}-switches.toml"
     switch_file.write_text(switches, encoding="utf-8")
@@ -195,8 +211,8 @@ def world(pg, server):
     The three Windows sit on the seed schedule's 10:00, 11:30 and 13:00 Oslo slots of 2026-12-01. No Window has been
     generated yet (`windows_generated_through` is NULL); the first Window listing generates the rest of the horizon
     and skips these three, which overlap."""
-    pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, bookings, windows, saunas, sessions "
-               "RESTART IDENTITY CASCADE")
+    pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, idempotency_keys, payments, outbox_emails, "
+               "bookings, windows, saunas, sessions RESTART IDENTITY CASCADE")
     pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5, "
                "booking_horizon_days = 28, windows_generated_through = NULL")
     for i, n, cap in SAUNAS:
@@ -223,10 +239,25 @@ def admin(world, pg):
 
 
 def clear(pg: psycopg.Connection) -> None:
-    """Remove all Bookings, Holds, Whole-sauna bookings, Blocks and marks (row deletes, so the triggers run)."""
-    for t in ("holds", "bookings", "whole_bookings", "blocks", "marks"):
+    """Remove all Bookings (with their keys, payments and emails), Holds, Whole-sauna bookings, Blocks and marks (row
+    deletes, so the triggers run)."""
+    for t in ("holds", "idempotency_keys", "payments", "outbox_emails", "bookings", "whole_bookings", "blocks",
+              "marks"):
         pg.execute(f"DELETE FROM {t}")
     pg.commit()
+
+
+# A Seat booking written straight to the store, around the API (AD-21), with every NOT NULL column of Story 1.5. `{w}`
+# and `{s}` are SQL expressions or placeholders for the Window and the Seats; the reference is 8 random hex
+# characters (hex is a subset of Crockford base32).
+RAW_BOOKING = ("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+               "SELECT v.w, v.s, upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8)), 'Raw Guest', "
+               "'raw@example.com', 25000, v.s * 25000 FROM (VALUES ({w}, {s})) AS v(w, s)")
+
+
+def raw_booking(window: object = "%s", seats: object = "%s") -> str:
+    """The SQL of one raw Seat booking (see RAW_BOOKING)."""
+    return RAW_BOOKING.format(w=window, s=seats)
 
 
 def state(pg: psycopg.Connection, wid: int = 1) -> dict:

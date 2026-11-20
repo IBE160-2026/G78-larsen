@@ -12,7 +12,7 @@ export const CHANGING_TIME = 'Changing time is part of your session.';
 export const VENUE_UNAVAILABLE = 'The venue details could not be loaded, please try again.';
 
 // Book seats (EXPERIENCE.md, Page and message wording). Functions take the facts the sentence needs.
-const seatsWord = (n) => (n === 1 ? '1 seat' : `${n} seats`);
+export const seatsWord = (n) => (n === 1 ? '1 seat' : `${n} seats`);
 
 export const BOOK = Object.freeze({
   heading: 'Book seats',
@@ -44,4 +44,55 @@ export const BOOK = Object.freeze({
   sessionCleared: (seats) => `The session you chose no longer has room for ${seatsWord(seats)}. Choose another session.`,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   sessionsUnavailable: 'The sessions could not be loaded, please try again.',
+});
+
+// The payment note: on Pay and in every email that mentions a payment (FR-6).
+export const SIMULATED_PAYMENT = 'Simulated payment: no money moves';
+
+// The Booking summary labels (EXPERIENCE.md), on Review and Confirmation.
+export const SUMMARY = Object.freeze({
+  date: 'Date',
+  session: 'Session',
+  seats: 'Seats',
+  total: 'Total',
+  name: 'Name',
+  email: 'Email',
+  venue: 'Venue',
+  contact: 'Contact',
+});
+
+// Details (UX-DR23).
+export const DETAILS = Object.freeze({
+  heading: 'Your details',
+  back: 'Back',
+  name: 'Name',
+  email: 'Email',
+  continue: 'Continue booking',
+  enterName: 'Enter your name',
+  enterEmail: 'Enter a valid email address',
+});
+
+// Review (UX-DR24). The refusal Notices of Story 1.6 are not here yet: until then every refusal shows the
+// "please try again" Notice with Pay kept.
+export const REVIEW = Object.freeze({
+  heading: 'Review',
+  back: 'Back',
+  termsHeading: 'Booking terms',
+  accept: 'I accept the booking terms',
+  pay: (amount) => `Pay ${amount}`,
+  processing: 'Processing',
+  // Not in EXPERIENCE.md's wording tables (it says only "Error summary and Field error"): to be confirmed by Lisa.
+  acceptTerms: 'Accept the booking terms',
+  // EXPERIENCE.md: a refusal shows a Notice with "please try again"; the first words are to be confirmed by Lisa.
+  tryAgain: 'The booking could not be completed, please try again.',
+  loadFailed: 'The booking could not be loaded, please try again.',
+});
+
+// Confirmation (UX-DR27).
+export const CONFIRMATION = Object.freeze({
+  heading: 'Booking confirmed',
+  reference: 'Booking reference',
+  beforeYouCome: 'Before you come',
+  sentByEmail: 'Sent by email:',
+  loadFailed: 'The booking could not be loaded, please try again.',
 });

@@ -28,7 +28,15 @@ class paths:  # noqa: N801 - a namespace, read as config.paths.ROOT
     ROOT = Path(os.environ["BP_ROOT"]).resolve() if os.environ.get("BP_ROOT") else Path(__file__).resolve().parents[2]
     MIGRATIONS = ROOT / "migrations"
     SEEDS = ROOT / "seeds"
+    CONTENT = ROOT / "content"
     CONFIG = ROOT / "config"
+
+
+class links:  # noqa: N801 - a namespace, read as config.links.before_you_come
+    """Paths and anchors of the links in emails (AD-12). An email link is `settings().base_url` + one of these; it is
+    never built from a request (AD-10)."""
+
+    before_you_come = "/#before-you-come"
 
 
 def _flag(name: str, value: str) -> bool:
@@ -97,7 +105,7 @@ PAYMENT_OUTCOMES = ("ok", "fail", "hold")
 
 @dataclass(frozen=True)
 class Switches:
-    payment: str = "ok"  # read only by payment.charge (Story 1.5)
+    payment: str = "ok"  # read only by services.payment.charge, for runs made for an HTTP request
     force_conflict: bool = False  # read only by db.run, for runs made for an HTTP request
 
 

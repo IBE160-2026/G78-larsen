@@ -860,3 +860,229 @@ a {
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-4);
 }
+
+/* ------------------------------------------------------------------ Details, Review, Confirmation (UX-DR9/10/14/23/24/27) */
+
+/* Back under the heading, in body-sm (Details and Review). */
+.back {
+  margin-top: var(--space-2);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Text field with its label always visible above (UX-DR9). */
+.form-field {
+  margin-top: var(--space-4);
+}
+
+.back + form {
+  margin-top: var(--space-2);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}
+
+.privacy-link {
+  margin-top: var(--space-4);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.form-actions {
+  margin-top: var(--space-5);
+}
+
+.back + .notice,
+.back + .error-summary,
+.error-summary + .notice {
+  margin-top: var(--space-5);
+}
+
+.col .notice,
+.review .notice {
+  max-width: var(--measure-text);
+}
+
+/* Review: the Booking summary beside the terms and Pay, each within the text measure; stacked below 1200 px. */
+.review-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+  align-items: start;
+  max-width: calc(2 * var(--measure-text) + var(--space-8));
+  margin-top: var(--space-5);
+}
+
+.review-cols .summary {
+  margin-top: 0;
+}
+
+.review-cols .summary-row {
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.review-cols .terms-section {
+  margin-top: 0;
+}
+
+.review-cols .notice {
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 1199px) {
+  .review-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+/* Booking summary: label and value rows, a line between rows, tabular figures. */
+.summary {
+  margin: var(--space-5) 0 0;
+  border-top: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.summary-row + .summary-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.summary dt {
+  font-weight: 400;
+}
+
+.summary dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.summary-line {
+  display: block;
+}
+
+/* Booking terms: the heading, the shared statements, then the Terms and Privacy notice links. */
+.terms-section {
+  margin-top: var(--space-6);
+}
+
+.terms-section p {
+  margin-top: var(--space-2);
+}
+
+.terms-section p + p {
+  margin-top: 0;
+}
+
+.terms-section .terms-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Terms checkbox (UX-DR10): the native box at 16 px inside its label, so the whole line is the target. */
+.terms-check-field {
+  margin-top: var(--space-5);
+}
+
+.terms-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 24px;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  cursor: pointer;
+}
+
+.terms-check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-link);
+}
+
+/* Pay with the payment note beside it. */
+.pay-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.pay-note {
+  color: var(--color-muted);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Confirmation: the heading in --color-success, the reference, the reception sentence right under it. */
+.heading-success {
+  color: var(--color-success);
+}
+
+.reference-box {
+  margin-top: var(--space-5);
+}
+
+.reference-label {
+  margin-bottom: var(--space-1);
+  font-family: var(--font-text);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}
+
+.reference {
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-lg-size);
+  line-height: var(--type-heading-lg-line);
+  font-weight: var(--type-heading-lg-weight);
+  font-variant-numeric: tabular-nums;
+  user-select: text;
+}
+
+.reception {
+  margin-top: var(--space-3);
+}
+
+.before-link {
+  margin-top: var(--space-6);
+}
+
+/* Email as sent: the stored text with its line breaks kept, on --color-surface. */
+.email-as-sent {
+  margin-top: var(--space-6);
+}
+
+.email-as-sent .reference-label {
+  margin-bottom: var(--space-2);
+}
+
+.email-body {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-variant-numeric: tabular-nums;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

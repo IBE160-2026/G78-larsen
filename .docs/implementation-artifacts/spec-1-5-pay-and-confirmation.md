@@ -2,7 +2,8 @@
 title: 'Story 1.5: A Guest pays and gets a confirmation'
 type: 'feature'
 created: '2026-11-20'
-status: 'ready-for-dev'
+status: 'done'
+baseline_commit: '9ae916591135e7c5ce57bd2e61e0d74c1421ee2d'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -80,14 +81,14 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `migrations/0006_bookings_pay.sql` -- columns, backfill, triggers, three tables -- AD-7, AD-9, AD-12, AD-13
-- [ ] `content/{terms-seats,reception}.json`, `config.py`, `services/{payment,reference,outbox,content}.py`, `services/booking.py`, `db/{bookings,seats,refusals}.py`, `api/{public,schemas,errors}.py` -- create, repeat, confirmation read, email body -- FR-5, FR-6, FR-8, FR-9, AD-20
-- [ ] `seeds/bookings.json`, `services/seed.py`, `app.py`, `backend Dockerfile`/`frontend/Dockerfile` -- seed Bookings; `content/` in both images -- AD-18
-- [ ] `tests/conftest.py` and the existing booking callers -- new request shape and TRUNCATE list
-- [ ] `tests/test_fr06_payment.py`, `test_fr08_confirmation.py`, `test_fr18_validation.py`, `test_fr04_no_sauna.py`, `test_dr5_seed_bookings.py`, `test_dr4_migrations.py`, `test_fr21_sessions.py` (FK → `no_session`) -- the matrix rows
-- [ ] `frontend/app/book-seats/{details,review}/page.js`, `app/confirmation/[reference]/page.js`, `components/{Details,Review,Confirmation,BookingSummary,EmailAsSent,ReferenceDisplay,TermsCheckbox}.js`, `lib/{api,draft,copy}.js`, `BookSeats.js`, `app/styles.css` -- the three pages -- FR-5, FR-6, FR-8, UX-DR5/6/9/10/14/23/24/26/27
-- [ ] `tests/e2e/test_fr05_book_and_pay.py`, `tests/e2e/test_fr21_privacy.py` -- keyboard flow, titles, axe, Pay in first view, widths, script name as text, Confirmation in another browser
-- [ ] `ARCHITECTURE-SPINE.md` AD-7 ("migration `0006`"), `README.md` status, `.logs/lisa-larsen/issues.md` (close the three carried points)
+- [x] `migrations/0006_bookings_pay.sql` -- columns, backfill, triggers, three tables -- AD-7, AD-9, AD-12, AD-13
+- [x] `content/{terms-seats,reception}.json`, `config.py`, `services/{payment,reference,outbox,content}.py`, `services/booking.py`, `db/{bookings,seats,refusals}.py`, `api/{public,schemas,errors}.py` -- create, repeat, confirmation read, email body -- FR-5, FR-6, FR-8, FR-9, AD-20
+- [x] `seeds/bookings.json`, `services/seed.py`, `app.py`, `backend Dockerfile`/`frontend/Dockerfile` -- seed Bookings; `content/` in both images -- AD-18
+- [x] `tests/conftest.py` and the existing booking callers -- new request shape and TRUNCATE list
+- [x] `tests/test_fr06_payment.py`, `test_fr08_confirmation.py`, `test_fr18_validation.py`, `test_fr04_no_sauna.py`, `test_dr5_seed_bookings.py`, `test_dr4_migrations.py`, `test_fr21_sessions.py` (FK → `no_session`) -- the matrix rows
+- [x] `frontend/app/book-seats/{details,review}/page.js`, `app/confirmation/[reference]/page.js`, `components/{Details,Review,Confirmation,BookingSummary,EmailAsSent,ReferenceDisplay,TermsCheckbox}.js`, `lib/{api,draft,copy}.js`, `BookSeats.js`, `app/styles.css` -- the three pages -- FR-5, FR-6, FR-8, UX-DR5/6/9/10/14/23/24/26/27
+- [x] `tests/e2e/test_fr05_book_and_pay.py`, `tests/e2e/test_fr21_privacy.py` -- keyboard flow, titles, axe, Pay in first view, widths, script name as text, Confirmation in another browser
+- [x] `ARCHITECTURE-SPINE.md` AD-7 ("migration `0006`"), `README.md` status, `.logs/lisa-larsen/issues.md` (close the three carried points)
 
 **Acceptance Criteria:**
 - Given `uv run pytest`, then every test passes, Stories 1.1–1.4 included.
@@ -99,6 +100,32 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Evidence | Route |
+|---|---|---|---|---|---|
+| 1 | blind, edge | Repeat of a stored key while the `payment` switch is `fail`/`hold` gets 409 instead of the first outcome | low | Real (`charge()` runs before `db.run`), but only with a test switch on; the order is the spec's own Always rule (charge before `lock_windows`). | reject |
+| 2 | blind, edge | Session deleted (purge) cascades its key away; a retry in a new session books and charges twice; without purge, `invalid_key` loops | low | Needs a lost 201 response, 24 h idle (guest lifetime, `db/sessions.py:11`) and a backend restart (purge runs only at startup); `ON DELETE CASCADE` is AD-9 as the frozen Decisions require. Fix is not a direct correction. | reject (noted for Story 1.6) |
+| 3 | blind, edge | Key kept when Window/Seats/name/email change; changed request after a lost success is `invalid_key` forever, changed email returns the old Booking | low | A key is stored only on success, and success replaces the draft with `{reference}`; only a lost response leads here. Name/email outside the hash is the frozen matrix row "Repeat, other name". | reject |
+| 4 | blind | Review offers Pay when the Window listing failed (Session row empty) | medium | `Review.js` renders the columns on `session \|\| loadFailed`, and `amount` comes from the Venue price, so Pay is live without the session time. | patch |
+| 5 | blind | Confirmation shows the green "Booking confirmed" heading while loading (another browser sees it before "not available") | low | `Confirmation.js` renders the h1 for every status but `not_available`. Direct fix. | patch |
+| 6 | blind, edge | `EmailAsSent` hard-codes `id="sent-by-email"` and Confirmation keys emails by subject | low | Only one email per Booking today; duplicate ids/keys once later stories add emails. Direct fix (index). | patch |
+| 7 | blind, edge | `content/*.json` not checked before startup; missing file gives a traceback or a 500 | low | Files are in the repo and both images; unlikely in use, and the fix adds startup plumbing. | reject |
+| 8 | blind, gap | No test sets `payment = "fail"`/`"hold"` (409, nothing written, retry runs again, seed still pays ok) | gap | Pre-verified: only switch-file parsing is tested (`tests/test_fr14_switches.py`). | patch |
+| 9 | blind, gap | `idempotency_keys_key_key` → `invalid_key` (same key, two Windows at once) untested | gap | Pre-verified: no test reaches the constraint; sequential tests stop at `q.key()`. | patch |
+| 10 | gap | `reference.claim` retry and `try_again` after 5 clashes untested | gap | Pre-verified: no test imports `services.reference`. | patch |
+| 11 | gap | A price of 0 (no `payments` row, total 0) untested | gap | Pre-verified: `ge=0` allows 0; `payments_amount_positive` would be a 500 without the guard. | patch |
+| 12 | gap | Startup purge of an expired session owning a Booking and a key untested | gap | Pre-verified: the purge test only covers a Hold. | patch |
+| 13 | gap | Seed skip paths (no Window, refused) untested | gap | Pre-verified; unreachable with the shipped seed and schedule. | defer |
+| 14 | gap | Review refusal path (Notice, Pay re-enabled, key kept) has no e2e test | gap | Pre-verified; the refusal UX is Story 1.6's. | defer |
+| 15 | blind | `idempotency_keys` has no index on `session_id`/`booking_id` | low | The cascade on session delete and the FK scan the table; `payments`/`outbox_emails` got indexes. 0006 is uncommitted, so a direct addition. | patch |
+| 16 | blind | Spec, sprint-status and README disagree on status | false | Statuses are moved by the workflow at each step; README "under arbeid" is true until done. | reject |
+| 17 | blind | Confirmation and the email omit the name; email says "Seats: 2"; formatting duplicated in Python and JS | false | `key-confirmation.html` L89-112 has exactly this layout (no name, "Seats: 2"); duplication has no named divergence. | reject |
+| 18 | blind, edge | 0006 backfill fails with no `settings` row or ids above 0xFFFFFFFF | false | 0004 always inserts the one `settings` row; legacy dev ids are far below 2^32. | reject |
+| 19 | blind | e2e helpers: `free_windows` ignores `seats`; cross-module imports; order dependence | low | `seats` unused is real (direct fix); the rest has no failing scenario shown. | patch (`seats` only) |
+| 20 | edge | `total_ore` int4 overflow with a price above INT4_MAX/10 | low | Needs a price over NOK 2.1 million per Seat; fix is a type or cap change. | reject |
+| 21 | edge | U+0000 in name or email passes Pydantic and becomes a 500 | medium | psycopg refuses NUL in text, unmapped, so `500 internal_error` where FR-18 asks for 422. Direct fix: refuse control characters in `BookingIn`. | patch |
+| 22 | edge | Seed `except Refused` only; a StoreError stops startup | false | An unmapped store error is a bug, and failing loudly is the intended behaviour; mapped refusals are `Refused`. | reject |
+| 23 | gap (other) | `test_fr21_sessions.py:108` starts a backend on `world` without `sample_bookings=False` | low | Harmless today (the test counts specific sessions); no failing assertion. | reject |
 
 ## Verification
 

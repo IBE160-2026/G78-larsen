@@ -114,7 +114,7 @@ flowchart LR
 
 - **Binds:** FR-16, FR-26, FR-40, FR-42
 - **Prevents:** a cancellation path that deletes rows, which loses history and breaks the Overbooking fallback.
-- **Rule:** migration `0002` makes these changes:
+- **Rule:** migration `0006` makes these changes (corrected 2026-11-20: `0002` to `0005` were taken by Stories 1.1 to 1.4, so Story 1.5 took the next free number):
   - it adds `bookings.status` (`active` | `cancelled`);
   - it adds `entry_time` (default `app_now()`; kept apart from `created_at`, the time of booking);
   - it makes `window_booked_seats()` count only active rows;

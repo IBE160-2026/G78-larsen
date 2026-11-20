@@ -1,4 +1,4 @@
-"""Request shapes (Conventions: Input) and the Venue facts response. Every request model forbids unknown fields;
+"""Request shapes (Conventions: Input), the Venue facts response and the Booking response. Every request model forbids unknown fields;
 Seats are 1 to 10 (FR-2)."""
 
 from __future__ import annotations
@@ -46,9 +46,17 @@ class HoldIn(Strict):
 
 
 class BookingIn(Strict):
+    """`POST /api/bookings` (FR-5, FR-9): one Window, 1 to 10 Seats, the Guest's name and email and nothing else. A
+    second Window (`window_ids`, any other field) is an unknown field. Leading and trailing spaces are not part of a
+    name or an email, and neither may hold a control character (U+0000 to U+001F, U+007F)."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     window_id: Id
     seats: Seats
-    guest: str = Field(default="", max_length=200)
+    name: Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[^\x00-\x1f\x7f]+$")]
+    email: Annotated[str, Field(min_length=3, max_length=254,
+                                pattern=r"^[^@\s\x00-\x1f\x7f]+@[^@\s\x00-\x1f\x7f]+\.[^@\s\x00-\x1f\x7f]+$")]
 
 
 class WholeIn(Strict):
@@ -99,3 +107,32 @@ class VenueOut(BaseModel):
     session_minutes: int
     price_per_seat_ore: int
     saunas: list[SaunaOut]
+
+
+class BookingOut(BaseModel):
+    """A Seat booking as every page shows it (FR-8): the stored price and total in øre, the Venue date and the
+    Window's start and end in Venue time. No Sauna (FR-4) and no internal id."""
+
+    reference: str
+    date: str
+    start: str
+    end: str
+    seats: int
+    price_per_seat_ore: int
+    total_ore: int
+    name: str
+    email: str
+    status: str
+
+
+class EmailOut(BaseModel):
+    subject: str
+    body: str
+
+
+class BookingResult(BaseModel):
+    """`POST /api/bookings` (also a repeat) and `GET /api/bookings/{reference}/confirmation`: the Booking as it is now
+    and the emails its action sent."""
+
+    booking: BookingOut
+    emails: list[EmailOut]

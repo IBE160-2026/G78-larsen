@@ -14,7 +14,7 @@ import datetime as dt
 import pytest
 
 from client import api_client
-from conftest import set_clock
+from conftest import raw_booking, set_clock
 
 UTC = dt.timezone.utc
 SLOTS = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00", "20:30"]
@@ -53,7 +53,7 @@ def block_day(pg, date: str, saunas=ALL_SAUNAS) -> None:
 
 
 def book(pg, window_id: int, seats: int) -> None:
-    pg.execute("INSERT INTO bookings (window_id, seats) VALUES (%s, %s)", (window_id, seats))
+    pg.execute(raw_booking(), (window_id, seats))
     pg.commit()
 
 

@@ -8,12 +8,16 @@ made for an HTTP request that have written, so the request ends in `503 try_agai
 from __future__ import annotations
 
 import time
+import uuid
 
+import psycopg
 import pytest
+from psycopg import sql
+from psycopg.conninfo import make_conninfo
 
 from booking_platform import config
 from client import COOKIE, ApiClient, _TLS
-from conftest import start_backend
+from conftest import ADMIN_URL, TEST_URL, start_backend
 
 
 def test_a_missing_file_or_a_directory_means_every_switch_is_off(tmp_path):
@@ -70,13 +74,15 @@ def test_startup_stops_on_a_broken_switch_file_with_one_line_naming_it(database,
 
 def test_force_conflict_makes_every_writing_request_try_again_and_writes_nothing(api, world, pg, database,
                                                                                  tmp_path):
-    b = start_backend(database, tmp_path, name="conflict", switches="force_conflict = true\n")
+    # without the sample Bookings, which would land in the Windows this start generates on the `world`
+    b = start_backend(database, tmp_path, name="conflict", switches="force_conflict = true\n",
+                      sample_bookings=False)
     try:
         # the switched backend started: migrations and the startup purge are not affected
         with ApiClient(base_url=b.base, timeout=60, headers={"Origin": b.base}, verify=_TLS) as c:
             c.cookies.set(COOKIE, api.token, domain="127.0.0.1")  # a session made through the normal backend
             t = time.monotonic()
-            r = c.post("/api/bookings", json=dict(window_id=1, seats=2))
+            r = c.book(1, 2)
             assert r.status_code == 503 and r.json() == {"detail": {"error": "try_again"}}, r.text
             assert time.monotonic() - t < 30
             r = c.post("/api/holds", json=dict(window_id=1, seats=2))
@@ -91,4 +97,46 @@ def test_force_conflict_makes_every_writing_request_try_again_and_writes_nothing
     assert pg.execute("SELECT (SELECT count(*) FROM bookings), (SELECT count(*) FROM holds)").fetchone() == (0, 0)
     pg.rollback()
     # the normal backend, with every switch off, still writes
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=2)).status_code == 201
+    assert api.book(1, 2).status_code == 201
+
+
+@pytest.mark.parametrize("outcome,code", [("fail", "payment_failed"), ("hold", "payment_pending")])
+def test_a_failed_or_held_payment_writes_nothing_and_the_same_key_books_later(api, world, pg, database, tmp_path,
+                                                                             outcome, code):
+    """FR-7 / AD-9 / AD-14: with `payment = "fail"` or `"hold"`, the booking is refused before anything is written,
+    nothing is stored under the key, and the same key books once the switch is off."""
+    key = str(uuid.uuid4())
+    b = start_backend(database, tmp_path, name=f"payment-{outcome}", switches=f'payment = "{outcome}"\n',
+                      sample_bookings=False)
+    try:
+        with ApiClient(base_url=b.base, timeout=60, headers={"Origin": b.base}, verify=_TLS) as c:
+            c.cookies.set(COOKIE, api.token, domain="127.0.0.1")  # a session made through the normal backend
+            r = c.book(1, 2, key=key)
+            assert r.status_code == 409 and r.json() == {"detail": {"error": code}}, r.text
+    finally:
+        b.stop()
+    pg.rollback()
+    assert pg.execute("SELECT (SELECT count(*) FROM bookings), (SELECT count(*) FROM payments), "
+                      "(SELECT count(*) FROM outbox_emails), (SELECT count(*) FROM idempotency_keys)"
+                      ).fetchone() == (0, 0, 0, 0)
+    pg.rollback()
+    # the normal backend, with every switch off: the same key books
+    assert api.book(1, 2, key=key).status_code == 201
+
+
+def test_the_payment_switch_does_not_apply_to_the_seed(tmp_path):
+    """AD-14: the switch is read only for HTTP requests, so the sample Bookings are paid even with `payment = "fail"`."""
+    name = "booking_test_seed_fail"
+    with psycopg.connect(ADMIN_URL, autocommit=True) as c:
+        c.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(name)))
+        c.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
+    url = make_conninfo(TEST_URL, dbname=name)
+    try:
+        b = start_backend(url, tmp_path, name="seed-fail", switches='payment = "fail"\n')
+        b.stop()
+        with psycopg.connect(url) as c:
+            counts = c.execute("SELECT (SELECT count(*) FROM bookings), (SELECT count(*) FROM payments)").fetchone()
+        assert counts == (12, 12)
+    finally:
+        with psycopg.connect(ADMIN_URL, autocommit=True) as c:
+            c.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(name)))

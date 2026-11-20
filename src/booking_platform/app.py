@@ -1,8 +1,8 @@
 """The FastAPI app: factory, lifespan and middleware only. Routes live in `api/`, rules in `services/`, SQL in `db/`.
 
 Startup: read the configuration (AD-14, AD-22), create `booking_dev` when the default URL is used, apply the
-migrations (AD-15), open the pool, apply the seed (AD-18), generate the Windows up to the Booking horizon (FR-13)
-and purge expired sessions (AD-8). The seed file is also checked before uvicorn starts (`booking_platform.main`), so
+migrations (AD-15), open the pool, apply the seed (AD-18), generate the Windows up to the Booking horizon (FR-13),
+create the sample Bookings that do not exist yet (AD-18) and purge expired sessions (AD-8). The seed file is also checked before uvicorn starts (`booking_platform.main`), so
 an invalid seed stops startup with one line.
 """
 
@@ -32,6 +32,7 @@ async def lifespan(_: FastAPI):
     try:
         seed.apply()
         log.info("generated %d windows", windows.ensure_generated())
+        seed.apply_bookings()  # the sample Bookings need their Windows (AD-18)
         purged = sessions.purge_expired()
         log.info("purged %d expired sessions", purged)
         yield

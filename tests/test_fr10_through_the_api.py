@@ -33,7 +33,7 @@ def parallel(fns):
 
 def book(c, seats, wid=1):
     """A Booking by the session of client `c` (each former `session_id` is now a client with its own session)."""
-    return c.post("/api/bookings", json=dict(window_id=wid, seats=seats, guest="guest"))
+    return c.book(wid, seats)
 
 
 def hold(c, seats, wid=1):
@@ -50,7 +50,7 @@ def fill(api, n, wid=1):
     todo = n
     while todo:
         part = min(10, todo)
-        assert api.post("/api/bookings", json=dict(window_id=wid, seats=part)).status_code == 201
+        assert api.book(wid, part).status_code == 201
         todo -= part
 
 
@@ -96,11 +96,11 @@ def test_the_last_seat_has_exactly_one_winner(api, world, pg):
 def test_a_request_for_more_than_is_left_is_rejected_as_a_whole(api, pg):
     """FR-12: 42 of 44 booked, a request for 3 is rejected and nothing changes; with all 44 booked, 1 is rejected."""
     fill(api, 42)
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+    r = api.book(1, 3)
     assert r.status_code == 409 and r.json()["detail"]["error"] == "no_seat_free"
     assert left(api) == 2 and state(pg)["real_booked"] == 42
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=2)).status_code == 201
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=1))
+    assert api.book(1, 2).status_code == 201
+    r = api.book(1, 1)
     assert r.status_code == 409 and left(api) == 0
 
 
@@ -147,7 +147,7 @@ def test_a_hold_expires_without_any_cleanup(api, world, pg):
                        "SELECT 1, %s, NULL, n, n + interval '10 minutes' FROM (SELECT app_now() AS n) x", (n,))
             pg.commit()
     assert left(api) == 0
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=1)).status_code == 409
+    assert api.book(1, 1).status_code == 409
     set_clock(pg, EARLY + dt.timedelta(minutes=10, seconds=5))
     assert left(api) == 44
     assert pg.execute("SELECT count(*) FROM holds").fetchone()[0] == 4  # the rows are still there
@@ -197,7 +197,7 @@ def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
             kind = r.choice(["book", "book", "hold", "hold", "whole", "block", "unmark", "mark", "lift", "cancel"])
             c = guests_of[i][r.randint(0, 3)]
             if kind == "book":
-                x = c.post("/api/bookings", json=dict(window_id=w, seats=r.randint(1, 6)))
+                x = c.book(w, r.randint(1, 6))
             elif kind == "hold":
                 x = c.post("/api/holds", json=dict(window_id=w, seats=r.randint(1, 6)))
             elif kind == "cancel":

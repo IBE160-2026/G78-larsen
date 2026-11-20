@@ -12,13 +12,14 @@ from __future__ import annotations
 import pytest
 
 from booking_platform import db
+from client import booking_body, new_key
 from test_fr10_through_the_api import fill
 
 ALWAYS = 10**9
 
 # (path, body, table the request writes to); /api/admin/ paths are sent with the Administrator session
 WRITES = [
-    ("/api/bookings", dict(window_id=1, seats=3), "bookings"),
+    ("/api/bookings", booking_body(1, 3), "bookings"),
     ("/api/holds", dict(window_id=1, seats=3), "holds"),
     ("/api/admin/whole-bookings", dict(window_id=1, sauna_id=4), "whole_bookings"),
 ]
@@ -76,7 +77,7 @@ def test_when_every_attempt_conflicts_the_guest_is_told_to_try_again_and_nothing
         api, admin, pg, force_conflict, path, body, table, sqlstate):
     force_conflict(table, sqlstate, ALWAYS)
 
-    r = (admin if path.startswith("/api/admin/") else api).post(path, json=body)
+    r = (admin if path.startswith("/api/admin/") else api).post(path, json=body, headers=new_key())
 
     assert r.status_code == 503 and r.json() == {"detail": {"error": "try_again"}}, r.text
     assert force_conflict.attempts() == db.RETRIES, "bounded: exactly RETRIES attempts, no more, no fewer"
@@ -92,7 +93,7 @@ def test_a_failed_booking_leaves_the_guests_hold_untouched(api, pg, force_confli
     left_before = api.get("/api/windows/1").json()["seats_left"]
 
     force_conflict("bookings", "40001", ALWAYS)
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=5))
+    r = api.book(1, 5)
 
     assert r.status_code == 503
     after = pg.execute("SELECT id, seats, expires_at FROM holds").fetchall()
@@ -106,7 +107,7 @@ def test_a_failed_booking_leaves_the_guests_hold_untouched(api, pg, force_confli
 def test_a_conflict_that_clears_within_the_bound_is_retried_into_success(api, pg, force_conflict, failures):
     force_conflict("bookings", "40001", failures)
 
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+    r = api.book(1, 3)
 
     assert r.status_code == 201, r.text
     assert force_conflict.attempts() == failures + 1
@@ -118,7 +119,7 @@ def test_the_last_allowed_attempt_still_counts(api, pg, force_conflict):
     """Boundary: RETRIES-1 failures then success is a 201 (above); RETRIES failures is a 503."""
     force_conflict("bookings", "40001", db.RETRIES)
 
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+    r = api.book(1, 3)
 
     assert r.status_code == 503
     assert force_conflict.attempts() == db.RETRIES
@@ -128,11 +129,11 @@ def test_the_last_allowed_attempt_still_counts(api, pg, force_conflict):
 def test_try_again_and_no_seat_free_are_different_answers(api, pg, force_conflict):
     """FR-14: a definite loss (409 no_seat_free) is not the same message as retries used up (503 try_again)."""
     fill(api, 44)  # 44 Seats in Bookings of at most 10, each a 201 (AD-21)
-    lost = api.post("/api/bookings", json=dict(window_id=1, seats=1))
+    lost = api.book(1, 1)
     assert lost.status_code == 409 and lost.json()["detail"]["error"] == "no_seat_free"
 
     force_conflict("bookings", "40001", ALWAYS)
-    retry = api.post("/api/bookings", json=dict(window_id=2, seats=1))
+    retry = api.book(2, 1)
     assert retry.status_code == 503 and retry.json()["detail"]["error"] == "try_again"
     assert lost.json() != retry.json()
 
@@ -142,7 +143,7 @@ def test_a_non_temporary_error_is_not_retried(api, pg, force_conflict):
     # check_violation: the store's definite refusal, named as every store refusal is (AD-1)
     force_conflict("bookings", "23514", ALWAYS, constraint="booked_within_capacity")
 
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+    r = api.book(1, 3)
 
     assert r.status_code == 409, r.text
     assert force_conflict.attempts() == 1, "one attempt: a definite refusal is never retried"
@@ -151,12 +152,12 @@ def test_a_non_temporary_error_is_not_retried(api, pg, force_conflict):
 
 def test_the_service_recovers_after_the_conflicts_stop(api, pg, force_conflict):
     force_conflict("bookings", "40001", ALWAYS)
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=3)).status_code == 503
+    assert api.book(1, 3).status_code == 503
 
     pg.execute("DROP TRIGGER z_force_conflict ON bookings")
     pg.commit()
 
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=3)).status_code == 201
+    assert api.book(1, 3).status_code == 201
     assert rows(pg, "bookings") == 1
 
 
@@ -165,7 +166,7 @@ def test_an_unnamed_store_error_is_a_500_without_store_text_and_is_not_retried(a
     and the store's own text never reaches the response."""
     force_conflict("bookings", "23514", ALWAYS)  # no CONSTRAINT name
 
-    r = api.post("/api/bookings", json=dict(window_id=1, seats=3))
+    r = api.book(1, 3)
 
     assert r.status_code == 500 and r.json() == {"detail": {"error": "internal_error"}}, r.text
     assert "forced" not in r.text

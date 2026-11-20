@@ -7,7 +7,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from client import COOKIE, _TLS
+from client import COOKIE, _TLS, booking_body, new_key
 
 
 def counts(pg) -> dict:
@@ -42,7 +42,7 @@ def test_a_cross_origin_write_is_refused_and_writes_nothing(api, world, pg, head
     before = counts(pg)
     with raw(world, api.token, headers) as c:
         for r in [c.post("/api/holds", json=dict(window_id=1, seats=2)),
-                  c.post("/api/bookings", json=dict(window_id=1, seats=2)),
+                  c.post("/api/bookings", json=booking_body(1, 2), headers=new_key()),
                   c.post("/api/session", json={})]:
             assert r.status_code == 403 and r.json() == {"detail": {"error": "cross_origin"}}, r.text
     assert counts(pg) == before

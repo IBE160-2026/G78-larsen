@@ -117,3 +117,36 @@ def test_ensure_database_creates_only_the_default_database(monkeypatch):
     finally:
         with psycopg.connect(ADMIN_URL, autocommit=True) as c:
             c.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(name)))
+
+
+def test_0006_backfills_legacy_bookings_and_counts_only_active_ones(tmp_path, scratch_db):
+    """AD-7 / AD-13 (Story 1.5): a legacy Booking gets a reference from its id, its `guest` text as the name (or
+    "Guest"), an email that reaches no one, the current price and its time of booking as entry time; `guest` is gone.
+    Afterwards only active Bookings take Seats, and the triggers keep their names."""
+    before = tmp_path / "before"
+    before.mkdir()
+    for name in files():
+        if name < "0006":
+            shutil.copy(config.paths.MIGRATIONS / name, before / name)
+    migrations.migrate(scratch_db, before)
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1), (2, 'B', 24, 2)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, guest, created_at) VALUES "
+                  "(1, 3, '  Ada  ', '2026-11-01 12:00Z'), (1, 40, '', '2026-11-02 12:00Z')")
+    assert "0006_bookings_pay.sql" in migrations.migrate(scratch_db)
+    with psycopg.connect(scratch_db) as c:
+        rows = c.execute("SELECT id, reference, name, email, price_per_seat_ore, total_ore, status, "
+                         "entry_time = created_at, session_id FROM bookings ORDER BY id").fetchall()
+        assert rows == [(1, "00000001", "Ada", "unknown@example.invalid", 25000, 75000, "active", True, None),
+                        (2, "00000002", "Guest", "unknown@example.invalid", 25000, 1000000, "active", True, None)]
+        assert c.execute("SELECT count(*) FROM information_schema.columns "
+                         "WHERE table_name = 'bookings' AND column_name = 'guest'").fetchone()[0] == 0
+        assert c.execute("SELECT seats_left(1)").fetchone()[0] == 1
+        c.execute("UPDATE bookings SET status = 'cancelled' WHERE id = 2")  # the trigger fires on status
+        assert c.execute("SELECT booked, seats_left(1) FROM windows WHERE id = 1").fetchone() == (3, 41)
+        triggers = c.execute("SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass "
+                             "AND NOT tgisinternal ORDER BY tgname").fetchall()
+        assert triggers == [("a_lock_bookings",), ("t_bookings",)]
+        with pytest.raises(psycopg.errors.CheckViolation):
+            c.execute("UPDATE bookings SET status = 'gone' WHERE id = 1")

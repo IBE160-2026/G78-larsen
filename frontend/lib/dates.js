@@ -45,6 +45,11 @@ export function fullDate(iso) {
   return `${day} ${MONTHS[month - 1]} ${year}`;
 }
 
+/** "Saturday 14 November 2026". */
+export function longDate(iso) {
+  return `${weekdayName(iso)} ${fullDate(iso)}`;
+}
+
 /** "Saturday 14 November". */
 export function dayAndMonth(iso) {
   const { month, day } = parts(iso);

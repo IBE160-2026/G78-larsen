@@ -26,6 +26,13 @@ class StoreError(Exception):
 
 
 MAP: dict[str, str] = {
+    # a session deleted (signed out, purged) between the request's session check and its write (AD-8): before the
+    # `*_fkey` rule below, so this is `401 no_session`, never `404 not_found`
+    "bookings_session_id_fkey": "no_session",
+    "holds_session_id_fkey": "no_session",
+    "idempotency_keys_session_id_fkey": "no_session",
+    # one key, two requests at once for different Windows: the loser's key is already known (AD-9)
+    "idempotency_keys_key_key": "invalid_key",
     # capacity (AD-2)
     "booked_within_capacity": "no_seat_free",
     # named trigger refusals (0003_named_store_refusals.sql); window_out_of_step stays unmapped: it is a 500

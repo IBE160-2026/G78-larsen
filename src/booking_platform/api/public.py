@@ -1,15 +1,17 @@
-"""The public `/api` router: health, the Venue facts, Windows, the session, Holds and Seat bookings."""
+"""The public `/api` router: health, the Venue facts, Windows, the session, Holds, Seat bookings and the
+confirmation read."""
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, Header, Query, Request, Response
 
 from .. import config
 from ..services import booking, holds, sessions, venue, windows
-from .deps import COOKIE, require_session
-from .schemas import BookingIn, HoldIn, SessionIn, VenueOut, WindowsQuery
+from .deps import COOKIE, current_session, require_session
+from .schemas import BookingIn, BookingResult, HoldIn, SessionIn, VenueOut, WindowsQuery
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -57,7 +59,17 @@ def release_hold(window_id: int, s: sessions.Session = Depends(require_session))
     return {"released": holds.release(s.id, window_id)}
 
 
-@router.post("/bookings", status_code=201)
-def book(body: BookingIn, s: sessions.Session = Depends(require_session)):
-    return {"booking_id": booking.book(s.id, body.window_id, body.seats, body.guest)}
+@router.post("/bookings", status_code=201, response_model=BookingResult)
+def book(body: BookingIn, idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
+         s: sessions.Session = Depends(require_session)):
+    """Pay and create a Seat booking (FR-5, FR-6, FR-9). The `Idempotency-Key` UUID is required (AD-9): a repeat from
+    the same session with the same Window and Seats returns the first outcome (201 again) and writes nothing."""
+    return booking.create(s.id, body.window_id, body.seats, body.name, body.email, idempotency_key)
+
+
+@router.get("/bookings/{reference}/confirmation", response_model=BookingResult)
+def confirmation(reference: str, s: sessions.Session | None = Depends(current_session)):
+    """The Booking and the email as sent, for the paying session only (FR-8, AD-12). Any other session, no session,
+    and an unknown or malformed reference get the same `404 not_found` (FR-20 RB-4)."""
+    return booking.confirmation(s.id if s else None, reference)
 

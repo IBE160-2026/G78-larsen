@@ -7,6 +7,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 import ssl
+import uuid
 
 import httpx
 import psycopg
@@ -15,6 +16,7 @@ from booking_platform.db.sessions import lifetime
 
 COOKIE = "bp_session"
 ADMIN = "'admin'"  # the role as an SQL literal, for lifetime()
+GUEST = {"name": "Test Guest", "email": "guest@example.com"}  # the Guest's details in every test booking
 
 # One TLS context for every client: building one per client costs tens of milliseconds, and the races create
 # many clients (one per Guest session).
@@ -26,6 +28,16 @@ DATABASE_URL: str | None = None
 
 def token_hash(token: str) -> bytes:
     return hashlib.sha256(token.encode("utf-8")).digest()
+
+
+def new_key() -> dict[str, str]:
+    """A fresh `Idempotency-Key` header (AD-9)."""
+    return {"Idempotency-Key": str(uuid.uuid4())}
+
+
+def booking_body(window_id, seats, **fields) -> dict:
+    """The body of `POST /api/bookings`: the Window, the Seats and the Guest's name and email (Story 1.5)."""
+    return {"window_id": window_id, "seats": seats, **GUEST, **fields}
 
 
 class ApiClient(httpx.Client):
@@ -47,6 +59,12 @@ class ApiClient(httpx.Client):
                 row = c.execute("SELECT id FROM sessions WHERE token_hash = %s", (token_hash(self.token),)).fetchone()
             self._session_id = row[0] if row else None
         return self._session_id
+
+    def book(self, window_id, seats, *, key: str | None = None, **fields) -> httpx.Response:
+        """`POST /api/bookings` in the request shape of Story 1.5: `{window_id, seats, name, email}` plus an
+        `Idempotency-Key` (a new one unless `key` is given). `fields` replace or add body fields."""
+        headers = {"Idempotency-Key": key} if key is not None else new_key()
+        return self.post("/api/bookings", json=booking_body(window_id, seats, **fields), headers=headers)
 
 
 def api_client(base: str, *, session: bool = True, origin: str | None = None, timeout: float = 60) -> ApiClient:

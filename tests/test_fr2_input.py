@@ -7,7 +7,16 @@ import datetime as dt
 
 import pytest
 
+from client import GUEST, new_key
 from conftest import win_start
+
+
+def post(c, path: str, body: dict):
+    """Each path in its own request shape: a booking also carries the Guest's name and email and an
+    `Idempotency-Key` (Story 1.5), so the shape error under test is the only one."""
+    if path == "/api/bookings":
+        return c.post(path, json={**GUEST, **body}, headers=new_key())
+    return c.post(path, json=body)
 
 
 def written(pg) -> tuple:
@@ -29,7 +38,7 @@ def written(pg) -> tuple:
     (dict(window_id=1, seats=2, extra=True), ["extra"]),
 ], ids=["zero", "eleven", "negative", "fraction", "missing", "session_id", "extra"])
 def test_seats_outside_1_to_10_and_unknown_fields_are_422(api, pg, path, body, fields):
-    r = api.post(path, json=body)
+    r = post(api, path, body)
     assert r.status_code == 422, r.text
     assert r.json() == {"detail": {"error": "invalid_input", "fields": fields}}
     assert written(pg) == (0, 0, 0, 0)
@@ -37,7 +46,7 @@ def test_seats_outside_1_to_10_and_unknown_fields_are_422(api, pg, path, body, f
 
 @pytest.mark.parametrize("seats", [1, 10])
 def test_the_edges_1_and_10_are_accepted(api, seats):
-    assert api.post("/api/bookings", json=dict(window_id=1, seats=seats)).status_code == 201
+    assert api.book(1, seats).status_code == 201
 
 
 def test_malformed_json_and_a_missing_body_are_422(api, pg):
@@ -73,7 +82,7 @@ def test_a_query_parameter_of_the_wrong_type_is_422(api):
 ])
 def test_an_id_outside_int4_is_422(api, admin, pg, path, body, fields):
     c = admin if path.startswith("/api/admin/") else api
-    r = c.post(path, json=body)
+    r = post(c, path, body)
     assert r.status_code == 422 and r.json() == {"detail": {"error": "invalid_input", "fields": fields}}, r.text
     assert written(pg) == (0, 0, 0, 0)
 

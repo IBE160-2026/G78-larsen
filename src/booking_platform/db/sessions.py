@@ -29,3 +29,11 @@ def resolve_and_touch(c: psycopg.Connection, token_hash: bytes) -> tuple[int, st
 
 def purge_expired(c: psycopg.Connection) -> int:
     return c.execute("DELETE FROM sessions WHERE expires_at <= app_now()").rowcount
+
+
+def ensure_seed_session(c: psycopg.Connection, token_hash: bytes) -> int:
+    """The id of the seed's one fixed session (AD-18), created on the first start. It never expires, so the startup
+    purge keeps it, and no cookie can name it: no token hashes to its `token_hash`."""
+    c.execute("INSERT INTO sessions (token_hash, role, created_at, expires_at) "
+              "VALUES (%s, 'guest', app_now(), 'infinity') ON CONFLICT (token_hash) DO NOTHING", (token_hash,))
+    return c.execute("SELECT id FROM sessions WHERE token_hash = %s", (token_hash,)).fetchone()[0]

@@ -18,11 +18,10 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY src/ ./src/
 COPY migrations/ ./migrations/
 COPY config/ ./config/
-# seeds/ and content/ are copied when present (Story 1.3 adds them). The bracket glob matches nothing until then,
-# so the COPY of the always-present pyproject.toml keeps the instruction valid.
-COPY pyproject.toml se[e]ds/ ./seeds/
-COPY pyproject.toml conten[t]/ ./content/
-RUN rm -f ./seeds/pyproject.toml ./content/pyproject.toml && uv sync --locked --no-dev
+COPY seeds/ ./seeds/
+# the text shared by pages and emails (AD-12): the booking terms and the reception sentence of the confirmation email
+COPY content/ ./content/
+RUN uv sync --locked --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH" \
     BP_ROOT=/app \

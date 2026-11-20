@@ -146,6 +146,7 @@ def test_keyboard_alone_completes_the_three_choices_and_continues(page: Page, ba
     a11y.tab_to(page, page.locator("#seats-1"))
     a11y.press(page, "ArrowRight")
     assert page.locator("#seats-2").is_checked()
+    page.wait_for_load_state("networkidle")  # the Sessions are read again for 2 Seats before Tab reaches them
     page.wait_for_selector(".session-rows")
     session = page.locator(".session-row input:not([disabled])").first
     a11y.tab_to(page, session)
@@ -253,16 +254,24 @@ def test_landing_book_seats_with_the_keyboard_reaches_the_page_with_one_cookie(p
 # ------------------------------------------------------------------ the no-room paths, set up in the stack's database
 
 
+# A Seat booking written straight to the stack's database (with every NOT NULL column of Story 1.5), filling `seats`
+# of Window `wid`; its reference "E2E" + the Window id is unique among these rows. The fixture below removes them.
+RAW_FILL = ("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+            "SELECT v.w, v.s, 'E2E' || lpad(v.w::text, 5, '0'), 'E2E fill', 'e2e@example.com', 25000, v.s * 25000 "
+            "FROM (VALUES (%s, %s)) AS v(w, s)")
+
+
 @pytest.fixture
 def db(stack):
-    """A raw connection to the stack's database. Blocks and Seat bookings made through it are removed afterwards
-    (row deletes, so the triggers recompute), and the other tests see eight open Sessions again."""
+    """A raw connection to the stack's database. Blocks and the Seat bookings written through it are removed
+    afterwards (row deletes, so the triggers recompute), and the other tests see eight open Sessions again. The seed's
+    sample Bookings, which have payments, emails and keys, stay."""
     url = f"postgresql://postgres:booking@127.0.0.1:{stack.db_port}/booking"
     with psycopg.connect(url) as c:
         yield c
         c.rollback()
         c.execute("DELETE FROM blocks")
-        c.execute("DELETE FROM bookings")
+        c.execute("DELETE FROM bookings WHERE name = 'E2E fill'")
         c.commit()
 
 
@@ -314,7 +323,11 @@ def test_no_room_on_the_date_offers_the_nearest_sessions_and_choosing_one_select
 
 
 def test_no_room_anywhere_in_the_horizon_says_so_without_alternatives(page: Page, base_url, db, facts, late_day):
-    block(db, facts["today"], 40)
+    # every Seat left is booked: a Block cannot be laid over the sample Bookings of the seed, so fill instead
+    db.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+               "SELECT w.id, seats_left(w.id), 'E2E' || lpad(w.id::text, 5, '0'), 'E2E fill', 'e2e@example.com', "
+               "25000, seats_left(w.id) * 25000 FROM windows w WHERE seats_left(w.id) > 0")
+    db.commit()
     open_page(page, base_url)
     choose_by_typing(page, late_day[0], 2)
     notice = page.locator(".question-sessions .notice")
@@ -327,7 +340,7 @@ def test_a_larger_number_clears_a_chosen_session_without_room(page: Page, base_u
     day = late_day[0]
     windows = httpx.get(base_url + "/api/windows", params=dict(date=day), timeout=30).json()["windows"]
     wid = next(w["id"] for w in windows if w["start"][11:16] == "10:00")
-    db.execute("INSERT INTO bookings (window_id, seats) VALUES (%s, 41)", (wid,))  # 3 Seats left
+    db.execute(RAW_FILL, (wid, 41))  # 3 Seats left
     db.commit()
     open_page(page, base_url)
     choose_by_typing(page, day, 2)

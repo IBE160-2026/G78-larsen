@@ -25,3 +25,9 @@
 - source_spec: `.docs/implementation-artifacts/spec-1-4-book-seats-date-seats-session.md`
   summary: Add a test that `seed.apply()` checks the schedule's daylight-saving rule against the store's `settings.venue_tz`, not the Europe/Oslo default.
   evidence: Every schedule test uses the default zone, so reverting `apply` to `load(directory)` passes the suite; it matters once an Administrator can change `venue_tz`.
+- source_spec: `.docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md`
+  summary: Test the sample-Booking seed's skip paths (an entry with no Window at its time, and one the store refuses) so startup continues and logs one "sample booking N skipped" line.
+  evidence: `services/seed.py:apply_bookings` handles both, but the shipped seed always matches the shipped schedule, so no test reaches them; it matters once the schedule or seed is Administrator-editable.
+- source_spec: `.docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md`
+  summary: E2e-test Review's refusal path (Notice shown, Pay re-enabled, the draft key unchanged; after 401 a new session and a successful retry).
+  evidence: `frontend/components/Review.js` `pay()` catch branch has no test; Story 1.6 replaces the refusal Notices, so the test belongs there (a Playwright `page.route` stub returning 409 suffices).

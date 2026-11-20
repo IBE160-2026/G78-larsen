@@ -102,8 +102,9 @@ def test_the_migration_defaults_equal_the_seed(fresh_db):
 
 
 def test_fresh_start_restart_and_a_value_the_store_owns(fresh_db, tmp_path):
-    # Fresh start: the four Saunas and every Venue fact are seeded.
-    first = start_backend(fresh_db, tmp_path, name="venue-1")
+    # Fresh start: the four Saunas and every Venue fact are seeded. Without the sample Bookings (Story 1.5): a Sauna
+    # is deleted below, and the store refuses that under Windows they fill (tests/test_dr5_seed_bookings.py has them).
+    first = start_backend(fresh_db, tmp_path, name="venue-1", sample_bookings=False)
     try:
         r = httpx.get(first.base + "/api/venue", timeout=10)
         assert r.status_code == 200
@@ -116,7 +117,7 @@ def test_fresh_start_restart_and_a_value_the_store_owns(fresh_db, tmp_path):
                                                     (4, "Lumo", 15, 4)]
 
     # Restart: the same rows, none duplicated or changed.
-    second = start_backend(fresh_db, tmp_path, name="venue-2")
+    second = start_backend(fresh_db, tmp_path, name="venue-2", sample_bookings=False)
     second.stop()
     assert snapshot(fresh_db) == seeded
 
@@ -124,7 +125,7 @@ def test_fresh_start_restart_and_a_value_the_store_owns(fresh_db, tmp_path):
     with psycopg.connect(fresh_db) as c:
         c.execute("UPDATE settings SET price_per_seat_ore = 30000")
         c.execute("DELETE FROM saunas WHERE id = 4")
-    third = start_backend(fresh_db, tmp_path, name="venue-3")
+    third = start_backend(fresh_db, tmp_path, name="venue-3", sample_bookings=False)
     try:
         body = httpx.get(third.base + "/api/venue", timeout=10).json()
         assert body["price_per_seat_ore"] == 30000

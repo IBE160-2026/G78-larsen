@@ -8,7 +8,8 @@
 // - Window listings go through lib/api.js; numbers and every time fact (`today`, `horizon_end`, `horizon_days`,
 //   `already_started`) come from the API, never from a clock here (AD-4, AD-5). Sessions are read again when the
 //   date or the number changes.
-// - The Booking draft (`draft:seats`) is read and written only in effects (AD-9, UX-DR26).
+// - The Booking draft (`draft:seats`) is read and written only in effects (AD-9, UX-DR26); "Continue booking" goes
+//   to Details.
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import DateCalendar from './DateCalendar';
@@ -23,7 +24,7 @@ import Wordmark from './Wordmark';
 import { ApiError, api } from '@/lib/api';
 import { BOOK, CHANGING_TIME, SEAT_STATEMENT } from '@/lib/copy';
 import { dotted, monthOf, parseDotted } from '@/lib/dates';
-import { readDraft, writeDraft } from '@/lib/draft';
+import { paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
 
 export const DETAILS = '/book-seats/details';
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -70,8 +71,10 @@ export default function BookSeats({ pricePerSeatOre }) {
     api('/api/session', { method: 'POST', body: {} }).catch(() => {});
   }, []);
 
-  // Restore the draft (a reload, or a Guest coming back from Terms).
+  // Restore the draft (a reload, or a Guest coming back from Terms or Details). After a payment the draft holds only
+  // the reference: Book seats then starts a new draft, and Review will make a new key (UX-DR26).
   useEffect(() => {
+    if (paidReference(readDraft())) replaceDraft({});
     const draft = readDraft();
     if (typeof draft.date === 'string' && ISO.test(draft.date)) {
       setDate(draft.date);

@@ -28,3 +28,13 @@ export function nok(ore) {
 export function holds(capacity) {
   return `Holds ${capacity}`;
 }
+
+/**
+ * The Venue facts a Seat-flow page needs (identity, contact, price per Seat), or null. Never the Saunas: no Seat-flow
+ * page carries a Sauna, not even in the data handed to its client component (FR-4).
+ */
+export function seatFlowVenue(result) {
+  if (!result.ok) return null;
+  const { name, address_lines: addressLines, phone, email, price_per_seat_ore: price } = result.data;
+  return { name, address_lines: addressLines, phone, email, price_per_seat_ore: price };
+}
