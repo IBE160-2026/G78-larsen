@@ -39,3 +39,28 @@ Lisa kjørte `bmad-help` og spurte hva hun kan forberede før `bmad-build` på S
   - `GET /api/venue` og `GET /api/windows?date=&seats=` (1.3 og 1.4)
   - dummy-hash ved ukjent e-post (2.1)
   - navn på grenene og hvordan PR-er merges
+
+## 2026-11-20 kl. 09:17 — Lisa Larsen
+
+### Oppgave
+Lisa avgjorde de tre valgene før Story 1.1 og fikk forklart hva merge og en åpen PR betyr. Hun presiserte at alt foreløpig bare kjøres lokalt, med lokal database og lokal fillagring, og at ingenting skal deployes nå.
+
+### Plan
+- Føre valgene inn i `epics.md` (byggeprosessen og storyene 1.3 og 1.4), oppdatere `issues.md`, committe og pushe.
+
+### Resultat
+- **Endepunktene** `GET /api/venue` og `GET /api/windows?date=&seats=` er bekreftet. «Or the path chosen in the story» er fjernet fra Story 1.3 og 1.4.
+- **Dummy-hash** ved ukjent e-post (2.1) var allerede godtatt 2026-11-19. Ingen endring.
+- **Grener og merge** står i `epics.md` under *Traceability*:
+  - Grenene heter `story/<epic>-<story>-<kort-navn>`, for eksempel `story/1-1-backend-structure`.
+  - Lisa merger selv når testene er grønne og hun har gjennomgått endringen.
+  - Vanlig merge, ikke squash, slik at commitene med FR-nummer blir stående i `main`.
+  - Neste story lager gren fra oppdatert `main`.
+- **Deploy:** gren, PR og merge er bare historikk på GitHub. Appen kjøres fortsatt bare lokalt.
+- **Commits:**
+  - `31f4405`: `epics.md`.
+  - `106dce5`: forrige logg-oppdatering. Den er pushet nå sammen med `31f4405`.
+- **`issues.md`:** punktet om endepunktene er oppdatert. På punktet om gren og PR (kriterium 1) står valgene nå, men punktet er fortsatt åpent til det er tatt i bruk fra Story 1.1.
+
+### Åpne punkter
+- Ingen nye.
