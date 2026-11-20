@@ -162,4 +162,7 @@
 - [x] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — implementer Story 1.4 fra spesifikasjonen (`ready-for-dev`) i en ny `bmad-build`-sesjon (løst 2026-11-20: implementert i arbeidskopien; 273 tester grønne)
 - [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — godkjenn Notice-tekstene som ikke står ordrett i EXPERIENCE.md: «The session you chose no longer has room for N seats. Choose another session.» og «The sessions could not be loaded, please try again.»
 - [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — bekreft at `nearest` i `GET /api/windows` bare kommer når både `date` og `seats` er gitt
-- [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — kodegjennomgang (`bmad-build` steg 4) av Story 1.4
+- [x] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — kodegjennomgang (`bmad-build` steg 4) av Story 1.4 (løst 2026-11-20)
+- [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — tre frontend-rettinger på Book seats mangler automatisk test: fokus til den andre månedsknappen, Notice når første lesing feiler, tømt datofelt fjerner datoen
+- [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — README: «øktkapselen» står fortsatt i `BP_HTTPS`-raden; skriv «øktens informasjonskapsel»
+- [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — utsatt test (deferred-work.md): seedens sommertidssjekk mot butikkens `venue_tz`, når Administrator kan endre tidssonen
