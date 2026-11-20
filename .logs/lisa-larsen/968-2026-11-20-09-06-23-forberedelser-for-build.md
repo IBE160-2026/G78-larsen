@@ -31,7 +31,7 @@ Lisa kjørte `bmad-help` og spurte hva hun kan forberede før `bmad-build` på S
     - `lint_spine.py`: kan skrive med `--output`.
     - grep, sed, head, git status/show/log og ls: allerede tillatt automatisk.
     - PowerShell-cmdlets: for få kall, og regelformatet er usikkert.
-  - Filen er ikke committet.
+  - Filen er committet i `7c04774` og pushet til `origin/main` sammen med loggcommiten `47eb665` (Lisa ba om det).
 - **Antall tester:** `uv run pytest --collect-only -q` samler 42 tester, med parametrisering. Tallet i `epics.md` stemmer. Punktet i `issues.md` er lukket.
 
 ### Åpne punkter
