@@ -14,7 +14,7 @@ Lisa ba om å lage grenen for Story 1.1 og kjøre `bmad-build` på storyen i `.d
   - Tre gjennomganger (Blind Hunter, Edge Case Hunter, Verification Gap) fulgte, med vurdering og retting av funnene.
 
 ### Resultat
-- **Commit:** `ae26bc9` på `story/1-1-backend-structure`. Den er ikke pushet, og ingen PR er laget ennå.
+- **Commit:** `ae26bc9` på `story/1-1-backend-structure`. Grenen er pushet til `origin` (Lisa ba om det). Ingen PR er laget ennå.
 - **Lag:** `api/` → `services/` → `db/`, med `config.py` som løvmodul. SQL ligger bare i `db/` og `migrations/`.
   - Det finnes én `Refused` og én kode → status-tabell (`api/errors.py`).
   - Databasefeil oversettes etter constraint-navn, også ved COMMIT. Ukjente feil gir `500 internal_error` uten databasetekst.
