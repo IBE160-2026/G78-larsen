@@ -132,9 +132,9 @@ def test_tab_order_on_privacy(page: Page, base_url):
 
 
 # Each site link: (page, link name, where it leads, the focus target there). Following a link moves focus to the
-# target page's h1 (AD-17); on Landing that is the Wordmark.
+# target page's h1 (AD-17); on Landing that is the Wordmark. A link to a fragment focuses that part instead.
 SITE_LINKS = [
-    ("/terms", "Before you come", "/#before-you-come", "Saunalöyly"),
+    ("/terms", "Before you come", "/#before-you-come", "#before-you-come"),
     ("/terms", "Privacy notice", "/privacy", "Privacy notice"),
     ("/terms", "Saunalöyly", "/", "Saunalöyly"),
     ("/privacy", "Saunalöyly", "/", "Saunalöyly"),
@@ -150,6 +150,10 @@ def test_every_link_can_be_reached_and_followed_with_the_keyboard(page: Page, ba
     a11y.tab_to(page, page.get_by_role("link", name=name, exact=True))
     a11y.press(page, "Enter")
     page.wait_for_url(base_url + lands)
+    if focus.startswith("#"):
+        page.wait_for_function("id => document.activeElement && document.activeElement.id === id", arg=focus[1:])
+        a11y.assert_focus_visible(page)
+        return
     page.wait_for_function("t => { const el = document.activeElement; "
                            "return el && el.tagName === 'H1' && el.textContent.trim() === t; }", arg=focus)
     state = a11y.assert_focus_visible(page)

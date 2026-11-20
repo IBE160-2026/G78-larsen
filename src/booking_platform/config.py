@@ -27,6 +27,7 @@ class paths:  # noqa: N801 - a namespace, read as config.paths.ROOT
 
     ROOT = Path(os.environ["BP_ROOT"]).resolve() if os.environ.get("BP_ROOT") else Path(__file__).resolve().parents[2]
     MIGRATIONS = ROOT / "migrations"
+    SEEDS = ROOT / "seeds"
     CONFIG = ROOT / "config"
 
 

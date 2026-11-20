@@ -1,13 +1,13 @@
-"""The public `/api` router: health, Windows, the session, Holds and Seat bookings."""
+"""The public `/api` router: health, the Venue facts, Windows, the session, Holds and Seat bookings."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request, Response
 
 from .. import config
-from ..services import booking, holds, sessions, windows
+from ..services import booking, holds, sessions, venue, windows
 from .deps import COOKIE, require_session
-from .schemas import BookingIn, HoldIn, SessionIn
+from .schemas import BookingIn, HoldIn, SessionIn, VenueOut
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -15,6 +15,12 @@ router = APIRouter(prefix="/api", redirect_slashes=False)
 @router.get("/health")
 def health():
     return {"ok": True}
+
+
+@router.get("/venue", response_model=VenueOut)
+def venue_facts():
+    """The Venue facts Landing shows (FR-1, AD-16). Needs no session, writes nothing and sets no cookie."""
+    return venue.facts()
 
 
 @router.get("/windows")

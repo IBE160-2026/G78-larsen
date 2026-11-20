@@ -1,4 +1,5 @@
-"""Request shapes (Conventions: Input). Every model forbids unknown fields; Seats are 1 to 10 (FR-2)."""
+"""Request shapes (Conventions: Input) and the Venue facts response. Every request model forbids unknown fields;
+Seats are 1 to 10 (FR-2)."""
 
 from __future__ import annotations
 
@@ -59,3 +60,23 @@ class SettingsIn(Strict):
     release_on: bool
     release_time: dt.time
     booking_deadline_minutes: int = Field(ge=-INT4_MAX, le=45)
+
+
+class SaunaOut(BaseModel):
+    id: int
+    name: str
+    capacity: int
+
+
+class VenueOut(BaseModel):
+    """`GET /api/venue` (AD-16): times are "HH:MM" in Venue time, the price is in øre, the Saunas in Fill order."""
+
+    name: str
+    address_lines: list[str]
+    phone: str
+    email: str
+    opening_time: str
+    closing_time: str
+    session_minutes: int
+    price_per_seat_ore: int
+    saunas: list[SaunaOut]

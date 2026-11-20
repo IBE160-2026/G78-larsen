@@ -91,6 +91,7 @@ def test_the_backend_refuses_to_start_on_a_duplicate_number(tmp_path, scratch_db
     root = tmp_path / "root"
     shutil.copytree(config.paths.MIGRATIONS, root / "migrations")
     (root / "migrations" / "0002_duplicate.sql").write_text("SELECT 1;", encoding="utf-8")
+    shutil.copytree(config.paths.SEEDS, root / "seeds")  # a valid seed, so the migrations are what stops it
     (root / "config").mkdir()
     b = start_backend(scratch_db, tmp_path, name="dup", wait=False, env={"BP_ROOT": str(root)})
     try:
