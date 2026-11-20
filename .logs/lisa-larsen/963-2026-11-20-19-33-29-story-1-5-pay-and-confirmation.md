@@ -22,3 +22,28 @@ Kjøre `bmad-build` for Story 1.5 («a guest pays and gets a confirmation») og 
 
 ### Åpne punkter
 - Implementer Story 1.5 fra spesifikasjonen i en ny `bmad-build`-sesjon: `/bmad-build .docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md`.
+
+## 2026-11-20 kl. 20:42 — Lisa Larsen
+
+### Oppgave
+Kjøre `bmad-build` på [spec-1-5-pay-and-confirmation.md](../../.docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md) (`ready-for-dev`): implementere Story 1.5, verifisere, reviewe og committe.
+
+### Plan
+- Steg 3: specen satt til `in-progress` (baseline `9ae9165`), story 1-5 til `in-progress` i `sprint-status.yaml`. Lisa godkjente subagenter for hele kjøringen; én agent implementerte fra specen.
+- Leste hele diffen mot oppgavene og edge-case-matrisen; sjekket e-posten mot `key-confirmation.html` L89–112.
+- Steg 4: tre review-lag i parallell (Blind Hunter, Edge Case Hunter, Verification Gap); triage i specens `## Review Triage Log`; patch-funnene sendt tilbake til implementeringsagenten.
+- Steg 5: spec `done`, story `review`, lokal commit.
+
+### Resultat
+- **Commit `386518d`** på `main` (ikke pushet): migrering `0006_bookings_pay.sql`, `services/{payment,reference,outbox,content}.py`, `db/bookings.py`, `POST /api/bookings` med `Idempotency-Key`, `GET /api/bookings/{reference}/confirmation`, bekreftelses-e-post i Outbox, tolv eksempelbookinger (`seeds/bookings.json`), sidene Details, Review og Confirmation, `content/` i begge Docker-images, AD-7 i spinen rettet til `0006`, README oppdatert.
+- **Review:** 23 funn triagert. 11 rettet (bl.a. Pay skjules når økttiden ikke kan lastes, kontrolltegn i navn/e-post gir 422 i stedet for 500, ingen «Booking confirmed»-blink før lasting, indekser på `idempotency_keys`, nye tester for betalingsbryteren `fail`/`hold`, kappløp med samme nøkkel, `reference.claim`, pris 0 og purge av økt med booking og nøkkel). 2 testhull utsatt til `deferred-work.md`, 10 avvist.
+- **Verifisert etter rettingene:** `uv run pytest` — API 277 bestått, e2e 93 bestått; `npm --prefix frontend run build` lister `/book-seats/details`, `/book-seats/review` og `/confirmation/[reference]`.
+- Første fulle testkjøring ble stoppet av Claude Code på grunn av lite minne. Dev-stakken ble stoppet (`docker compose stop`, data beholdt), Docker Desktop og WSL avsluttet og startet igjen, og testene kjørt i to deler (API, så e2e).
+- Lukket åpent punkt: «implementer Story 1.5» (issues.md).
+
+### Åpne punkter
+- Godkjenn tre tekster som ikke står i EXPERIENCE.md: «Accept the booking terms» (avkrysningsfeil), «The booking could not be completed, please try again.» (avvisning på Review), «The booking could not be loaded, please try again.» (lastefeil på Review/Confirmation).
+- Story 1.6: hvis gjestens økt slettes (purge) etter en betaling der svaret gikk tapt, forsvinner nøkkelen med økten (`ON DELETE CASCADE`), og et nytt forsøk kan booke og belaste to ganger; uten purge gir nytt forsøk `invalid_key` i det uendelige. Se triage-rad 2 i specen.
+- Review.js åpner en ny økt etter `401 no_session` og beholder nøkkelen — oppførsel fra Story 1.6 som kom med i 1.5; vurder den i 1.6.
+- Manuell sjekk `docker compose up --build --wait` og booking av 2 plasser i nettleseren er ikke gjort (e2e dekker samme flyt). Dev-stakken er stoppet; `docker compose start` tar den opp igjen.
+- Story 1.5 står som `review` i `sprint-status.yaml`; sett `done` etter egen gjennomgang (f.eks. `bmad-walkthrough`).
