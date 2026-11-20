@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run _bmad/scripts/resolve_customization.py *)",
+      "Bash(uv run _bmad/scripts/resolve_config.py *)"
+    ]
+  }
+}
