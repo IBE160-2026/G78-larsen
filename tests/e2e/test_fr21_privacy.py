@@ -6,7 +6,7 @@ from __future__ import annotations
 import pytest
 from playwright.sync_api import Page
 
-PAGES = ["/", "/terms", "/privacy", "/nope"]
+PAGES = ["/", "/#before-you-come", "/terms", "/privacy", "/nope"]
 
 
 @pytest.mark.parametrize("path", PAGES)

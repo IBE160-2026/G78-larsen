@@ -1,7 +1,8 @@
 """The FastAPI app: factory, lifespan and middleware only. Routes live in `api/`, rules in `services/`, SQL in `db/`.
 
 Startup: read the configuration (AD-14, AD-22), create `booking_dev` when the default URL is used, apply the
-migrations (AD-15), open the pool and purge expired sessions (AD-8).
+migrations (AD-15), open the pool, apply the seed (AD-18) and purge expired sessions (AD-8). The seed file is also
+checked before uvicorn starts (`booking_platform.main`), so an invalid seed stops startup with one line.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from . import config, db
 from .api import admin, errors, public
 from .api.deps import UNSAFE_METHODS, same_origin
 from .db import migrate
-from .services import sessions
+from .services import seed, sessions
 
 log = logging.getLogger("booking_platform")
 
@@ -28,6 +29,7 @@ async def lifespan(_: FastAPI):
     migrate.migrate(settings.database_url)
     db.open_pool(settings.database_url)
     try:
+        seed.apply()
         purged = sessions.purge_expired()
         log.info("purged %d expired sessions", purged)
         yield

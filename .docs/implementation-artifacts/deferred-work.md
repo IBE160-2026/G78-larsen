@@ -16,3 +16,9 @@
 - source_spec: `.docs/implementation-artifacts/spec-1-2-compose-stack-terms-privacy.md`
   summary: Pin Landing's page title "Saunalöyly" and the "Error: " title prefix in e2e tests when Landing (Story 1.3) and the first form with an Error summary arrive.
   evidence: Neither has a test today; the stub is temporary and no page renders `[data-error-summary]` yet (verification-gap VG5, VG other 1).
+- source_spec: `.docs/implementation-artifacts/spec-1-3-landing-page-venue.md`
+  summary: Decide whether the seed may insert a seeded Sauna again after the store deleted it, before Sauna administration is built.
+  evidence: `seed_sauna` inserts any absent seeded id at every start (literal AD-18), and `test_fresh_start_restart_and_a_value_the_store_owns` pins it; an Administrator could never retire a seeded Sauna (blind-hunter, edge-case, verification-gap).
+- source_spec: `.docs/implementation-artifacts/spec-1-3-landing-page-venue.md`
+  summary: Test `frontend/lib/venue-format.js` for a price with øre (25050, 25005), whole hours (120) and minutes only (45) when an Administrator story lets price and Session length change.
+  evidence: Only 25000 and 90 are checked end to end, and the frontend has no unit-test runner (verification-gap VG2).

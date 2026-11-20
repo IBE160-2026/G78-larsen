@@ -17,10 +17,12 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     from . import config
+    from .services import seed
 
     try:
         settings, _ = config.load()
-    except config.ConfigError as e:
+        seed.load()  # the seed file is checked before anything starts; it is applied after the migrations (AD-18)
+    except (config.ConfigError, seed.SeedError) as e:
         print(f"booking-platform: {e}", file=sys.stderr)
         sys.exit(2)
 

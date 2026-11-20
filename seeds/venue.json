@@ -1,0 +1,18 @@
+{
+  "venue": {
+    "name": "Saunalöyly",
+    "address_lines": ["Badstubrygga 4", "0000 Havbukta"],
+    "phone": "+47 01 23 45 67",
+    "email": "hello@saunaloyly.example",
+    "opening_time": "10:00",
+    "closing_time": "22:00",
+    "session_minutes": 90,
+    "price_per_seat_ore": 25000
+  },
+  "saunas": [
+    {"id": 1, "name": "Rauha", "capacity": 7, "fill_order": 1},
+    {"id": 2, "name": "Löyly", "capacity": 10, "fill_order": 2},
+    {"id": 3, "name": "Kajo", "capacity": 12, "fill_order": 3},
+    {"id": 4, "name": "Lumo", "capacity": 15, "fill_order": 4}
+  ]
+}

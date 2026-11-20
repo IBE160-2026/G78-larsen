@@ -21,9 +21,9 @@ Det vanskelige er kapasiteten: plasser og hele badstuer trekker på de samme rom
 | PRD | Ferdig. Planlagt v1 er Core + If-time 1–3 (HTTPS, endringer og Vouchere, hel badstue) |
 | UX | Ferdig ([EXPERIENCE.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPERIENCE.md), [DESIGN.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/DESIGN.md)) |
 | Arkitektur | Ferdig ([arkitekturspine](.docs/planning-artifacts/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md)): FastAPI + PostgreSQL, Next.js som frontend og Caddy som eneste inngang, alt i Docker Compose |
-| Epics og stories | Ferdig ([epics](.docs/planning-artifacts/epics.md)). Implementering pågår: Story 1.1 (backendstruktur) er ferdig, Story 1.2 (compose-stakken, vilkår og personvern) |
-| Applikasjon | **Core-skiva på spinens backendstruktur (Story 1.1).** `src/booking_platform/` er delt i `api/` → `services/` → `db/` med `config.py` som løv. Skjemaet endres bare gjennom nummererte migrasjoner i `migrations/`. Alle stier ligger under `/api`, Administrator-endepunktene under `/api/admin/`, og økter er rader på serveren med hashet token i en informasjonskapsel. Story 1.2 la til compose-stakken (Caddy, FastAPI, Next.js og PostgreSQL), Next.js-frontenden med ett stilark og selvhostede fonter, og sidene for bookingvilkår (`/terms`) og personvern (`/privacy`). `/` er en midlertidig startside til Story 1.3. Ingen innlogging, betaling eller e-post ennå |
-| Automatiserte tester | Skivas tester for FR-10/11/12/14/35/36/41 med påstandene beholdt, mens oppsettet er omformet (stier under `/api`, økter fra serveren, Administrator-økt fra en fixture, høyst 10 plasser per forespørsel eller rå innsettinger). Én endring i oppførsel: en avvisning fra databasen uten navngitt constraint gir nå 500 (`internal_error`), så retry-testen for en definitiv avvisning tvinger fram en navngitt constraint. I tillegg kommer tester for CSRF (FR-18), tilgang (FR-20), økter (FR-21), inndata (FR-2), migrasjoner (DR-4), testbrytere og asset-registeret (DR-3) (`tests/`), og e2e-tester i nettleser mot hele stakken: ruting gjennom Caddy, feilsider, `<noscript>`, personvern (FR-21) og tilgjengelighet med axe-core og tastatur (FR-22, FR-23) (`tests/e2e/`). Resten kommer sammen med hver story (PRD NFR-6) |
+| Epics og stories | Ferdig ([epics](.docs/planning-artifacts/epics.md)). Implementering pågår: Story 1.1 (backendstruktur) og Story 1.2 (compose-stakken, vilkår og personvern) er ferdige, Story 1.3 (landingssiden) |
+| Applikasjon | **Core-skiva på spinens backendstruktur (Story 1.1).** `src/booking_platform/` er delt i `api/` → `services/` → `db/` med `config.py` som løv. Skjemaet endres bare gjennom nummererte migrasjoner i `migrations/`. Alle stier ligger under `/api`, Administrator-endepunktene under `/api/admin/`, og økter er rader på serveren med hashet token i en informasjonskapsel. Story 1.2 la til compose-stakken (Caddy, FastAPI, Next.js og PostgreSQL), Next.js-frontenden med ett stilark og selvhostede fonter, og sidene for bookingvilkår (`/terms`) og personvern (`/privacy`). Story 1.3 la til landingssiden (`/`) med anlegget, «Before you come», badstuene og «Find us», `GET /api/venue` og seed-data i `seeds/`. **Book seats** går til `/book-seats`, som bygges i Story 1.4 og til da viser «This page is not available.». Ingen innlogging, betaling eller e-post ennå |
+| Automatiserte tester | Skivas tester for FR-10/11/12/14/35/36/41 med påstandene beholdt, mens oppsettet er omformet (stier under `/api`, økter fra serveren, Administrator-økt fra en fixture, høyst 10 plasser per forespørsel eller rå innsettinger). Én endring i oppførsel: en avvisning fra databasen uten navngitt constraint gir nå 500 (`internal_error`), så retry-testen for en definitiv avvisning tvinger fram en navngitt constraint. I tillegg kommer tester for anlegget og seed-dataene (FR-1, `tests/test_fr01_venue.py`), CSRF (FR-18), tilgang (FR-20), økter (FR-21), inndata (FR-2), migrasjoner (DR-4), testbrytere og asset-registeret (DR-3) (`tests/`), og e2e-tester i nettleser mot hele stakken: ruting gjennom Caddy, feilsider, `<noscript>`, personvern (FR-21), tilgjengelighet med axe-core og tastatur (FR-22, FR-23) og landingssiden (FR-1, `tests/e2e/test_fr01_landing.py`) (`tests/e2e/`). Resten kommer sammen med hver story (PRD NFR-6) |
 
 Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres når appen finnes: installasjon, testbrukere, miljøvariabler og skjermbilder legges til da.
 
@@ -70,7 +70,7 @@ npm --prefix frontend ci             # én gang: frontendens avhengigheter
 npm --prefix frontend run dev        # Next.js på http://127.0.0.1:3000; /api/* sendes videre til 127.0.0.1:8001
 ```
 
-`uv run booking-platform dev` oppretter databasen `booking_dev` første gang, kjører migrasjonene i `migrations/` og svarer på `http://127.0.0.1:8001/api/health`. `uv run booking-platform serve` gjør det samme uten automatisk omstart.
+`uv run booking-platform dev` oppretter databasen `booking_dev` første gang, kjører migrasjonene i `migrations/` og svarer på `http://127.0.0.1:8001/api/health`. Ved hver oppstart legges badstuene fra `seeds/venue.json` inn der de mangler. Pris, åpningstider, øktlengde, adresse og kontakt kommer fra standardverdiene i migrasjon `0004`, som er de samme som i seed-fila (en test sjekker det), og seeden fyller bare en slik kolonne hvis den er NULL; en verdi som allerede står i databasen, overskrives aldri, og en ugyldig seed-fil stopper oppstarten med én linje som nevner filen og feltet. `uv run booking-platform serve` gjør det samme uten automatisk omstart.
 
 Konfigurasjonen leses bare fra `BP_*`-miljøvariabler, og alle har en standardverdi som virker lokalt:
 
@@ -80,7 +80,7 @@ Konfigurasjonen leses bare fra `BP_*`-miljøvariabler, og alle har en standardve
 | `BP_BASE_URL` | `http://127.0.0.1:3000` | Opprinnelsen nettleseren bruker; skrivende forespørsler må komme derfra (CSRF) |
 | `BP_HTTPS` | `off` | Gjør øktkapselen `Secure`; krever at `BP_BASE_URL` begynner med `https://` |
 | `BP_HOST`, `BP_PORT` | `127.0.0.1`, `8001` | Hvor backend lytter |
-| `BP_ROOT` | repoets rot | Rot for `migrations/` og `config/` (imaget setter `/app`) |
+| `BP_ROOT` | repoets rot | Rot for `migrations/`, `seeds/` og `config/` (imaget setter `/app`) |
 | `BP_TEST_SWITCHES` | `config/test-switches.toml` | Testbrytere. Kopier `config/test-switches.example.toml` dit for å bruke dem; mangler filen, er alle av |
 
 Docker Compose og frontenden leser i tillegg disse (de er ikke `BP_*`, og backend leser dem ikke):
@@ -125,8 +125,9 @@ uv lock --upgrade        # oppgrader låste versjoner
 ```
 src/booking_platform/   Python-pakke (backend): api/ → services/ → db/, config.py
 migrations/             Nummererte SQL-migrasjoner (0001_core.sql er skivas opprinnelige skjema)
+seeds/                  Seed-data som legges inn ved hver oppstart uten å overskrive (venue.json)
 config/                 Eksempel på testbryterfil (den ekte filen committes ikke)
-frontend/               Next.js (App Router, JavaScript): app/ (sider og styles.css), components/, lib/, public/fonts/
+frontend/               Next.js (App Router, JavaScript): app/ (sider og styles.css), components/, lib/, public/ (fonts/, images/)
 tests/                  API-tester mot ekte backend og PostgreSQL; tests/e2e/ kjører nettleser og axe mot hele stakken
 Caddyfile               Proxyen: eneste inngang, ruting og svarhoder
 docker-compose.yml      De fire tjenestene (proxy, backend, frontend, db) med helsesjekker
