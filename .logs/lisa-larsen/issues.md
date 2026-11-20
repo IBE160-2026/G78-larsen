@@ -159,3 +159,4 @@
 - [ ] 2026-11-20 [story-1-3-landing-page](965-2026-11-20-14-25-10-story-1-3-landing-page.md) — `/book-seats` lastes som nytt dokument til Story 1.4, så fokus flyttes ikke til h1; sjekk fokus når siden bygges
 - [ ] 2026-11-20 [story-1-3-landing-page](965-2026-11-20-14-25-10-story-1-3-landing-page.md) — avgjør om seeden kan sette inn igjen en badstue som er slettet, før badstue-administrasjon bygges
 - [ ] 2026-11-20 [story-1-3-landing-page](965-2026-11-20-14-25-10-story-1-3-landing-page.md) — test pris- og tidsformateringen med flere verdier (øre-rest, hele timer, bare minutter) når Administrator kan endre pris og øktlengde
+- [ ] 2026-11-20 [story-1-4-book-seats](964-2026-11-20-15-02-29-story-1-4-book-seats.md) — implementer Story 1.4 fra spesifikasjonen (`ready-for-dev`) i en ny `bmad-build`-sesjon
