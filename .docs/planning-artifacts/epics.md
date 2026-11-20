@@ -191,6 +191,7 @@ The PRD, the spine and the UX spines stay the source of truth. Each requirement 
 - The session fixture runs `docker compose up -d --wait db` first.
 - Race tests: 100 repetitions per run (FR-11), asserting INV-1 to INV-5 and Seats left for group C.
 - FR-31: one Hypothesis `RuleBasedStateMachine` in `tests/test_fr31_placement_model.py`, calling `services` in-process, profiles `default` and `thorough` (AD-26).
+- `tests/e2e/a11y.py` (Lisa, 2026-11-19): the shared accessibility helper from Story 1.2 (`check_axe`, `no_horizontal_scroll`, `press`, `tab_to`, `tab_order`, `zoomed`); every keyboard-only e2e step goes through it, so focus visibility is checked in every story, and Story 2.4's manual passes confirm the automated checks rather than repeat them.
 - `tests/e2e/test_fr21_privacy.py`: every request goes to the stack's origin; no cookie after Landing, Terms, Privacy notice and "Before you come"; one session cookie after Book seats; anonymous Administrator address goes to Sign-in; one stylesheet per page; `/#before-you-come` focus.
 
 **If-time architecture (stories of Epics for §4.7 to §4.9)**
@@ -334,7 +335,7 @@ A Guest opens the website, sees what Saunalöyly is and how to prepare, picks a 
 ### Epic 2: The Administrator sees who is coming
 The Administrator signs in safely, sees each session of a chosen day with its Seat capacity, Seats booked, Seats left and every Booking, and reads every email in the Outbox. Guests and anonymous visitors get nothing. The epic ends with the Core done: the README lets the examiner start, sign in and run every test from a fresh clone, and the accessibility passes cover every Core page.
 **FRs covered:** FR-15, FR-16, FR-17, FR-19; FR-20 (RB-1, RB-3, IV-7); FR-18 (sign-in input); FR-21 (README security section); FR-22 and FR-23 (Administrator pages and the Core-wide passes)
-**Implementation notes:** Depends only on Epic 1. Epic 1's tests get an Administrator session from a fixture, so they do not wait for this epic. The last story is "Core done": README (DR-2), clean-clone check (NFR-1, SM-4), axe on every Core page, the manual keyboard, 200 % zoom, screen-reader and tab-order passes (FR-23), and the `ASSETS.md` check (DR-3).
+**Implementation notes:** Depends only on Epic 1. Epic 1's tests get an Administrator session from a fixture, so they do not wait for this epic. The last story is "Core done": README (DR-2), clean-clone check (NFR-1, SM-4), axe on every Core page, the automated tab-order, 200 % zoom and Session-row-name checks, the short manual keyboard, 200 % zoom, screen-reader and tab-order passes that confirm them (FR-23), and the `ASSETS.md` check (DR-3).
 
 ### Epic 3: Every connection is secure (HTTPS)
 The website and the API are served over HTTPS only, so passwords, sessions and, later, Manage links never travel unencrypted. The examiner can see the redirect, the headers and the cookie attributes for themselves.
@@ -479,9 +480,16 @@ So that I know the rules and how my data is handled before I book.
 **Then** `/api/health` answers through Caddy, `/api` and `/api/x` answer the JSON `404 not_found` envelope (never a page), `/api/x/` is the same 404 with no redirect, an unknown page shows "This page is not available.", the `<noscript>` line is present, `/privacy` renders while `backend` is stopped, and every site response carries `Referrer-Policy: no-referrer` and every `/api` response `Cache-Control: no-store` (AD-10, AD-17, AD-27)
 **And** the story's record states that the healthchecks, `caddy adapt` of the Caddyfile and `curl -i http://localhost:8000/` were run live, and that `next build` lists the routes that use `server-api.js` as dynamic (closes the issues.md items on Caddy, compose and Next.js not being run)
 
+**Given** `tests/e2e/a11y.py`, the shared accessibility helper (a new shared home)
+**When** an e2e test uses it
+**Then** it offers `check_axe(page)` (axe-core from `frontend/node_modules`, no level A or AA failure, 1.4.10 Reflow listed as the one known gap) and `no_horizontal_scroll(page)` at 1024, 1366 and 1920 px wide (FR-22, FR-23)
+**And** it offers `press(page, key)` and `tab_to(page, locator)`, which after every key press assert that the focused element shows the 3 px `focus` ring (its computed outline) and is not hidden: inside the viewport after scrolling, and the topmost element at its centre (WCAG 2.4.7, 2.4.11, UX-DR34)
+**And** it offers `tab_order(page, steps)`, which returns the focus stops in order as role and accessible name, and `zoomed(browser, width, height)`, which opens a page with a viewport of half the given width and height and `deviceScaleFactor` 2, so the page is laid out as at 200 % browser zoom (WCAG 1.4.4)
+**And** every e2e step "with the keyboard alone", in this story and every later one, goes through `press` and `tab_to`, so focus visibility is checked in each story and not first in Story 2.4
+
 **Given** Terms and the Privacy notice
 **When** the e2e tests run
-**Then** axe-core (from `frontend/node_modules`) reports no level A or AA failure, every link can be reached and followed with the keyboard alone with a visible 3 px focus ring, and the pages have no horizontal scroll at 1024, 1366 and 1920 px wide (FR-22, FR-23, UX-DR34)
+**Then** `check_axe` passes, every link can be reached and followed through `tab_to` and `press`, and `no_horizontal_scroll` passes (FR-22, FR-23, UX-DR34)
 **And** `tests/e2e/test_fr21_privacy.py` is created and asserts for both pages that every request goes to the `base_url` origin, no cookie is set, and exactly one stylesheet of ours and no `<style>` element of ours is loaded (FR-21, Conventions: Tests)
 
 **Given** `ASSETS.md`
@@ -984,13 +992,20 @@ So that I can verify the Core without help, and Lisa knows the Core website is c
 **Then** axe-core reports no level A or AA failure, and the only known gap listed in the report is 1.4.10 Reflow (FR-23)
 **And** each page has no horizontal scroll at 1366×768, 1920×1080 and 1024 px wide (FR-22)
 
-**Given** the manual passes of FR-23
-**When** Lisa runs them on the compose stack
-**Then** the results are recorded in `tests/manual/core-accessibility.md` with date, browser and outcome per check (DR-1):
-- keyboard only: the whole booking flow from Landing to Confirmation, and Sign-in, Booking list and Outbox, with focus always visible and never hidden;
-- 200 % zoom at 1366×768 and 1920×1080: nothing cut off or overlapping, and Continue and Pay reachable (WCAG 1.4.4);
-- the Book seats tab order (main before rail) against WCAG 2.4.3 (EXPERIENCE.md Open Item 14);
-- a screen-reader pass of Book seats, Review and Confirmation, checking Session-row names include Seats left and that Next.js's route announcer does not double the page announcement (UX-DR35);
+**Given** `tests/e2e/test_fr23_keyboard_and_zoom.py`, the automated part of the FR-23 manual passes, built on `tests/e2e/a11y.py` (Story 1.2)
+**When** it runs on the e2e stack
+**Then** the Book seats `tab_order` puts the date field, the calendar, the Seat picker and the Session list before the rail's total and "Continue booking" (WCAG 2.4.3, EXPERIENCE.md Open Item 14)
+**And** in `zoomed` pages for 1366×768 and 1920×1080, Book seats, Details and Review are completed through `press` and `tab_to`, "Continue booking" and Pay are reached and pressed, and a full-page screenshot of each page is saved under `test-results/zoom/` (git-ignored) for Lisa's manual look (WCAG 1.4.4)
+**And** the `ariaSnapshot` of the Session list shows every row's name with its Seats left text ("13:00 to 14:30, 12 seats left"), and unavailable rows as disabled with their text ("1 seat left, not enough for 2", "Sold out") (UX-DR19, UX-DR35)
+**And** the keyboard-only flows from Landing to Confirmation (Story 1.5) and through Sign-in, Booking list, Outbox and Sign out (Stories 2.1 to 2.3) already go through `press` and `tab_to`, so every focus stop on those pages is checked
+
+**Given** the manual passes of FR-23, which confirm the automated checks rather than repeat them
+**When** Lisa runs them on the compose stack, with NVDA and Chrome for the screen-reader pass
+**Then** the results are recorded in `tests/manual/core-accessibility.md`, a checklist with one row per check giving date, browser (and screen reader), outcome and the automated test that covers it (DR-1):
+- keyboard only: one run through the booking flow from Landing to Confirmation and through Sign-in, Booking list and Outbox, looking for what the focus checks cannot see (an order that makes no sense, a stop that does nothing);
+- 200 % zoom at 1366×768 and 1920×1080 in the browser, plus a look at the screenshots in `test-results/zoom/`: nothing cut off or overlapping (WCAG 1.4.4);
+- the Book seats tab order, seen once against the `tab_order` test (WCAG 2.4.3);
+- a screen-reader pass of Book seats, Review and Confirmation: Session rows are read with Seats left, and Next.js's route announcer does not double the page announcement (UX-DR35);
 **And** any failure is fixed in this story, or recorded as an issue with its WCAG criterion if it cannot be fixed in time
 
 **Given** `ASSETS.md` and `frontend/public/`
