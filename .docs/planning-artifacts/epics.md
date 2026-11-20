@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics]
+stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, step-04-final-validation]
 inputDocuments:
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md
   - .docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/addendum.md
@@ -1083,6 +1083,7 @@ So that my password, my browser session and the links I am emailed never travel 
 **And** it states the Known limits: browsers send `Secure` cookies to `http://localhost`, where Caddy only redirects, and Chrome and Firefox ignore HSTS from `localhost` (FR-24)
 **And** the README security section now says HTTPS is in place and ends at Caddy, the backend and the frontend are reachable only on the internal compose network, no request goes to a third party, and a production deployment would use a public certificate and one year of HSTS (FR-21, AD-27 README)
 **And** every Outbox link the README points to, and the base URL it names, start with `https://localhost:8443`
+**And** the README's "Not delivered" section no longer lists HTTPS (DR-2)
 
 ## Epic 4: A Guest changes seats or takes a voucher
 
@@ -1349,6 +1350,7 @@ So that the credit I received is worth what I was promised.
 **Given** the README
 **When** the examiner wants to test a Voucher
 **Then** it says how to get one (give up a Seat on a sample Booking through its Manage link from the Outbox) and where the code appears (DR-2)
+**And** the README's "Not delivered" section no longer lists SC3 or FR-25 to FR-28 (DR-2)
 
 **Given** the API and e2e test layers
 **When** `uv run pytest` runs
@@ -1509,6 +1511,10 @@ So that a change of plans does not cost my group the money we paid.
 **Then** it shows the Booking through the AD-23 serializer (Sauna name, session, total, status, `version`, `change_allowed`, `cutoff_at`, history) and offers "Cancel" and "Move" as confirming steps built from Epic 4's Manage components (FR-25, AD-28, UX-DR40)
 **And** the page read returns no email, Voucher code or Manage link, and the Seat routes `…/seats/move` and `…/seats/voucher` answer `404 not_found` for this Booking, as `…/whole/*` routes do for a Seat booking (AD-28)
 
+**Given** Story 5.2
+**When** this story's migration runs
+**Then** the `booking_changes` `action` CHECK gains `cancel` with its AD-29 shape CHECK (`voucher_id` set only when the remedy is a Voucher; `seats`, Window and Sauna ids and `new_booking_id` NULL), and nothing else changes (AD-15, AD-29)
+
 **Given** a Whole-sauna booking before its Cutoff (72 hours before the start, the Booking's own `cutoff`)
 **When** the Guest confirms "Cancel" with the remedy `refund` (`POST /api/manage/{reference}/whole/cancel {remedy, version}` with a key)
 **Then** in one transaction in AD-23's write order the Booking becomes `cancelled` with `cancelled_at`, `cancel_cause = 'guest'` and `cancel_remedy = 'refund'`, the capacity row is deleted, `booking_changes` gets a `cancel` row, `services.payment.refund()` writes one `refund`/`card` row for the card charges, and the cancellation email is sent (FR-33, AD-29, AD-31)
@@ -1649,3 +1655,4 @@ So that I can show that no Seat is ever lost, counted twice or sold over a Priva
 **When** `uv run pytest` finishes on Lisa's laptop
 **Then** the model test and the group-C tests pass within the `default` profile, and their run time is recorded in the story file
 **And** the README names the `thorough` profile and how to run it (DR-2), and SM-5 is noted as covered for groups A to C as built
+**And** the README's "Not delivered" section no longer lists SC2, SC4 or FR-29 to FR-33 (DR-2)
