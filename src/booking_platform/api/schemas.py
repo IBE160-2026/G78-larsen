@@ -4,6 +4,7 @@ Seats are 1 to 10 (FR-2)."""
 from __future__ import annotations
 
 import datetime as dt
+import re
 from typing import Annotated
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationInfo, field_validator
@@ -15,6 +16,24 @@ Id = Annotated[int, Field(ge=1, le=INT4_MAX)]  # store ids are int4: anything ou
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+_ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+class WindowsQuery(Strict):
+    """`GET /api/windows?date=&seats=` (AD-16): both optional, but a value that is present must be valid. The date
+    is a Venue date written yyyy-mm-dd, and only that form is accepted."""
+
+    date: dt.date | None = None
+    seats: Seats | None = None
+
+    @field_validator("date", mode="before")
+    @classmethod
+    def _iso_date(cls, value: object) -> object:
+        if value is not None and not (isinstance(value, str) and _ISO_DATE.fullmatch(value)):
+            raise ValueError("not a yyyy-mm-dd date")
+        return value
 
 
 class SessionIn(Strict):

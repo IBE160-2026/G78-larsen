@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query, Request, Response
 
 from .. import config
 from ..services import booking, holds, sessions, venue, windows
 from .deps import COOKIE, require_session
-from .schemas import BookingIn, HoldIn, SessionIn, VenueOut
+from .schemas import BookingIn, HoldIn, SessionIn, VenueOut, WindowsQuery
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -24,8 +26,10 @@ def venue_facts():
 
 
 @router.get("/windows")
-def list_windows():
-    return windows.list_windows()
+def list_windows(query: Annotated[WindowsQuery, Query()]):
+    """The dated Window listing (FR-2, FR-3, AD-16). Needs no session and sets no cookie. The only write is
+    `windows.ensure_generated()`; a refused listing (422, 409 `outside_horizon`) writes nothing."""
+    return windows.listing(query.date, query.seats)
 
 
 @router.get("/windows/{window_id}")

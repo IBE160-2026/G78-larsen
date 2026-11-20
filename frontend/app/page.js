@@ -11,6 +11,7 @@ import RuleList from '@/components/RuleList';
 import SaunaCard from '@/components/SaunaCard';
 import TextLink from '@/components/TextLink';
 import Wordmark from '@/components/Wordmark';
+import { CHANGING_TIME, SEAT_STATEMENT, VENUE_UNAVAILABLE } from '@/lib/copy';
 import { getPublic } from '@/lib/server-api';
 import { nok, openingHours, sessionLength } from '@/lib/venue-format';
 
@@ -18,7 +19,6 @@ import { nok, openingHours, sessionLength } from '@/lib/venue-format';
 export const metadata = { title: { absolute: 'Saunalöyly' } };
 
 const BOOK_SEATS = '/book-seats';
-const VENUE_UNAVAILABLE = 'The venue details could not be loaded, please try again.';
 
 // EXPERIENCE.md, Voice and Tone: Landing copy, verbatim.
 const RULES = [
@@ -44,7 +44,7 @@ const RULES = [
   {
     title: 'Practical',
     items: [
-      'Changing time is part of your session.',
+      CHANGING_TIME,
       'There is a wardrobe for your clothes.',
       'You can swim in the sea all year round.',
       'There are showers.',
@@ -52,9 +52,6 @@ const RULES = [
     ],
   },
 ];
-
-const SEAT_STATEMENT =
-  'A booking gives you seats in the shared saunas open during your session. On site you can move freely between them.';
 
 function RailFacts({ venue }) {
   return (

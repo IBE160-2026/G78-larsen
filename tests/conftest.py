@@ -190,10 +190,15 @@ def pg(database):
 
 @pytest.fixture
 def world(pg, server):
-    """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY."""
+    """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY.
+
+    The three Windows sit on the seed schedule's 10:00, 11:30 and 13:00 Oslo slots of 2026-12-01. No Window has been
+    generated yet (`windows_generated_through` is NULL); the first Window listing generates the rest of the horizon
+    and skips these three, which overlap."""
     pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, bookings, windows, saunas, sessions "
                "RESTART IDENTITY CASCADE")
-    pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5")
+    pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5, "
+               "booking_horizon_days = 28, windows_generated_through = NULL")
     for i, n, cap in SAUNAS:
         pg.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (%s, %s, %s, %s)", (i, n, cap, i))
     for k in range(3):

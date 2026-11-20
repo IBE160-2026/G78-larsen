@@ -169,15 +169,14 @@ def test_every_link_and_the_button_can_be_reached_with_the_keyboard(page: Page, 
         a11y.tab_to(page, page.get_by_role("link", name=name, exact=True))
 
 
-def test_book_seats_navigates_with_the_keyboard_and_sets_no_cookie(page: Page, base_url):
+def test_book_seats_navigates_with_the_keyboard_and_landing_sets_no_cookie(page: Page, base_url):
     page.goto(base_url + "/")
     a11y.tab_to(page, page.get_by_role("link", name="Book seats", exact=True))
+    assert page.context.cookies() == []  # no Landing load creates a session (AD-8)
     a11y.press(page, "Enter")
     page.wait_for_url(base_url + "/book-seats")
-    # Story 1.4 builds the page; until then the route is the not-available page (Next.js loads an unknown route
-    # as a new document, so focus there stays at the start of the page)
-    assert page.locator("h1").inner_text() == "This page is not available."
-    assert page.context.cookies() == []
+    page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")
+    assert page.locator("h1").inner_text() == "Book seats"
 
 
 def test_opening_before_you_come_directly_shows_and_focuses_it(page: Page, base_url):
@@ -215,7 +214,10 @@ def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(
             assert fact not in text, fact
         page.get_by_role("link", name="Book seats", exact=True).click()
         page.wait_for_url(base_url + "/book-seats")
-        assert page.locator("h1").inner_text() == "This page is not available."
+        assert page.locator("h1").inner_text() == "Book seats"
+        # without the backend the rail shows the Notice instead of the price lines, and Continue is still there
+        page.locator(".rail .notice").wait_for()
+        assert page.get_by_role("button", name="Continue booking").is_enabled()
     finally:
         stack.compose("start", "backend")
         stack.wait()

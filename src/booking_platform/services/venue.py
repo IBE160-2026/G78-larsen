@@ -9,10 +9,11 @@ from __future__ import annotations
 import datetime as dt
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 from .. import db
 from ..db import venue as q
+from .windows import DEFAULT_TZ, ScheduleRow, check_schedule
 
 INT4_MAX = 2_147_483_647
 Text = Annotated[str, Field(min_length=1, max_length=100)]
@@ -54,10 +55,18 @@ class Sauna(_Strict):
 
 
 class VenueSeed(_Strict):
-    """The shape of `seeds/venue.json`."""
+    """The shape of `seeds/venue.json`. The schedule is checked against the Venue time zone given as validation
+    context `tz` (default: the `settings.venue_tz` default)."""
 
     venue: VenueFacts
     saunas: list[Sauna] = Field(min_length=1)
+    schedule: list[ScheduleRow] = Field(min_length=1, max_length=48)
+
+    @field_validator("schedule")
+    @classmethod
+    def _schedule(cls, rows: list[ScheduleRow], info: ValidationInfo) -> list[ScheduleRow]:
+        check_schedule(rows, (info.context or {}).get("tz", DEFAULT_TZ))
+        return rows
 
     @model_validator(mode="after")
     def _unique(self) -> VenueSeed:
