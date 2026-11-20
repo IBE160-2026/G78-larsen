@@ -46,3 +46,23 @@ Lisa ba om å lage grenen for Story 1.1 og kjøre `bmad-build` på storyen i `.d
 ### Åpne punkter
 - AD-7 i spinen sier «migration `0002`» for `bookings.status`, men 0002 og 0003 er nå tatt av Story 1.1. Story 1.5 må ta neste ledige nummer (AD-15), og spinen bør eventuelt rettes.
 - Utsatte tester (`deferred-work.md`): middlewarens 500-svar for uventede unntak, og migrering av en gammel database med data og samtidige `migrate()`-kjøringer.
+
+## 2026-11-20 kl. 11:40 — Lisa Larsen
+
+### Oppgave
+Lisa kjørte `bmad-walkthrough` på PR #1 og ba om å grave i migrering 0002, i kappløpet mellom utlogging og skriving og i hvordan sesjonene forlenges. Hun ba om å få rettet levetidene i PR #1.
+
+### Plan
+- Walkthrough: orientering, gjennomgang etter tema og risikopunkter, deretter de tre «dig into»-punktene.
+- 404-kappløpet ble framprovosert med en midlertidig test (slettet etterpå).
+- Levetidene ble samlet ett sted.
+
+### Resultat
+- **Migrering 0002:** korrekt og trygg å merge. Det som ikke kan angres, er bare hold i dev-databasen. Indeksen for fremmednøkkelen finnes allerede via `UNIQUE (session_id, window_id)`.
+- **Kappløpet mellom utlogging og skriving:** bekreftet mot ekte backend. Når sesjonen slettes etter oppslaget, men før holdet settes inn, blir svaret `404 not_found` og ikke `401 no_session`. Ingenting skrives. Slettes sesjonen før oppslaget, blir svaret riktig `401`.
+- **Oppslag og forlengelse av sesjonen:** riktig og uten fare for å låse handlinger. Ingen GET skriver i dag; det kommer først i Story 1.5 og 2.2.
+- **Retting:** levetidene kommer nå fra `db.sessions.lifetime()`, og `create`, oppdateringen og admin-fixturen bruker alle den. Commit `dc793d5`, og 144 tester består.
+
+### Åpne punkter
+- Story 1.5: legg `holds_session_id_fkey` og `bookings_session_id_fkey` inn i `MAP` som `no_session` (401), så kappløpet med utlogging gir 401, ikke 404.
+- Story 2.1: utlogging må låse Windows for sesjonens hold (`lock_windows`) før sesjonsraden slettes (AD-3/AD-4). Innlogging må sette `expires_at` med `lifetime()` når rollen byttes, ellers gjelder gjesteutløpet på opptil 24 timer.
