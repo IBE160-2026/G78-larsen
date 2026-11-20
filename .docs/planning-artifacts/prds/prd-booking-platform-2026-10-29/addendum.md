@@ -398,7 +398,7 @@ Three reviewers read the draft on 2026-10-30 (`review-rubric.md`, `review-downst
 | Emails a Guest sees | A Guest sees an email on the page of the action that sent it. The resend and remedy emails are visible only in the Outbox, because showing them would give access to a Booking (FR-17) | The Manage page also lists every email about the Booking; or no change, with only the Outbox |
 | Store-level refusal (FR-10) | The data store refuses over-capacity writes in every phase | Core only, with serialised requests as the guarantee afterwards |
 | "Latest" (D3, Overbooking fallback) | By Entry time, and only Seat bookings lose. A Whole-sauna booking is cancelled only when its own Sauna is Blocked (D4) | The most recently created Booking of any kind |
-| What the examiner installs | Python with uv, Node.js and Docker, with PostgreSQL in a container (NFR-1, Q4; changed by Lisa on 2026-11-03) | Python with uv and Node.js only, with SQLite as a file (the position of 2026-11-01) |
+| What the examiner installs | Python with uv, Node.js and Docker, with PostgreSQL in a container (NFR-1, Q4; changed by Lisa on 2026-11-03); since 2026-11-19 Docker Compose runs the whole platform (NFR-1) | Python with uv and Node.js only, with SQLite as a file (the position of 2026-11-01) |
 | Gradual opening and Seat capacity (Step 2) | Seat capacity counts every Sauna that may open, up to the maximum. Opening decides only the Door codes. Turning the mode on, or lowering the maximum, is refused if a future Window would exceed the new capacity (FR-50) | Keep the glossary as it was, which made a second Sauna impossible to open; or move Gradual opening to Vision |
 | Door codes after the Send time | One rule: when a Sauna becomes open for Seats, every Seat booker gets an extra email with its codes. When it stops being open, they get the correction email. The Send time lies between the Cutoff and the Window start (FR-47, FR-48) | Keep the narrow rules (lifted Block and Gradual opening only) and list the gaps as known limits |
 | Time arithmetic | Offsets are elapsed time. The Release time is a clock time on the Window's start date. A Window belongs to its start date. No Window starts or ends in a skipped or repeated hour (NFR-3) | Leave it to the architecture |
@@ -422,7 +422,7 @@ Moved from PRD §12 on 2026-11-19, with their original numbers and full text. PR
    - Private sauna prices are not set; they wait until §4.9 is planned.
 - **Q4.** **Database engine.** Decided 2026-11-03 (Lisa): PostgreSQL, run by Docker as a container started from the README (Docker running PostgreSQL confirmed by Lisa, 2026-11-03). This replaces the decision of 2026-11-01 (SQLite in WAL mode with `BEGIN IMMEDIATE`), which was based on a spike of the Core case only. The reason for the change is not recorded. Consequences:
    - The race test of FR-11 and the parallel tests of FR-32 now meet real multi-writer contention, against the same kind of data store the platform uses (NFR-6).
-   - The examiner installs Docker (NFR-1). The README starts the container and pins the PostgreSQL major version.
+   - The examiner installs Docker (NFR-1). The README starts the compose stack, which pins the PostgreSQL major version (`postgres:18`).
    - The mechanism is a conditional update under Read Committed, with the Windows locked in start-time order (Q14) and a bounded retry on 40001/40P01 (FR-14, addendum A).
    - The SQLite spike no longer applies. The store-level refusal of FR-10 (CHECK constraint and trigger) is re-proven on PostgreSQL, for the Core first and later for Whole-sauna bookings and Blocks (addendum A).
    - The architecture keeps the SQL plain and the data access in one layer.
@@ -461,6 +461,8 @@ On 2026-11-19 these dates and names were taken out of the FR text (PRD §4 and `
 | FR-33 | A move to a Sauna with a different price is refused with the reason, and the Guest can cancel and book again | Lisa | 2026-10-30 |
 | FR-33 | The Voucher choice covers the full price paid and is valid for one year, also when part was paid with a Voucher | Lisa | 2026-11-19 |
 | NFR-1 | Docker runs the whole platform (data store, backend, frontend, Caddy proxy) with one command, and one more command runs all tests (replaces the assumption; architecture AD-17, AD-27, following `technology.md`) | Lisa | 2026-11-19 |
+| §4.7 | HTTPS ends at the Caddy proxy; behind it, traffic stays on the machine's internal network (architecture AD-27). FR-24's local test checks that a plain-HTTP request carrying the cookie is only redirected | Lisa | 2026-11-19 |
+| NFR-1 | Run-time services only: the first build downloads public images and packages; Playwright's Chromium comes through uv; two one-time preparation commands come before the test command | Lisa | 2026-11-19 |
 | §7 | A Change email carries no Manage link; it says the link in the confirmation email still works. Only the confirmation and a split-off Booking's email carry a Manage link (architecture AD-28) | Lisa | 2026-11-19 |
 | FR-35 (appendix) | Other Guests see held Seats as taken, with no comment | Lisa | 2026-10-30 |
 | FR-38 (appendix) | The seed supplies the standard programme (FR-13), and v1 has no recurring schedule | Lisa | 2026-10-30 |

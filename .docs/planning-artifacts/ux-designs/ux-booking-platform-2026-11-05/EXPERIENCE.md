@@ -43,7 +43,7 @@ In sentences it is lower case, as in the mock ("Choose a session"). All other te
 | Book seats | Book seats action on Landing | Date, Seats and Session on one page, with the total (FR-2, FR-3, FR-4) |
 | Details | Continue on Book seats | Name and email (FR-5) |
 | Review | Continue on Details | Check everything, accept the terms, pay (FR-5, FR-6) |
-| Confirmation | Pay succeeds. Route `/confirmation/:reference` (AD-12) | Booking reference, what to do on arrival, the email as sent (FR-8) |
+| Confirmation | Pay succeeds. Route `/confirmation/[reference]` (AD-12) | Booking reference, what to do on arrival, the email as sent (FR-8) |
 | Terms | Text link | Full booking terms (FR-5) |
 | Privacy notice | Text link wherever data is collected | Separate from Terms (FR-21) |
 
@@ -287,7 +287,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 
 ## State Patterns
 
-Any screen can be overtaken by a refusal when the Guest submits (AD-2). A refused action leaves nothing partly done (AD-3). The server sends codes and facts, and the SPA owns the copy (AD-16). The SPA never uses the browser clock for a rule (AD-4), so every time-based state below is decided by the server. Wording is in Voice and Tone.
+Any screen can be overtaken by a refusal when the Guest submits (AD-2). A refused action leaves nothing partly done (AD-3). The server sends codes and facts, and the frontend owns the copy (AD-16). The frontend never uses the browser clock, nor the Next.js server clock, for a rule (AD-4), so every time-based state below is decided by the server. Wording is in Voice and Tone.
 
 **Landing**
 
@@ -388,7 +388,7 @@ Focus states are in Interaction Primitives. If-time states are in If-time Plug-i
 - Click or keyboard, always both. No hover-only information, no drag, no gestures.
 - Focus ring: 3 px `{colors.focus}`, 2 px offset, on every interactive element. On hidden radios the ring shows on the visible cell.
 - Date, Seat and Session choices are radio groups, each one tab stop, with arrow keys inside. Nearest sessions are links, not radios.
-- Focus moves to the page heading on every route change (architecture Conventions). On Landing the heading is the Wordmark. [ASSUMPTION] The Wordmark is the page's one top-level heading, so that this rule has a target.
+- Focus moves to the page heading on every route change (architecture Conventions). Exception (Lisa, 2026-11-19): when the address names a part of the page that exists, such as `/#before-you-come`, focus moves to that part instead, also when the link is opened directly (architecture AD-17). On Landing the heading is the Wordmark. [ASSUMPTION] The Wordmark is the page's one top-level heading, so that this rule has a target.
 - When the element with focus disappears, focus moves to what replaced it, never to the page body.
 - No live updates (AD-4). Sessions are read again when the date or number changes. The server decides at submit.
 - Back in the browser and the Back link do the same thing, and neither loses input (FR-5). After payment, Back shows Confirmation (see Booking draft).
@@ -452,7 +452,7 @@ Plain text, English, simulated, listed in the Outbox (PRD §7). [ASSUMPTION] Not
 
 - Content per email is in the PRD §7 table. This spine adds only the UI word.
 - The Booking confirmation carries the reception sentence as FR-8's "what happens next", with no heading. That text and the booking terms are one shared text, used by page and email (AD-12).
-- [ASSUMPTION] The confirmation email's line layout follows the block in `mockups/key-confirmation.html`, with its content from the PRD §7 table. The base URL for absolute links is not set yet.
+- [ASSUMPTION] The confirmation email's line layout follows the block in `mockups/key-confirmation.html`, with its content from the PRD §7 table. The base URL for absolute links is `BP_BASE_URL` (AD-22): `http://localhost:8000` in the Core, `https://localhost:8443` from FR-24.
 - The fixed payment note goes in every email that mentions a payment (FR-6). Links are absolute (AD-12).
 - Seat booking emails never name a Sauna (FR-4).
 
@@ -616,6 +616,6 @@ Items 1 to 6, 8 to 12 and 15 were applied to the PRD on 2026-11-05. Item 7 neede
 10. **Administrator address.** UJ-3 says a Guest who types it "is refused". The design sends them to Sign-in. FR-20 still holds, because the API refuses.
 11. **Sauna names.** UJ-5 says Sauna 3 and this spine says Kajo, matching §3. Consider aligning the journey.
 12. **Browser-session expiry during a booking** is missing from the §7 list of states. Consider adding it.
-13. **New states need server support (architecture).** The server must report "already started", the end of the horizon and the horizon length, because the SPA may not use the browser clock (AD-4). The deadline-passed and too-few-Seats refusals need codes with facts in the code table (AD-16).
+13. **New states need server support (architecture).** The server must report "already started", the end of the horizon and the horizon length, because the frontend may not use the browser clock (AD-4). The deadline-passed and too-few-Seats refusals need codes with facts in the code table (AD-16).
 14. **Confirmation copy with Session (architecture).** The `content/` text shared by page and email (AD-12) should use the UI word.
 15. **Q7 closed by Lisa:** no Administrator cancel of a single Booking in Core. Close §12 Q7 with this answer.

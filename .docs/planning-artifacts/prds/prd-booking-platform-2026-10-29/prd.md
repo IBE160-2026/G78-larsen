@@ -151,7 +151,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 - **Gift card:** a purchased code with a balance, used like a Voucher (Step 2).
 - **Hold:** a temporary reservation of Seats for 10 minutes, and never past the Booking deadline, while a Guest completes payment (If time). A Hold reserves Seats only; a Whole-sauna booking has none (FR-29).
 - **Simulated payment:** a payment step that moves no real money and needs no keys or external service. Refunds are simulated in the same way.
-- **Test switch:** a setting read at start-up from a local file that git ignores. It is off by default and can never be changed through the API. Tests use it to force a failed or held Simulated payment, a conflict, a pending code or a stopped Hold cleanup. The examiner can use it only by editing that file.
+- **Test switch:** a setting read at start-up from a local file that git ignores. It is off by default and can never be changed through the API. Tests use it to force a failed or held Simulated payment, a conflict, a pending code or a stopped Hold cleanup. The examiner can use it only by editing that file and restarting the backend.
 - **Outbox:** the platform's store of simulated emails. It stands in for the Guests' mailboxes, so it holds links and codes exactly as sent. Only Administrators can list it.
 - **Overbooking fallback:** the rule that applies if Seats booked ever exceed Seat capacity: the Seat booking with the latest Entry time loses.
 - **Entry time:** the moment a Seat booking's Seats entered their Window: the time the Booking was created, or the time of the Change that moved them in. A Change that moves only some Seats gives the new Booking the time of the move, and the original Booking keeps its Entry time.
@@ -445,7 +445,7 @@ Every Core page meets WCAG 2.2 level AA, with one stated exception: success crit
 - Form errors appear as text next to the field and in a summary.
 
 ### 4.7 HTTPS *[If time — 1]*
-**Description:** The website and the API are served only over HTTPS, so passwords, sessions and Manage links never travel unencrypted. A local development certificate is acceptable for the exam, and the README explains how to use it. This completes SC9. HTTPS is first in the If-time list because Manage links arrive with §4.8.
+**Description:** The website and the API are served only over HTTPS, so passwords, sessions and Manage links never travel unencrypted between the browser and the platform. HTTPS ends at the proxy; behind it, traffic stays on the machine's internal network (architecture AD-27). A local development certificate is acceptable for the exam, and the README explains how to use it. This completes SC9. HTTPS is first in the If-time list because Manage links arrive with §4.8.
 
 **Functional Requirements:**
 
@@ -455,7 +455,7 @@ The platform serves the website and the API over HTTPS only.
 **Consequences (testable):** (brief tests HT-1 to HT-4)
 - A plain-HTTP request to the website or the API is redirected to HTTPS. No data is returned or changed over HTTP.
 - Every HTTPS response carries a Strict-Transport-Security header.
-- Session cookies are Secure and HttpOnly, and are never sent over HTTP. On `localhost`, browsers send Secure cookies over plain HTTP anyway, so the local test checks the cookie attributes and that the HTTP listener never reads a cookie. The README states this limit.
+- Session cookies are Secure and HttpOnly, and are never sent over HTTP. On `localhost`, browsers send Secure cookies over plain HTTP anyway, so the local test checks the cookie attributes and that a plain-HTTP request carrying the cookie is only redirected and changes nothing. The README states this limit.
 - Every link in a simulated email starts with `https://`.
 
 ### 4.8 Change Seats or take a Voucher *[If time — 2]*
@@ -617,7 +617,7 @@ The Vision items are:
 v1 is built so that these are extensions, not rewrites. That readiness costs no v1 build time: v1 adds no tables, settings, endpoints or abstractions for Vision items, and the architecture only checks that each could be added without rewriting the capacity core. The brief addendum holds the detailed Vision rules (memberships, period cards, renewal, heating, remote doors and per-website settings). Addendum L keeps the rules worked out for one-Sauna access.
 
 ## 5. Cross-Cutting Requirements
-- **NFR-1 Runs locally.** A fresh clone runs from the README alone on a laptop. It needs no keys, paid accounts or external services. The examiner installs Python with uv, Node.js and Docker, and nothing else (Lisa, 2026-10-30; confirmed with the change to PostgreSQL on 2026-11-03). Docker runs the whole platform (the PostgreSQL data store, the backend, the frontend and the Caddy proxy) with one command from the README (§12 Q4, architecture AD-27). One more command runs all tests; uv and Node.js are needed for the tests and for development.
+- **NFR-1 Runs locally.** A fresh clone runs from the README alone on a laptop. It needs no keys, paid accounts or external services at run time; the first build downloads public images and packages. The examiner installs Python with uv, Node.js and Docker, and nothing else (Lisa, 2026-10-30; confirmed with the change to PostgreSQL on 2026-11-03). The browser tests use a Chromium that Playwright downloads through uv. Docker runs the whole platform (the PostgreSQL data store, the backend, the frontend and the Caddy proxy) with one command from the README (§12 Q4, architecture AD-27). One more command runs all tests, after two one-time preparation commands; the tests use uv, Node.js and Docker, and development uses uv and Node.js.
 - **NFR-2 One API, and the server decides.** The website talks to the booking platform only through one API. The platform enforces every rule in this PRD, whatever the website does. Other websites are not supported, but the API is kept clean so that support can be added later.
 - **NFR-3 Venue time.** All Windows, Booking deadlines, Cutoffs, Release times and Send times are in Venue time, including on the days when daylight saving time starts or ends `[ASSUMPTION: a Window keeps its local clock times across the change]`. Offsets (Booking horizon, Booking deadline, Cutoffs, Send time, Hold length and the 45-minute limit) are elapsed time from the Window's start or end. The Release time is a clock time on the date the Window starts. A Window belongs to the date it starts. A Window that would start or end in a skipped or repeated hour is refused.
 - **NFR-4 Money.** Prices are in NOK including VAT and come from seed data in the Core. A Booking keeps the price it was paid at.
@@ -683,7 +683,7 @@ v1 is built so that these are extensions, not rewrites. That readiness costs no 
   - how it was steered (session logs);
   - how the result was checked (tests, reviews, manual checks), including where AI output was wrong or rejected and how that was found.
 - **DR-2 README.** The README covers:
-  - how to install and start the backend and the frontend;
+  - how to start the platform with one command (NFR-1), and how to run the backend and the frontend for development;
   - how to run all tests;
   - the Administrator test login and the seeded sample Bookings; once §4.8 is built, where to find a sample Manage link in the Outbox; once §4.12 is built, a Guest test account;
   - how to view the Outbox, which also holds the emails that Guests do not see on a page (FR-17);
