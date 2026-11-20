@@ -1,5 +1,65 @@
-# The data store (NFR-1). Start it with:  docker compose up -d --wait db
+# The platform (NFR-1, AD-27): `docker compose up --build --wait`, then http://localhost:8000.
+# The data store alone, for the API tests and the dev backend:  docker compose up -d --wait db
+#
+# Caddy (proxy) is the only published web port, on 127.0.0.1. The backend and the frontend are reachable only on
+# the compose network. The mode (HTTP before FR-24) is the three lines marked "mode" below; they change together.
 services:
+  proxy:
+    image: caddy:2.11
+    ports:
+      # the same host port as Caddy's, because the base URL names it (AD-27); HTTPS_PORT joins with FR-24
+      - "127.0.0.1:${HTTP_PORT:-8000}:${HTTP_PORT:-8000}"
+    environment:
+      SITE_ADDRESS: http://localhost:${HTTP_PORT:-8000} # mode
+      HTTP_PORT: ${HTTP_PORT:-8000}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    healthcheck:
+      # Caddy's admin endpoint, reachable only inside the container; it does not depend on the mode
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      BP_DATABASE_URL: postgresql://postgres:booking@db:5432/booking
+      BP_HTTPS: "off" # mode
+      BP_BASE_URL: http://localhost:${HTTP_PORT:-8000} # mode
+    volumes:
+      # the directory, so a fresh clone (no test-switches.toml) starts with every switch off (AD-14)
+      - ${SWITCHES_DIR:-./config}:/app/config:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://backend:8000
+    healthcheck:
+      # a route that calls no API, so the frontend is healthy without the backend
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/privacy"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
   db:
     image: postgres:18
     environment:
@@ -15,5 +75,7 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
 volumes:
   dbdata:
+  caddy_data:

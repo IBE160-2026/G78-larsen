@@ -1,0 +1,62 @@
+'use client';
+
+// The one client component that moves focus and keeps the "Error: " title prefix (AD-17, UX-DR33).
+//
+// - First document load: focus moves only when the URL fragment names an existing element, and then to it.
+// - After each client navigation: to the fragment's element if it exists, otherwise to the page's h1.
+// - Targets carry tabindex="-1"; a fragment target without one gets it here.
+// - While an Error summary ([data-error-summary]) is on the page, the title starts with "Error: ".
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+
+const PREFIX = 'Error: ';
+
+function fragmentTarget() {
+  const id = window.location.hash.slice(1);
+  if (!id) return null;
+  try {
+    return document.getElementById(decodeURIComponent(id));
+  } catch {
+    return null;
+  }
+}
+
+function focus(el) {
+  if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+  el.focus();
+}
+
+function syncTitle() {
+  const bare = document.title.startsWith(PREFIX) ? document.title.slice(PREFIX.length) : document.title;
+  const wanted = document.querySelector('[data-error-summary]') ? PREFIX + bare : bare;
+  if (document.title !== wanted) document.title = wanted;
+}
+
+export default function FocusMover() {
+  const pathname = usePathname();
+  // The last pathname handled: an effect that reruns for the same pathname (React Strict Mode in `next dev`)
+  // does nothing, so the first load is never treated as a navigation.
+  const handled = useRef(null);
+
+  useEffect(() => {
+    syncTitle();
+    if (handled.current === pathname) return;
+    const firstLoad = handled.current === null;
+    handled.current = pathname;
+    const target = fragmentTarget();
+    if (firstLoad) {
+      if (target) focus(target);
+      return;
+    }
+    const heading = target || document.querySelector('h1');
+    if (heading) focus(heading);
+  }, [pathname]);
+
+  useEffect(() => {
+    const observer = new MutationObserver(syncTitle);
+    observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, []);
+
+  return null;
+}

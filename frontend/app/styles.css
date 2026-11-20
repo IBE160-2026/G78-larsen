@@ -1,0 +1,361 @@
+/*
+  The one stylesheet of the site (AD-17, Conventions: Styling). Imported once in app/layout.js and in
+  app/global-error.js, which replaces the root layout. No other stylesheet, CSS Module, inline style element or
+  style prop exists.
+
+  Every token of DESIGN.md (front matter) is a custom property below (UX-DR1). Square corners, no shadows,
+  light mode only. Fonts are self-hosted from public/fonts (UX-DR2, DR-3); no third-party request (FR-21).
+*/
+
+/* ------------------------------------------------------------------ fonts */
+
+@font-face {
+  font-family: 'Finlandica';
+  src: url('/fonts/finlandica-variable.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/source-sans-3-variable.woff2') format('woff2');
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ tokens (DESIGN.md) */
+
+:root {
+  color-scheme: light;
+
+  /* colors */
+  --color-page: #F5F3EB;
+  --color-surface: #FDFCF7;
+  --color-text: #26353D;
+  --color-muted: #4C5D66;
+  --color-primary: #B5D2E1;
+  --color-on-primary: #1E2D35;
+  --color-button-edge: #26353D;
+  --color-bar: #B5D2E1;
+  --color-on-bar: #1E2D35;
+  --color-link: #2F5A71;
+  --color-focus: #2F5A71;
+  --color-border: #6F8693;
+  --color-unavailable: #E4EBEC;
+  --color-error: #7F3C2E;
+  --color-success: #2E6047;
+
+  /* font families, with the DESIGN.md fallback stack */
+  --font-fallback: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: 'Finlandica', var(--font-fallback);
+  --font-text: 'Source Sans 3', var(--font-fallback);
+
+  /* typography: size / line height / weight per role */
+  --type-wordmark-size: 52px;
+  --type-wordmark-line: 1.1;
+  --type-wordmark-weight: 400;
+  --type-wordmark-tracking: -0.01em;
+  --type-heading-xl-size: 44px;
+  --type-heading-xl-line: 1.12;
+  --type-heading-xl-weight: 400;
+  --type-heading-lg-size: 32px;
+  --type-heading-lg-line: 1.2;
+  --type-heading-lg-weight: 400;
+  --type-heading-md-size: 24px;
+  --type-heading-md-line: 1.25;
+  --type-heading-md-weight: 400;
+  --type-lead-size: 30px;
+  --type-lead-line: 1.3;
+  --type-lead-weight: 300;
+  --type-body-size: 18px;
+  --type-body-line: 1.65;
+  --type-body-weight: 400;
+  --type-body-sm-size: 17px;
+  --type-body-sm-line: 1.45;
+  --type-body-sm-weight: 400;
+  --type-small-size: 16px;
+  --type-small-line: 1.5;
+  --type-small-weight: 400;
+  --type-label-size: 15px;
+  --type-label-line: 1.3;
+  --type-label-weight: 600;
+  --type-hint-size: 14px;
+  --type-hint-line: 1.4;
+  --type-hint-weight: 400;
+  --type-button-size: 17px;
+  --type-button-line: 1.3;
+  --type-button-weight: 600;
+  --type-total-size: 24px;
+  --type-total-line: 1.35;
+  --type-total-weight: 600;
+  --type-total-note-size: 15px;
+  --type-total-note-line: 1.35;
+  --type-total-note-weight: 400;
+  --type-session-time-size: 18px;
+  --type-session-time-line: 1.3;
+  --type-session-time-weight: 400;
+  --type-session-time-selected-size: 18px;
+  --type-session-time-selected-line: 1.3;
+  --type-session-time-selected-weight: 600;
+  --type-calendar-day-size: 15px;
+  --type-calendar-day-line: 1;
+  --type-calendar-day-weight: 400;
+  --type-calendar-day-selected-size: 15px;
+  --type-calendar-day-selected-line: 1;
+  --type-calendar-day-selected-weight: 700;
+
+  /* rounded */
+  --rounded-none: 0px;
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 18px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+  --space-9: 56px;
+  --space-10: 72px;
+  --space-11: 96px;
+
+  /* layout sizes: laptop values that yield on narrow screens (no fixed widths, FR-51) */
+  --rail-width: 320px;
+  --date-column: 348px;
+  --before-image-height: 300px;
+  --page-max: 1320px;
+  --measure-text: 640px;
+  --measure-lead: 800px;
+  --hero-height: 468px;
+  --sauna-image-height: 320px;
+  --band-height: 220px;
+  --button-height: 48px;
+  --control-height: 44px;
+  --session-row-height: 40px;
+  --calendar-cell-height: 34px;
+  --gutter-narrow: 16px;
+
+  /* focus ring (UX-DR34): 3 px, 2 px offset, on every interactive element */
+  --focus-width: 3px;
+  --focus-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: var(--rounded-none);
+  box-shadow: none;
+}
+
+html {
+  background: var(--color-page);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-text);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ no script (AD-17) */
+
+.noscript {
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* ------------------------------------------------------------------ guest shell (UX-DR3, UX-DR36) */
+
+/* A sticky rail plus a fluid main column, centred up to --page-max. The rail stays from 1024 to 1365 px. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  max-width: var(--page-max);
+  margin-inline: auto;
+}
+
+.rail {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  background: var(--color-page);
+}
+
+.rail-inner {
+  position: sticky;
+  top: 0;
+  padding: var(--space-6) var(--space-7);
+}
+
+.main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  padding: var(--space-5) var(--space-9) var(--space-8);
+}
+
+/* The main column at the text measure (Details, Confirmation, Terms, Privacy notice). */
+.col {
+  max-width: var(--measure-text);
+}
+
+/* Two- and three-column page parts: they stack at the one breakpoint below. */
+.cols-2,
+.cols-3 {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-7);
+}
+
+@media (max-width: 1199px) {
+  .cols-2,
+  .cols-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ shared components */
+
+/* Wordmark (UX-DR7): typeset text, never underlined. On Landing it is the h1; elsewhere a link to Landing. */
+.wordmark {
+  display: block;
+  margin: 0 0 var(--space-5);
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--type-wordmark-size);
+  line-height: var(--type-wordmark-line);
+  font-weight: var(--type-wordmark-weight);
+  letter-spacing: var(--type-wordmark-tracking);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* Text link (UX-DR6): always underlined, never colour alone. */
+.text-link {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+/* Notice: neutral, never shown as an error. */
+.notice {
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* ------------------------------------------------------------------ type roles */
+
+.heading-xl {
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-xl-size);
+  line-height: var(--type-heading-xl-line);
+  font-weight: var(--type-heading-xl-weight);
+}
+
+.heading-lg {
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-lg-size);
+  line-height: var(--type-heading-lg-line);
+  font-weight: var(--type-heading-lg-weight);
+}
+
+.heading-md {
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-md-size);
+  line-height: var(--type-heading-md-line);
+  font-weight: var(--type-heading-md-weight);
+}
+
+/* ------------------------------------------------------------------ text pages (Terms, Privacy notice, not available) */
+
+.page-text .section {
+  margin-top: var(--space-6);
+}
+
+.page-text .section p {
+  margin-top: var(--space-2);
+}
+
+.page-text .notice,
+.page-text .after-heading {
+  margin-top: var(--space-5);
+}
+
+/* ------------------------------------------------------------------ Landing stub (until Story 1.3) */
+
+.stub-links {
+  list-style: none;
+}
+
+.stub-links li + li {
+  margin-top: var(--space-2);
+}

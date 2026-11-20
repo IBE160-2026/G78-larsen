@@ -62,3 +62,6 @@ Thumbs.db
 
 # Test switches (AD-14): the example is committed, the real file is not
 config/test-switches.toml
+
+# Shared text copied from content/ by frontend/scripts/run-next.mjs (AD-17)
+frontend/content/

@@ -66,3 +66,20 @@ Lisa kjørte `bmad-walkthrough` på PR #1 og ba om å grave i migrering 0002, i 
 ### Åpne punkter
 - Story 1.5: legg `holds_session_id_fkey` og `bookings_session_id_fkey` inn i `MAP` som `no_session` (401), så kappløpet med utlogging gir 401, ikke 404.
 - Story 2.1: utlogging må låse Windows for sesjonens hold (`lock_windows`) før sesjonsraden slettes (AD-3/AD-4). Innlogging må sette `expires_at` med `lifetime()` når rollen byttes, ellers gjelder gjesteutløpet på opptil 24 timer.
+
+## 2026-11-20 kl. 11:07 — Lisa Larsen
+
+### Oppgave
+Lisa godkjente PR #1 etter walkthroughen og ba om å merge med vanlig merge, ikke squash.
+
+### Plan
+- Godkjenning med `gh pr review --approve` ble hoppet over, fordi GitHub ikke lar forfatteren godkjenne sin egen PR.
+- `gh pr merge 1 --merge`, så `main` ble trukket ned lokalt, og Story 1.1 ble satt til `done`.
+
+### Resultat
+- PR #1 er merget til `main` med merge-commit `4354f13`. Alle commitene fra grenen, med FR-nummer, ligger i historikken.
+- `sprint-status.yaml`: Story 1.1 er `done`, og Epic 1 er fortsatt `in-progress`.
+- Punktet i `issues.md` om gren og PR per story (kriterium 1) er oppdatert. Flyten er i bruk, men «issues for store punkter» gjenstår, så punktet er fortsatt åpent.
+
+### Åpne punkter
+- Ingen nye.
