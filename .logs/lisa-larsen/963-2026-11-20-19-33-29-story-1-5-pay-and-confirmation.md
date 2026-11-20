@@ -12,7 +12,7 @@ Kjøre `bmad-build` for Story 1.5 («a guest pays and gets a confirmation») og 
 - Spesifikasjon: [spec-1-5-pay-and-confirmation.md](../../.docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md), `status: ready-for-dev`, `route: dispatch`.
 
 ### Resultat
-- Spesifikasjonen er skrevet og godkjent. Den er ikke committet; den ligger som ny fil i arbeidskopien på `main`.
+- Spesifikasjonen er skrevet, godkjent og committet på `main` som `86e122e`, slik 1.4-spesifikasjonen ble committet før storygrenen.
 - Avgjørelser Lisa tok i økten:
   - De to Notice-tekstene fra 1.4 er godkjent: «The session you chose no longer has room for N seats. Choose another session.» og «The sessions could not be loaded, please try again.»
   - `nearest` i `GET /api/windows` kommer bare når både `date` og `seats` er gitt (og ingen økt den dagen har plass). Dagens kode (`services/windows.py:141`) er riktig.
