@@ -1,0 +1,10 @@
+# Test switches (AD-14). Copy this file to config/test-switches.toml (git-ignored), edit it and restart the
+# backend. A missing file means every switch is off. The switches are read once at startup; no endpoint reads
+# or changes them.
+
+# payment.charge: "ok" | "fail" | "hold"
+payment = "ok"
+
+# db.run: raise a real serialization failure (40001) before COMMIT in every run that has written,
+# for HTTP requests only (never migrations or startup work).
+force_conflict = false

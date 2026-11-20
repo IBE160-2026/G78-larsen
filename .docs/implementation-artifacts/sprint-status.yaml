@@ -29,14 +29,14 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-19-2026 22:10
-last_updated: 11-19-2026 22:10
+last_updated: 11-20-2026 10:37
 project: Booking platform
 project_key: NOKEY
 tracking_system: file-system
 story_location: .docs\implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-the-capacity-slice-runs-on-the-spine-s-backend-structure: backlog
+  epic-1: in-progress
+  1-1-the-capacity-slice-runs-on-the-spine-s-backend-structure: review
   1-2-the-platform-starts-with-one-command-and-shows-its-terms-and: backlog
   1-3-the-landing-page-presents-the-venue: backlog
   1-4-a-guest-picks-a-date-a-number-of-seats-and-a-session: backlog

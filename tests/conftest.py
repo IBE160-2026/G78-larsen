@@ -1,7 +1,8 @@
-"""Test harness: a fresh PostgreSQL database, the real API in a real uvicorn process, real HTTP.
+"""Test harness: a fresh PostgreSQL database, the real API in a real backend process, real HTTP.
 
-Needs the data store running:  docker compose up -d db
-Nothing here mocks the API, the pool or the database (FR-11: "not a mock").
+The session fixture first runs `docker compose up -d --wait db`, recreates `booking_test`, migrates it, applies
+the mutation (if any) and starts the backend with `uv run booking-platform serve` on its own port, with its own
+base URL and test switch file. Nothing here mocks the API, the pool or the database (FR-11: "not a mock").
 """
 
 from __future__ import annotations
@@ -10,16 +11,27 @@ import datetime as dt
 import os
 import socket
 import subprocess
-import sys
 import time
+from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 import psycopg
 import pytest
+from psycopg.conninfo import make_conninfo
 
-ADMIN_URL = os.environ.get("BP_TEST_ADMIN_URL", "postgresql://postgres:booking@localhost:55432/postgres")
+import client
+from booking_platform import config
+from booking_platform.db import migrate as migrations
+from client import admin_client, api_client
+
+ROOT = Path(__file__).resolve().parents[1]
 TEST_DB = "booking_test"
-TEST_URL = ADMIN_URL.rsplit("/", 1)[0] + "/" + TEST_DB
+# The harness derives its admin URL from BP_DATABASE_URL (AD-22) by swapping the database for `postgres`.
+_DB_URL = config.load_settings().database_url
+ADMIN_URL = make_conninfo(_DB_URL, dbname="postgres")
+TEST_URL = make_conninfo(_DB_URL, dbname=TEST_DB)
+client.DATABASE_URL = TEST_URL
 
 # Window k starts at WIN0 + k * 90 minutes (UTC); the Venue is Europe/Oslo (UTC+1 in December).
 WIN0 = dt.datetime(2026, 12, 1, 9, 0, tzinfo=dt.timezone.utc)
@@ -64,8 +76,19 @@ def mutate(url: str) -> None:
             c.execute(MUTATIONS[name])
 
 
+def _compose_db() -> None:
+    try:
+        r = subprocess.run(["docker", "compose", "up", "-d", "--wait", "db"], cwd=ROOT, capture_output=True,
+                           text=True, timeout=180)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        pytest.exit(f"docker compose up -d --wait db failed: {e}", 2)
+    if r.returncode != 0:
+        pytest.exit(f"docker compose up -d --wait db failed: {r.stderr.strip()[-500:]}", 2)
+
+
 @pytest.fixture(scope="session")
 def database():
+    _compose_db()
     try:
         admin = psycopg.connect(ADMIN_URL, autocommit=True, connect_timeout=5)
     except psycopg.OperationalError as e:
@@ -73,34 +96,84 @@ def database():
     admin.execute(f"DROP DATABASE IF EXISTS {TEST_DB} WITH (FORCE)")
     admin.execute(f"CREATE DATABASE {TEST_DB}")
     admin.close()
-    from booking_platform import db
-
-    assert db.migrate(TEST_URL) is True
+    assert migrations.migrate(TEST_URL)  # every migration is applied to the fresh database
     mutate(TEST_URL)
     yield TEST_URL
 
 
-@pytest.fixture(scope="session")
-def server(database):
+def free_port() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
-        port = s.getsockname()[1]
-    env = dict(os.environ, BP_DATABASE_URL=database)
-    proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "booking_platform.app:app", "--port", str(port),
-                             "--log-level", "warning"], env=env)
+        return s.getsockname()[1]
+
+
+@dataclass
+class Backend:
+    proc: subprocess.Popen
+    base: str
+    log: Path
+
+    def stop(self) -> None:
+        if self.proc.poll() is None and os.name == "nt":
+            # `uv run` starts the backend as a child process; on Windows, terminating uv alone leaves it running
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.proc.pid)], capture_output=True)
+        if self.proc.poll() is None:
+            self.proc.terminate()
+            try:
+                self.proc.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait(timeout=15)
+
+    def output(self) -> str:
+        return self.log.read_text(encoding="utf-8", errors="replace")
+
+
+def start_backend(database_url: str, workdir: Path, *, switches: str = "", name: str = "backend",
+                  wait: bool = True, env: dict[str, str] | None = None) -> Backend:
+    """Start `uv run booking-platform serve` on a free port with its own base URL and switch file; its output
+    goes to a log file in `workdir`."""
+    workdir.mkdir(parents=True, exist_ok=True)
+    port = free_port()
+    switch_file = workdir / f"{name}-switches.toml"
+    switch_file.write_text(switches, encoding="utf-8")
+    log = workdir / f"{name}.log"
     base = f"http://127.0.0.1:{port}"
-    for _ in range(100):
+    full_env = {**os.environ, "BP_DATABASE_URL": database_url, "BP_HOST": "127.0.0.1", "BP_PORT": str(port),
+                "BP_BASE_URL": base, "BP_TEST_SWITCHES": str(switch_file), "BP_HTTPS": "off", **(env or {})}
+    with open(log, "wb") as out:
+        proc = subprocess.Popen(["uv", "run", "booking-platform", "serve"], cwd=ROOT, env=full_env,
+                                stdout=out, stderr=subprocess.STDOUT)
+    backend = Backend(proc, base, log)
+    if not wait:
+        return backend
+    deadline = time.monotonic() + 90
+    while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            raise RuntimeError(f"the backend exited with {proc.returncode}: {backend.output()[-2000:]}")
         try:
-            if httpx.get(base + "/health", timeout=1).status_code == 200:
-                break
+            if httpx.get(base + "/api/health", timeout=1).status_code == 200:
+                return backend
         except httpx.HTTPError:
-            time.sleep(0.1)
-    else:
-        proc.kill()
-        pytest.exit("the API did not start", 2)
-    yield base
-    proc.terminate()
-    proc.wait(timeout=10)
+            pass
+        time.sleep(0.2)
+    backend.stop()
+    raise RuntimeError("the backend did not start: " + backend.output()[-2000:])
+
+
+@pytest.fixture(scope="session")
+def backend(database, tmp_path_factory):
+    try:
+        b = start_backend(database, tmp_path_factory.mktemp("backend"))
+    except RuntimeError as e:
+        pytest.exit(str(e), 2)
+    yield b
+    b.stop()
+
+
+@pytest.fixture(scope="session")
+def server(backend):
+    return backend.base
 
 
 def set_clock(c: psycopg.Connection, ts: dt.datetime) -> None:
@@ -118,7 +191,8 @@ def pg(database):
 @pytest.fixture
 def world(pg, server):
     """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY."""
-    pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, bookings, windows, saunas RESTART IDENTITY CASCADE")
+    pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, bookings, windows, saunas, sessions "
+               "RESTART IDENTITY CASCADE")
     pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5")
     for i, n, cap in SAUNAS:
         pg.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (%s, %s, %s, %s)", (i, n, cap, i))
@@ -131,7 +205,15 @@ def world(pg, server):
 
 @pytest.fixture
 def api(world):
-    with httpx.Client(base_url=world, timeout=30) as c:
+    """A Guest client with its own session."""
+    with api_client(world) as c:
+        yield c
+
+
+@pytest.fixture
+def admin(world, pg):
+    """A client with an Administrator session (inserted by the fixture until Story 2.1)."""
+    with admin_client(world, pg) as c:
         yield c
 
 

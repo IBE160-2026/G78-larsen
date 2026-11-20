@@ -1,0 +1,55 @@
+"""Store refusals by constraint name (AD-1).
+
+`Refused` and `StoreError` are defined here, at the bottom of the layers, so that `db` can raise them without
+importing anything above it; `services.errors` re-exports both, and every other layer uses them from there.
+"""
+
+from __future__ import annotations
+
+
+class Refused(Exception):
+    """The one refusal type: a code (declared in api/errors.py) and facts for the response envelope."""
+
+    def __init__(self, code: str, **facts):
+        super().__init__(code)
+        self.code = code
+        self.facts = facts
+
+
+class StoreError(Exception):
+    """A store error that is not a mapped refusal. Carries only the SQLSTATE and constraint name, never store text."""
+
+    def __init__(self, sqlstate: str | None, constraint: str | None):
+        super().__init__(f"sqlstate={sqlstate} constraint={constraint}")
+        self.sqlstate = sqlstate
+        self.constraint = constraint
+
+
+MAP: dict[str, str] = {
+    # capacity (AD-2)
+    "booked_within_capacity": "no_seat_free",
+    # named trigger refusals (0003_named_store_refusals.sql); window_out_of_step stays unmapped: it is a 500
+    "whole_not_bookable": "rule_refused",
+    "whole_blocked": "rule_refused",
+    "whole_seats_placed": "rule_refused",
+    "whole_window_started": "rule_refused",
+    "mark_not_bookable": "rule_refused",
+    "mark_seats_placed": "rule_refused",
+    "release_not_due": "rule_refused",
+    # the slice's UNIQUE keys
+    "whole_bookings_window_id_sauna_id_key": "already_exists",
+    "marks_window_id_sauna_id_key": "already_exists",
+    "holds_session_id_window_id_key": "already_exists",
+    "saunas_fill_order_key": "already_exists",
+}
+
+
+def code_for(constraint: str | None) -> str | None:
+    """The refusal code for a constraint name, or None when the error is not a refusal."""
+    if not constraint:
+        return None
+    if constraint in MAP:
+        return MAP[constraint]
+    if constraint.endswith("_fkey"):
+        return "not_found"
+    return None
