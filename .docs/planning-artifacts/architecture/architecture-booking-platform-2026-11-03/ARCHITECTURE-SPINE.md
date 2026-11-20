@@ -26,7 +26,7 @@ companions: []
 
 | Layer | Lives in | Owns |
 | --- | --- | --- |
-| proxy | `Caddyfile` | The only public entry: TLS, the HTTP redirect, response headers; `/api/*` to the backend, everything else to the frontend (AD-27) |
+| proxy | `Caddyfile` | The only public entry: TLS, the HTTP redirect, response headers; `/api` and `/api/*` to the backend, everything else to the frontend (AD-27) |
 | frontend | `frontend/` (Next.js) | Pages, page copy, UX checks (never authoritative) (AD-17) |
 | api | `src/booking_platform/api/` | HTTP: routing, Pydantic shape validation, role check, the code → status table |
 | services | `src/booking_platform/services/` | Application rules, one transaction per user action, email text, catch-up |
@@ -35,8 +35,8 @@ companions: []
 
 ```mermaid
 flowchart LR
-  B[Browser] -->|"HTTPS :8443"| PX["proxy (Caddy)"]
-  PX -->|"/api/*"| API[api]
+  B[Browser] -->|"Core: HTTP :8000; from FR-24: HTTPS :8443"| PX["proxy (Caddy)"]
+  PX -->|"/api, /api/*"| API[api]
   PX -->|"everything else"| FE["frontend (Next.js)"]
   FE -.->|"public GETs only, API_INTERNAL_URL"| API
   API --> SVC[services]
@@ -155,7 +155,8 @@ flowchart LR
 - **Rule:** every Administrator endpoint is under `/api/admin/`, on one router whose dependency requires an Administrator session.
   - Anonymous callers get 401, and non-Administrators get 403. Neither changes anything.
   - Asking for something that is not the caller's answers exactly like something that does not exist (404).
-  - Any unknown `/api/*` path returns the JSON 404 envelope and never a page; Caddy sends every `/api/*` path to the backend (AD-27).
+  - Any unknown `/api` or `/api/*` path returns the JSON 404 envelope and never a page; Caddy sends both to the backend (AD-27). One exception handler on Starlette's `HTTPException` turns its 404 and 405 into `404 not_found` in the envelope.
+  - The app and every router set `redirect_slashes=False`, and no path ends in a slash, so the backend never redirects; a slash variant is the JSON 404. The backend never builds an absolute URL from the request (links come from `BP_BASE_URL`, AD-12).
   - `/health` becomes `/api/health`.
 
 ### AD-11: Sign-in is throttled per email, serialised in the store [ADOPTED]
@@ -196,14 +197,14 @@ flowchart LR
 
 ### AD-14: Test switches are a startup file read at fixed seams [ADOPTED]
 
-- **Binds:** FR-7, FR-14, FR-36, FR-49, the Test switch in the glossary
-- **Prevents:** switches reachable through the API, test hooks scattered through the code, and switches that block startup.
-- **Rule:** the switch file's path is `BP_TEST_SWITCHES` (default `config/test-switches.toml`, git-ignored); `config/test-switches.example.toml` (all switches off) is committed. A missing file means all switches off. The file is read once at startup into a frozen object in `config`. Switches are read only at named seams:
+- **Binds:** FR-7, FR-14, FR-36, FR-49, NFR-1, the Test switch in the glossary
+- **Prevents:** switches reachable through the API, test hooks scattered through the code, switches that block startup, and a fresh clone that cannot start because the switch file is missing.
+- **Rule:** the switch file's path is `BP_TEST_SWITCHES` (default `<ROOT>/config/test-switches.toml`, AD-22; git-ignored); `config/test-switches.example.toml` (all switches off) is committed. A missing file, or a path that is not a regular file, means all switches off; a file that exists but cannot be read or parsed stops startup with one line naming it. The file is read once at startup into a frozen object in `config`. Switches are read only at named seams:
   - `payment.charge`: `payment = "ok" | "fail" | "hold"`. With `hold`, the charge raises before anything is written, and the action returns `409 payment_pending`. The test then moves the clock and resubmits with the same key.
   - `db.run`: `force_conflict` raises a real rollback after `work` has written. It applies only to runs made for an HTTP request, never to migrations, seeding or startup catch-up.
   - Later, the lock simulator.
 
-  No endpoint reads or changes a switch. The examiner's compose stack mounts `config/test-switches.toml` read-only, so the examiner uses a switch only by editing that file; each test layer writes its own temporary file and points `BP_TEST_SWITCHES` at it, never at the working tree's file. The trigger-based FR-14 test that produces a real 40001 stays alongside.
+  No endpoint reads or changes a switch. Compose mounts the **directory** `${SWITCHES_DIR:-./config}` read-only at `/app/config` (the folder always exists, because it holds the committed example), so a fresh clone starts with every switch off and no file or folder is created. The examiner uses a switch by copying the example to `config/test-switches.toml`, editing it and running `docker compose restart backend` (README). The API layer writes its own temporary file and points `BP_TEST_SWITCHES` at it. The e2e fixture sets `SWITCHES_DIR` to its own temporary directory (mode `0755`, file `0644`), and changes a switch by rewriting the file there and restarting `backend` through its compose helper, then waiting for health (AD-27 Tests). No test writes the working tree's file. The trigger-based FR-14 test that produces a real 40001 stays alongside.
 
 ### AD-15: The schema changes only through numbered SQL migrations [ADOPTED]
 
@@ -238,12 +239,16 @@ flowchart LR
 - **Rule:**
   - **Framework:** Next.js with the App Router, in JavaScript (PRD §8.2), built with `output: 'standalone'` and run as its own service behind Caddy (AD-27). Routes are folders in `frontend/app/`. There is no `app/api/`, no `route.js`, no Server Action, no `middleware.js` and no `proxy.js`: Next.js never answers `/api` and never writes, judges a rule or reads a cookie.
   - **Browser calls:** `frontend/lib/api.js` is the only module that calls `fetch` in the browser. It uses relative `/api/…` URLs and same-origin cookies, sets `Idempotency-Key` (AD-9) and turns the error envelope into one error type. Everything that needs a session (booking, Manage, Administrator) and every Window listing with Seats left go through it, from client components.
-  - **Server calls:** `frontend/lib/server-api.js` is the only server-side caller. It calls `API_INTERNAL_URL` (compose `http://backend:8000`, dev `http://127.0.0.1:8001`) only for public GETs that need no session and hold no Seats left (Venue facts: Saunas, prices, schedule, contact), always with `cache: 'no-store'`, never with a cookie and never for a write.
-  - **One origin:** `NEXT_PUBLIC_API_URL` stays empty, so every browser call is same-origin. No page or server call talks to any other origin (FR-21). Fonts load through `@font-face` in the one stylesheet from `public/`, images are plain `<img>`, and `next/font` and `next/image` are not used (FR-22, DR-3). Builds set `NEXT_TELEMETRY_DISABLED=1`.
-  - **Titles and focus:** each `page.js` is a Server Component that exports `metadata` with the page title and renders a client child. One client component in the root layout moves focus to the page's `h1` after each navigation and sets the "Error:" title prefix when a form shows errors.
+  - **Server calls:** `frontend/lib/server-api.js` is the only server-side caller. It calls `API_INTERNAL_URL` (compose `http://backend:8000`, dev `http://127.0.0.1:8001`) only for public GETs that need no session and hold no Seats left (Venue facts: Saunas, prices, schedule, contact), always with `cache: 'no-store'`, never with a cookie and never for a write. It never throws: a failed or slow call returns an "unavailable" result, and the page renders its Notice from it while Book seats still works. Its catch calls `unstable_rethrow(err)` first, so Next.js's own control-flow errors pass through. Every page that uses it awaits `connection()` before the call, so it is rendered per request and never prerendered at build time; the skeleton story checks that `next build` lists these routes as dynamic.
+  - **One origin:** `NEXT_PUBLIC_API_URL` stays empty, so every browser call is same-origin. No page or server call talks to any other origin (FR-21). Fonts load through `@font-face` in the one stylesheet from `public/`, images are plain `<img>`, and `next/font` and `next/image` are not used (FR-22, DR-3). Builds and `next dev` set `NEXT_TELEMETRY_DISABLED=1`. The `predev`/`prebuild` content copy and the telemetry variable are done by a small Node script, never by shell syntax, so the npm scripts run the same in `cmd.exe`, PowerShell and the Linux image.
+  - **Titles and focus:** each `page.js` is a Server Component that exports `metadata` with the page title and renders a client child. One client component in the root layout moves focus. On the first document load it moves focus only when the URL fragment names an existing element, and then to that element. After each client navigation it moves focus to that element if it exists, otherwise to the page's `h1`. Targets carry `tabindex="-1"`, so `/#before-you-come`, opened directly or through the Confirmation link, shows and focuses that section (FR-1.4, FR-8). The target is found with `document.getElementById(decodeURIComponent(location.hash.slice(1)))`, never with a selector. `/manage#t=…` names no element, so its first load leaves focus alone, and the navigation to `/manage/[reference]` focuses its `h1` (AD-28). The same component sets the "Error:" title prefix when a form shows errors. Next.js's built-in route announcer stays; the manual screen-reader pass checks for double announcements.
+  - **Browser state:** `sessionStorage`, `location` and `history` are read only inside effects; until mounted, a page renders its heading and a neutral placeholder, so the server render and the first client render match.
+  - **No script:** the root layout carries one `<noscript>` line, "This booking page needs JavaScript.", styled from the one stylesheet. Nothing else is built for pages without JavaScript.
+  - **Error pages:** `app/not-found.js` renders "This page is not available." with a link to Landing, and is the same component a client page shows after an API `404`. `app/error.js` and `app/global-error.js` render the "please try again" Notice (EXPERIENCE.md); `global-error.js` imports `styles.css` itself, because it replaces the root layout. These components, and the shared not-available component, set the page title with React's `<title>` element from their heading, because `metadata` works only in server components. Next.js's default 404 and error pages are never shown.
+  - **Scaffold assets:** the files `create-next-app` adds (`app/favicon.ico`, `app/icon.*`, `app/page.module.css`, `app/globals.css`, everything in `public/`) are deleted. There is no favicon. Every file in `frontend/public/` is listed in `ASSETS.md` (DR-3), and a test compares the two.
   - **Shared text:** `content/` holds JSON files (`{"paragraphs": [...]}`) at the repository root. A `predev`/`prebuild` script copies them into `frontend/content/` (git-ignored), and pages import them at build time; `services` reads the same files (AD-12).
-  - **Image:** `frontend/Dockerfile` follows Next's `with-docker` layout on `node:24-alpine`, with the repository root as build context: it copies `content/`, `public/` and `.next/static`, sets `HOSTNAME=0.0.0.0` and `PORT=3000`, and runs `node server.js`. A root `.dockerignore` keeps `node_modules`, `.venv`, `.next`, `config/test-switches.toml` and `.logs/` out of every build context.
-  - **Dev:** `next dev -H 127.0.0.1` on port 3000. When `NODE_ENV === 'development'`, `rewrites()` sends `/api/:path*` to `http://127.0.0.1:8001/api/:path*` with the `/api` prefix kept; the production build has no rewrites.
+  - **Image:** `frontend/Dockerfile` follows Next's `with-docker` layout on `node:24-alpine`, with the repository root as build context: it copies `content/`, `public/` and `.next/static`, sets `HOSTNAME=0.0.0.0` and `PORT=3000`, and runs `node server.js`. A root `.dockerignore` lists `**/node_modules`, `**/.next`, `.venv`, `.git`, `.logs`, `.docs`, `config/test-switches.toml` and `frontend/content`; each Dockerfile copies named paths, never the whole context.
+  - **Dev:** `next dev -H 127.0.0.1` on port 3000, with `skipTrailingSlashRedirect: true` so a slash variant reaches the backend's 404 as in compose (AD-10). When `NODE_ENV === 'development'`, `rewrites()` sends `/api/:path*` to `http://127.0.0.1:8001/api/:path*` with the `/api` prefix kept; the production build has no rewrites.
   - **Not adopted from `technology.md`:** TypeScript, Tailwind CSS, shadcn/ui and other UI libraries (PRD §8.2 and FR-22: JavaScript, one stylesheet, no design system).
 
 ### AD-18: Reference data comes from `seeds/`, applied idempotently at every start [ADOPTED]
@@ -256,13 +261,13 @@ flowchart LR
   - **Windows:** Windows are generated by `windows.ensure_generated()` (AD-4), counting from the Venue date of `app_now()`.
   - **Sample Bookings:** they are created through `services.booking.create`, under one fixed seed session and fixed idempotency keys, so a rerun is a no-op. The §4.8 story gives each sample Booking without a Manage token one, with its Outbox email; the README says these links work until their Windows end.
   - **Validation:** the seed goes through the same validation as Administrator input (IV-6).
-  - **Administrator:** the seeded Administrator's credentials are documented in the README. Other Administrators are created only by `uv run booking-platform create-admin`.
+  - **Administrator:** the seeded Administrator's credentials are documented in the README. Other Administrators are created, and passwords changed, only by the `create-admin` command, which creates an account or sets a new password for an existing one and applies FR-19. It prompts for the password and never takes it as an argument (AD-19). The README runs it, with the PowerShell form shown, as `docker compose exec backend booking-platform create-admin` (the examiner's database); dev runs `uv run booking-platform create-admin` against `booking_dev`.
 
 ### AD-19: Nothing secret is logged [ADOPTED]
 
 - **Binds:** FR-19, FR-21
 - **Prevents:** passwords, session tokens, Manage-link tokens or Door codes ending up in logs.
-- **Rule:** request bodies, headers and cookies are never logged. Log lines name ids and error codes only. Tokens never appear in a URL path or query (AD-12, AD-28), so the uvicorn access log may stay on. Voucher codes travel only in request bodies and emails.
+- **Rule:** request bodies, headers and cookies are never logged, in any container. Log lines name ids and error codes only. Tokens never appear in a URL path or query (AD-12, AD-28), so the uvicorn access log may stay on. Caddy's access log is off and `log_credentials` is never set; the Next.js server logs no request headers or bodies. Voucher codes travel only in request bodies and emails. The FR-21 and HT e2e runs search `docker compose -p booking_e2e logs` (through the fixture's compose helper, AD-27) for the test password and the issued Manage token.
 
 ### AD-20: One way to create a Booking reference [ADOPTED]
 
@@ -288,12 +293,13 @@ flowchart LR
 
 - **Binds:** NFR-1, DR-5, FR-24
 - **Prevents:** deployment values spread through the code, Venue rules split between Python and the store, and a base URL that is not the origin the browser actually uses.
-- **Rule:** `config.py` is the only reader of the `BP_*` environment variables:
-  - the database URL;
+- **Rule:** `config.py` is the only reader of the `BP_*` environment variables the application uses (`tests/` reads its own `BP_TEST_MUTATE`):
+  - `BP_DATABASE_URL` (default `postgresql://postgres:booking@127.0.0.1:55432/booking_dev`; compose sets `…@db:5432/booking`). Every local command (`dev`, `serve`, `create-admin`) creates `booking_dev` through the server's `postgres` database when the URL is the default and the database is missing, as the test fixture does for `booking_test`. The test harness derives its admin URL from `BP_DATABASE_URL` by swapping the database for `postgres`, so the slice's `BP_TEST_ADMIN_URL` is dropped. Every default uses `127.0.0.1`, never `localhost`; a different `DB_PORT` needs a matching `BP_DATABASE_URL` (README);
   - `BP_BASE_URL`, which is always the origin the browser uses: dev `http://127.0.0.1:3000` (the default); the API test layer `http://127.0.0.1:<its port>`; compose `http://localhost:${HTTP_PORT}` before the FR-24 story and `https://localhost:${HTTPS_PORT}` from it on;
-  - `BP_HTTPS` (default off), which makes the session cookie `Secure` (AD-8). The FR-24 story turns it on in compose in the same PR that changes `BP_BASE_URL`. `config` refuses to start when `BP_HTTPS` is on and the base URL is not `https://`;
-  - host and port (default `127.0.0.1:8001` for dev; `0.0.0.0:8000` inside the container);
-  - `BP_TEST_SWITCHES` (AD-14) and the test variables already in use.
+  - `BP_HTTPS` (default off), which makes the session cookie `Secure` (AD-8). The FR-24 story turns it on in compose in the same PR that changes `BP_BASE_URL` (AD-27 Modes). `config` refuses to start when `BP_HTTPS` is on and the base URL is not `https://`;
+  - `BP_HOST` and `BP_PORT` (default `127.0.0.1` and `8001` for dev; the image sets `0.0.0.0` and `8000`);
+  - `BP_ROOT`: `config.paths.ROOT` is the only base for `migrations/`, `seeds/`, `content/` and `config/`. It is `BP_ROOT` when set, otherwise the repository root found from the package location. The backend Dockerfile copies those four folders to `/app` and sets `BP_ROOT=/app`;
+  - `BP_TEST_SWITCHES` (AD-14).
 
   Each variable has a working local default, so no file is needed. Venue rules never live there (AD-4). Caddy reads its own variables (AD-27) and the frontend reads `API_INTERNAL_URL` (AD-17); neither reads `BP_*`. The backend runs as one uvicorn process, without `--workers`, started from the image's virtual environment (no `uv run` at runtime). FastAPI's `/docs` and `/openapi.json` are off (`docs_url=None`, `openapi_url=None`), because Swagger UI loads from a CDN (FR-21).
 
@@ -346,20 +352,21 @@ flowchart LR
 - **Binds:** FR-24, HT-1 to HT-4, FR-25 (no referrer), NFR-1, SC9; `Caddyfile`, `docker-compose.yml`, the e2e fixture
 - **Prevents:** a second public entry, an HTTP path that reaches the backend or the frontend, a redirect to a port where nothing listens, headers that differ between responses, a second origin with its own cookie jar, two stacks fighting over one port, and a cookie or email link that drifts back to `http://`.
 - **Rule:**
-  - **Entry:** Caddy (`caddy:2.11`) is the only service with a published web port, bound to `127.0.0.1`. One `handle /api/*` sends requests, with the path unchanged, to `{$BACKEND_UPSTREAM:backend:8000}`; a bare `/api` gets the backend's JSON 404 through the same route. Everything else goes to `{$FRONTEND_UPSTREAM:frontend:3000}`. The backend and the frontend are reachable only on the compose network. The database port is published as `127.0.0.1:${DB_PORT}` for dev and tests only. `/docs` and `/openapi.json` are not exposed (AD-22).
-  - **Modes:** one Caddyfile; the site address comes from `{$SITE_ADDRESS}`. The Core skeleton uses `http://localhost:{$HTTP_PORT}` (plain HTTP). From the FR-24 story it is `localhost:{$HTTPS_PORT}`: Caddy issues the certificate from its internal CA because the name is `localhost` (no `tls` line is written), and its automatic HTTPS redirects every request on the global `http_port {$HTTP_PORT}` to `https://localhost:{$HTTPS_PORT}` with the same path and query. `https_port` is not set. Railway sets `SITE_ADDRESS=http://:{$PORT}` and the two upstream variables; Railway terminates TLS. The global options set `skip_install_trust`.
-  - **Ports:** each Caddy port is published as the same host port, because the redirect and the base URL name it. `HTTP_PORT` (8000), `HTTPS_PORT` (8443) and `DB_PORT` (55432) come from the environment with those defaults, in both the Caddyfile and compose; another stack (e2e) sets other values.
-  - **Startup:** db, backend and frontend have healthchecks (`pg_isready`, `/api/health`, the frontend's `/`), and each service starts with `depends_on: condition: service_healthy`, so the backend migrates only after PostgreSQL is ready and `up --wait` really waits.
-  - **Headers:** `header` directives without `defer` add to every response, including Caddy's own redirects and errors: `Strict-Transport-Security: max-age={$HSTS_MAX_AGE:3600}` (no `includeSubDomains`, no `preload`) once HTTPS is on, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on `/api/*`, and `X-Robots-Tag: noindex` on `/manage*` and `/api/manage/*`. The backend and the frontend set none of these themselves. Caddy's access log stays off (AD-19).
-  - **Backend side:** the backend's cookie and links follow `BP_HTTPS` and `BP_BASE_URL` (AD-22). No v1 rule reads an `X-Forwarded-*` header.
-  - **Build order:** the Core skeleton runs proxy, backend, frontend and db in compose, with Caddy on `http://localhost:8000`, `BP_HTTPS` off and `BP_BASE_URL=http://localhost:8000`. The FR-24 story switches `SITE_ADDRESS`, `BP_HTTPS` and `BP_BASE_URL` together, adds the headers' HSTS line and HT-1 to HT-4, in one PR.
-  - **Tests (e2e layer):** the fixture starts the stack as compose project `booking_e2e` with an env file that sets its own `HTTP_PORT`, `HTTPS_PORT`, `DB_PORT`, database, `BP_BASE_URL` and `BP_TEST_SWITCHES`, runs `up --build --wait`, and ends with `down -v`. It copies Caddy's root out of the proxy (`/data/caddy/pki/authorities/local/root.crt`; Caddy sends the intermediate) and verifies with an `ssl.SSLContext` loaded from it; Playwright uses `ignore_https_errors`. It moves the clock and seeds rows through `DB_PORT`. `tests/e2e/test_fr24_https.py` holds:
-    - HT-1, with a client that keeps no HSTS state: `http://localhost:<HTTP_PORT>/x?y` answers with `Location: https://localhost:<HTTPS_PORT>/x?y`, and nothing changes;
-    - HT-2, the headers on a page, a 404 envelope, a static asset and a Caddy redirect;
+  - **Entry:** Caddy (`caddy:2.11`) is the only service with a published web port, bound to `127.0.0.1`. One `handle @api`, with the named matcher `@api path /api /api/*`, sends requests, with the path unchanged, to `{$BACKEND_UPSTREAM:backend:8000}`. Everything else goes to `{$FRONTEND_UPSTREAM:frontend:3000}`. The backend and the frontend are reachable only on the compose network. The database port is always published on `127.0.0.1:${DB_PORT}` (dev and the API test layer use it; the examiner does not need it). `/docs` and `/openapi.json` are not exposed (AD-22). The global options set `servers { protocols h1 h2 }`, so no HTTP/3 is advertised on an unpublished UDP port.
+  - **Modes:** one Caddyfile; the site address is `{$SITE_ADDRESS}`, with no default, so Caddy refuses to start without it (compose and Railway always set it). The mode lives in `docker-compose.yml`, written with compose interpolation (never Caddy placeholders): before FR-24 the proxy gets `SITE_ADDRESS: http://localhost:${HTTP_PORT:-8000}` and the backend `BP_HTTPS: "off"` and `BP_BASE_URL: http://localhost:${HTTP_PORT:-8000}`; the FR-24 story changes those three lines together to `localhost:${HTTPS_PORT:-8443}`, `"on"` and `https://localhost:${HTTPS_PORT:-8443}`. With a `localhost` site address Caddy issues the certificate from its internal CA (no `tls` line is written), and its automatic HTTPS redirects every request on the global `http_port {$HTTP_PORT}` to `https://localhost:<HTTPS_PORT>` with the same path and query. `https_port` is not set. Apart from the mode, the proxy's `environment:` always passes `HTTP_PORT: ${HTTP_PORT:-8000}` (and `HSTS_MAX_AGE` when set), because Caddy's placeholders read the container's environment, not the env file; these lines do not change with the mode. An env file (e2e) therefore sets only ports and `SWITCHES_DIR`. Railway sets `SITE_ADDRESS` to a literal `http://:<port>` (no nested placeholder) and the two upstream variables; Railway terminates TLS; this mode is untested in v1 (Deferred). The global options set `skip_install_trust`.
+  - **Ports:** each Caddy port is published as the same host port, because the redirect and the base URL name it. `HTTP_PORT` (8000), `HTTPS_PORT` (8443) and `DB_PORT` (55432) come from the environment with those defaults, in both the Caddyfile and compose; another stack (e2e) sets other values. The site answers only for `localhost`; `127.0.0.1` gets no site (README).
+  - **Volumes:** the database uses a named volume, and Caddy's `/data` the named volume `caddy_data`, so the internal root survives `down` and changes only after `down -v`.
+  - **Startup:** every service has a healthcheck: db `pg_isready -h 127.0.0.1 -U postgres -d booking` (over TCP, so the image's init phase does not count as ready); backend `python -c` with `urllib.request` on `/api/health`; frontend busybox `wget -q --spider http://127.0.0.1:3000/privacy` (a route that calls no API; the e2e layer asserts it renders with the backend stopped); proxy `wget -q -O /dev/null http://127.0.0.1:2019/config/` (Caddy's admin endpoint, reachable only inside the container; the Caddyfile never sets `admin off`), which does not depend on the mode, so FR-24 does not touch it. Each service starts with `depends_on: condition: service_healthy`, so the backend migrates only after PostgreSQL is ready and `up --wait` really waits. Healthcheck routes never write, run no catch-up and touch no session (AD-4).
+  - **Headers:** `header` directives without `defer` add to every response the site serves, including Caddy's own errors (there is no `handle_errors`): `Strict-Transport-Security: max-age={$HSTS_MAX_AGE:3600}` (no `includeSubDomains`, no `preload`) once HTTPS is on, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on `@api`, and `X-Robots-Tag: noindex` on `/manage*` and `path /api/manage /api/manage/*`. Caddy's automatic HTTP→HTTPS redirect is served apart from the site and carries `Location` and none of the site's headers; HSTS is never sent over HTTP. The backend and the frontend set none of these themselves. Caddy's access log stays off (AD-19). A `Content-Security-Policy` is added only if time allows (Deferred).
+  - **Backend side:** the backend's cookie and links follow `BP_HTTPS` and `BP_BASE_URL` (AD-22). No v1 rule reads an `X-Forwarded-*` header, and the backend never redirects (AD-10).
+  - **Build order:** the Core skeleton runs proxy, backend, frontend and db in compose, with Caddy on `http://localhost:8000`, `BP_HTTPS` off and `BP_BASE_URL=http://localhost:8000`. The FR-24 story switches the three compose lines (Modes) together, adds the headers' HSTS line, the fixture's TLS part and HT-1 to HT-4, in one PR.
+  - **Tests (e2e layer):** the fixture starts the stack as compose project `booking_e2e` with an env file that sets its own `HTTP_PORT`, `HTTPS_PORT`, `DB_PORT` and `SWITCHES_DIR` (AD-14), runs `up --build --wait`, and ends with `down -v`. Every compose call in the e2e layer (`up`, `restart`, `stop`, `start`, `cp`, `logs`) goes through one helper, `docker compose -p booking_e2e --env-file <its file> …`; waiting after a restart is `up --wait` through the same helper. The project has its own db container and volume, so its database is `booking` too, at `127.0.0.1:<DB_PORT>/booking`. The fixture never deletes seed-owned rows; it adds its own Windows and rows beside the seed's. A test that needs switches sets them, and any restart happens, before it seeds its own rows and before it moves the clock, because a restart runs the seed and the startup purges again. It exposes one `base_url`, and every e2e test takes its URL from it, never a literal. Before FR-24 the stack runs over HTTP: `base_url` is `http://localhost:<HTTP_PORT>`, with no root copy and no TLS context. The FR-24 story adds the HTTPS part: `base_url` becomes `https://localhost:<HTTPS_PORT>`, the fixture copies Caddy's root out of the proxy (`/data/caddy/pki/authorities/local/root.crt`, retried until the file exists; Caddy sends the intermediate) and verifies with an `ssl.SSLContext` loaded from it; Playwright uses `ignore_https_errors`. It moves the clock and seeds rows through `DB_PORT`. `tests/e2e/test_fr24_https.py` holds:
+    - HT-1, with a client that keeps no HSTS state: `http://localhost:<HTTP_PORT>/x?y` answers with `Location: https://localhost:<HTTPS_PORT>/x?y`, carries no `Strict-Transport-Security`, and nothing changes;
+    - HT-2, the headers on a Next.js page, an API 404 envelope, a static asset and a Caddy-generated 502 (the fixture stops `frontend`); `Alt-Svc` is ignored;
     - HT-3, every `Set-Cookie` has `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, and an HTTP request that carries the session cookie is answered by Caddy's redirect and leaves the session row unchanged;
     - HT-4, every Outbox link starts with the stack's base URL.
   - **Known limits:** browsers treat `localhost` as secure and still send `Secure` cookies to `http://localhost`, where Caddy only redirects. Chrome (since M132) and Firefox ignore HSTS from `localhost`. Caddy's internal root has no name constraints, so importing it is optional.
-  - **README:** `docker compose up --build --wait`, then `https://localhost:8443`; the browser warns once; how to copy Caddy's root (`docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt .`) and that importing it is optional and should be undone after grading; `curl -i http://localhost:8000/` shows HT-1; a production deployment would use a public certificate and one year of HSTS.
+  - **README:** `docker compose up --build --wait`, then `https://localhost:8443` (use `localhost`, not `127.0.0.1`); the browser warns once; how to copy Caddy's root (`docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt .`) and that importing it is optional and should be undone after grading; after `down -v` the root is new and must be copied again; `curl -i http://localhost:8000/` shows HT-1; the Known limits above (browsers send `Secure` cookies to `http://localhost`, where Caddy only redirects; Chrome and Firefox ignore HSTS from `localhost`), as FR-24 requires; a short security section: HTTPS ends at Caddy, the backend and frontend are reachable only on the internal compose network, and no request goes to a third party (FR-21); a production deployment would use a public certificate and one year of HSTS.
 
 ### AD-28: A Manage link is a fragment token exchanged for a grant on the session
 
@@ -441,9 +448,9 @@ flowchart LR
 | Money | Integer øre in every field ending in `_ore`. The frontend formats it as "NOK 500". |
 | Error envelope | `{"detail": {"error": "<code>", "message"?: "<dev text>", …facts}}`, ratified from the slice. 401 not signed in, sign-in refused or no session; 403 not allowed; 404 unknown or not yours; 409 rule refused; 422 shape (`invalid_input` with `fields`); 503 `try_again`. |
 | Input | Pydantic models use `extra="forbid"` and the limits of FR-2 and FR-5. The frontend repeats them for UX only. |
-| Styling | One stylesheet, `frontend/app/styles.css` imported once in the root layout, with CSS custom properties for the PRD §6 palette. No UI library or CSS framework, and no fixed widths that would block FR-51. Fonts and images are self-hosted in `frontend/public/` and listed in `ASSETS.md`. |
-| Accessibility | Every route sets its page title through Next.js `metadata` (`EXPERIENCE.md`, Accessibility Floor), then focus moves to the page heading. |
-| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Each group-C test (C1–C5, and a cross-Window Change against a Whole-sauna booking) asserts INV-1 to INV-5 on `placement(wid)` and Seats left after the run, with FR-11's 100 repetitions. Catalogue examples cited in an FR are example tests named by ID (`test_fr29_whole_sauna.py::test_b2`). Marks and Blocks needed before §4.13 are inserted as raw rows. Two layers. The API layer (`tests/`) starts the backend itself with uv over HTTP, with `BP_BASE_URL=http://127.0.0.1:<port>`, its own `BP_TEST_SWITCHES` file and the `booking_test` database; every request goes through `tests/client.py::api_client`, which sends `Origin`, and `test_fr18_csrf.py` asserts `403 cross_origin`. It proves every rule, race and access check: FR-5 to FR-21, FR-25 to FR-33, RB-1 to RB-5, groups A to C. The e2e layer (`tests/e2e/`) runs against the compose stack behind Caddy (AD-27) and proves what only the full stack shows: pages, keyboard and axe (FR-1 to FR-8, FR-15 to FR-17, FR-22, FR-23, the Manage and Private sauna pages) and HT-1 to HT-4. `tests/test_fr28_voucher.py` spends one Voucher from parallel bookings with FR-11's 100 repetitions and asserts `balance_ore >= 0` and that the Voucher charges never exceed `value_ore`. RB-4 and RB-5 run against `/api/manage/` (AD-28). The e2e fixture builds the images with `docker compose build`. axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
+| Styling | One stylesheet, `frontend/app/styles.css` imported once in the root layout (and in `global-error.js`, AD-17), with CSS custom properties for the PRD §6 palette. No UI library or CSS framework, no CSS Modules, no `styled-jsx`, no `style` props and no other CSS import, and no fixed widths that would block FR-51. Fonts and images are self-hosted in `frontend/public/` and listed in `ASSETS.md`. |
+| Accessibility | Every route sets its page title through Next.js `metadata` (`EXPERIENCE.md`, Accessibility Floor), then focus moves as AD-17 says: on the first load only to a fragment's existing target; after a client navigation to that target, otherwise to the page heading. |
+| Tests | Files are named `tests/test_fr<NN>_<topic>.py`. Concurrency tests run against real PostgreSQL through the real API process. The FR-31 model test calls `services` in-process (AD-26). Each group-C test (C1–C5, and a cross-Window Change against a Whole-sauna booking) asserts INV-1 to INV-5 on `placement(wid)` and Seats left after the run, with FR-11's 100 repetitions. Catalogue examples cited in an FR are example tests named by ID (`test_fr29_whole_sauna.py::test_b2`). Marks and Blocks needed before §4.13 are inserted as raw rows. Two layers, both started by `uv run pytest` alone. The session fixture first runs `docker compose up -d --wait db` (the default project's db, a no-op when it already runs). The API layer (`tests/`) starts the backend itself with uv over HTTP, with `BP_BASE_URL=http://127.0.0.1:<port>`, its own `BP_TEST_SWITCHES` file and the `booking_test` database on that db; every request goes through `tests/client.py::api_client`, which sends `Origin`, and `test_fr18_csrf.py` asserts `403 cross_origin`. It proves every rule, race and access check: FR-5 to FR-21, FR-25 to FR-33, RB-1 to RB-5, groups A to C. The e2e layer (`tests/e2e/`) runs against the compose stack behind Caddy (AD-27) and proves what only the full stack shows: pages, keyboard and axe (FR-1 to FR-8, FR-15 to FR-17, FR-22, FR-23, the Manage and Private sauna pages), the routing of `/api` and `/api/x`, the error pages and the `<noscript>` line (AD-17), and HT-1 to HT-4. `tests/e2e/test_fr21_privacy.py` records every request on each Core page (and the Manage page from §4.8) and asserts it goes to the stack's `base_url` origin; asserts no cookie after Landing, Terms, Privacy notice and "Before you come", and exactly one session cookie after Book seats; and that an anonymous visit to an Administrator address is sent to Sign-in. Each page loads exactly one stylesheet of ours and no `<style>` element of ours. `/#before-you-come`, opened directly and through the Confirmation link, shows and focuses the section. `tests/test_fr28_voucher.py` spends one Voucher from parallel bookings with FR-11's 100 repetitions and asserts `balance_ore >= 0` and that the Voucher charges never exceed `value_ore`. RB-4 and RB-5 run against `/api/manage/` (AD-28). The e2e fixture builds the images through its own `up --build` (AD-27). axe-core comes from `frontend/node_modules` and is injected with `page.add_script_tag`. |
 | Dev proxy | `next dev` rewrites `/api/:path*` to `http://127.0.0.1:8001/api/:path*`, not `localhost`, in development only (AD-17). |
 | Traceability | One branch and one PR per story, with FR numbers in commits. Session logs go in `.logs/<user>/` (DR-1, DR-4). |
 
@@ -463,11 +470,12 @@ flowchart LR
 | pytest | 9.2.0 |
 | hypothesis | 6.170.15 (latest on 2026-11-19; pinned in `uv.lock` when added) |
 | pytest-playwright / playwright | 0.10.0 / 1.64.1 (1.65.2 out on 2026-11-19; take it when the lockfile is next updated) |
+| Backend image | `python:3.12-slim`, with uv copied from `ghcr.io/astral-sh/uv:0.12.24` (0.13.9 out on 2026-11-19; move together with `uv_build` when the lockfile is next updated) |
 | Caddy (Docker image `caddy:2.11`) | 2.11.9 |
 | Node.js (frontend image `node:24-alpine`) | 24 LTS or 26 LTS (Next.js needs ≥ 20.9) |
 | Next.js | 16.4.6 |
 | React / React DOM | 19.3.1 |
-| axe-core | 4.14.0 |
+| axe-core | 4.14.1 (latest at lock time) |
 
 ## Structural Seed
 
@@ -476,15 +484,15 @@ flowchart TB
   subgraph Laptop["Examiner / developer laptop"]
     B[Browser]
     subgraph Dk["docker compose"]
-      PX["proxy: Caddy on 127.0.0.1, HTTPS :8443, HTTP :8000 redirects"]
-      BE["backend: uv run booking-platform :8000 (internal)"]
+      PX["proxy: Caddy on 127.0.0.1; Core: HTTP :8000; from FR-24: HTTPS :8443, HTTP :8000 redirects"]
+      BE["backend: booking-platform from the image's venv, :8000 (internal)"]
       FE["frontend: Next.js standalone :3000 (internal)"]
       PG[("db: postgres:18, 127.0.0.1:55432")]
     end
     DEV["dev only: next dev 127.0.0.1:3000 + backend 127.0.0.1:8001"]
   end
   B --> PX
-  PX -->|"/api/*"| BE
+  PX -->|"/api, /api/*"| BE
   PX -->|"everything else"| FE
   FE -.->|"public GETs"| BE
   BE --> PG
@@ -495,14 +503,16 @@ flowchart TB
 | Environment | Database | Backend | Frontend | Entry |
 | --- | --- | --- | --- | --- |
 | dev | `booking_dev` in the compose db | `uv run booking-platform dev` (127.0.0.1:8001, `--reload`) | `npm --prefix frontend run dev` (127.0.0.1:3000, rewrites `/api`) | `http://127.0.0.1:3000` |
-| test, API layer | `booking_test` in the compose db, recreated per run | uvicorn subprocess on a free port, HTTP | none | direct, with `Origin` |
-| test, e2e layer | project `booking_e2e`, its own db container | compose `backend` | compose `frontend` | Caddy on the e2e ports, HTTPS |
-| examiner | `booking` in compose | compose `backend` | compose `frontend` | Caddy, `https://localhost:8443` |
+| test, API layer | `booking_test` in the compose db (started by the session fixture), recreated per run | uvicorn subprocess on a free port, HTTP | none | direct, with `Origin` |
+| test, e2e layer | project `booking_e2e`, its own db container | compose `backend` | compose `frontend` | Caddy on the e2e ports; HTTP in the Core, HTTPS from FR-24 |
+| examiner | `booking` in compose | compose `backend` | compose `frontend` | Caddy; Core `http://localhost:8000`, from FR-24 `https://localhost:8443` |
 
 **Commands (README):**
-- `docker compose up --build --wait` starts the platform at `https://localhost:8443`.
+- `docker compose up --build --wait` starts the platform at `http://localhost:8000` (Core) or `https://localhost:8443` (from FR-24).
 - `npm --prefix frontend ci` and `uv run playwright install chromium` prepare the tests, once.
-- `uv run pytest` runs every test; it starts its own backend and its own compose stack.
+- `uv run pytest` runs every test; it starts the compose db, its own backend and its own compose stack.
+- `docker compose exec backend booking-platform create-admin` creates an Administrator or sets a new password (AD-18).
+- Local operations: `docker compose logs backend proxy` shows the logs; `docker compose down` keeps the data and Caddy's root; `docker compose down -v` resets both (the seed runs again at the next start).
 
 
 ```mermaid
@@ -554,9 +564,9 @@ config/              # test-switches.example.toml (the real file is git-ignored)
 frontend/            # Next.js: app/ (routes, styles.css), components/, lib/api.js, lib/server-api.js, public/, Dockerfile
 tests/               # test_fr<NN>_*.py; tests/e2e/ for browser and axe
 Caddyfile            # the proxy (AD-27)
-docker-compose.yml   # proxy, backend, frontend, db, with healthchecks
-.dockerignore        # node_modules, .venv, .next, test switches, .logs
-Dockerfile           # backend image, uv sync --locked
+docker-compose.yml   # proxy, backend, frontend, db, with healthchecks; volumes db data and caddy_data
+.dockerignore        # **/node_modules, **/.next, .venv, .git, .logs, .docs, test switches, frontend/content
+Dockerfile           # backend image: copies pyproject.toml, uv.lock, README.md, .python-version, src/, migrations/, seeds/, content/, config/ to /app; uv sync --locked; ENV PATH=/app/.venv/bin:$PATH, UV_PYTHON_DOWNLOADS=never, BP_ROOT=/app
 ASSETS.md            # asset register (DR-3)
 .logs/<user>/        # session logs and issues.md (DR-1)
 ```
@@ -566,15 +576,15 @@ ASSETS.md            # asset register (DR-3)
 | Capability / Area | Lives in | Governed by |
 | --- | --- | --- |
 | FR-1 to FR-4 Find a Window | `frontend/app`, `api/public.py`, `services/windows.py` | AD-4, AD-5, AD-16, AD-17 |
-| FR-5 to FR-9 Book and pay | `services/booking.py`, `payment.py`, `outbox.py`, `reference.py` | AD-3, AD-8, AD-9, AD-12, AD-13, AD-20 |
+| FR-5 to FR-9 Book and pay | `frontend/app` (Details, Review, Confirmation), `services/booking.py`, `payment.py`, `outbox.py`, `reference.py` | AD-3, AD-8, AD-9, AD-12, AD-13, AD-17, AD-20 |
 | FR-10 to FR-14 Capacity under concurrency | `migrations/`, `db/` | AD-2, AD-3, AD-14, AD-21 |
-| FR-15 to FR-17 Admin sign-in, list, Outbox | `api/admin.py`, `services/auth.py` | AD-8, AD-10, AD-11, AD-12 |
-| FR-18 to FR-21 Security and personal data | `api/schemas.py`, `services/auth.py`, `services/catchup.py` | AD-4, AD-8, AD-10, AD-11, AD-19 |
-| FR-22, FR-23 Look and accessibility | `frontend/` | Conventions: Styling, Accessibility, Tests |
-| NFR-1, DR-2, DR-5 Run and seed | `docker-compose.yml`, `Caddyfile`, `app.py`, `seeds/`, README | AD-15, AD-18, AD-22 |
+| FR-15 to FR-17 Admin sign-in, list, Outbox | `frontend/app` (Sign-in, Booking list, Outbox), `api/admin.py`, `services/auth.py` | AD-8, AD-10, AD-11, AD-12, AD-17, AD-18 |
+| FR-18 to FR-21 Security and personal data | `api/schemas.py`, `services/auth.py`, `services/catchup.py`, `Caddyfile`, `tests/e2e/test_fr21_privacy.py` | AD-4, AD-8, AD-10, AD-11, AD-17, AD-19, AD-22, AD-27 |
+| FR-22, FR-23 Look and accessibility | `frontend/` | AD-17; Conventions: Styling, Accessibility, Tests |
+| NFR-1, DR-2, DR-5 Run and seed | `docker-compose.yml`, `Caddyfile`, `Dockerfile`, `.dockerignore`, `app.py`, `seeds/`, `config/`, README | AD-14, AD-15, AD-18, AD-22, AD-27 |
 | FR-24 HTTPS (If time 1) | `Caddyfile`, `docker-compose.yml`, `config.py`, `tests/e2e/test_fr24_https.py` | AD-8, AD-12, AD-22, AD-27 |
 | FR-25 to FR-28 Changes and Vouchers (If time 2) | `api/manage.py`, `services/manage.py`, `services/booking.py`, `services/history.py`, `services/voucher.py`, `services/payment.py`, `api/public.py` (Voucher quote), `migrations/`, `frontend/app` (Manage booking, Voucher field) | AD-3, AD-4, AD-7, AD-8, AD-9, AD-12, AD-13, AD-16, AD-17, AD-19, AD-20, AD-26, AD-27, AD-28, AD-29, AD-30, AD-31 |
-| FR-29 to FR-33 Whole-sauna booking (If time 3) | `services/whole.py`, `api/public.py`, `api/admin.py` (Placement per Window, Whole-sauna bookings in the list), `migrations/`, `seeds/`, `tests/test_fr31_placement_model.py` | AD-2, AD-3, AD-6, AD-7, AD-9, AD-12, AD-13, AD-16, AD-20, AD-23, AD-24, AD-25, AD-26, AD-28, AD-29, AD-31 |
+| FR-29 to FR-33 Whole-sauna booking (If time 3) | `frontend/app` (Private sauna, Manage Whole-sauna steps), `services/whole.py`, `api/public.py`, `api/admin.py` (Placement per Window, Whole-sauna bookings in the list), `migrations/`, `seeds/`, `tests/test_fr31_placement_model.py` | AD-2, AD-3, AD-6, AD-7, AD-9, AD-12, AD-13, AD-16, AD-17, AD-20, AD-23, AD-24, AD-25, AD-26, AD-28, AD-29, AD-31 |
 | FR-34 to FR-42 (If time 4 to 7) | the store already holds Blocks, marks and Holds | AD-2, AD-6, AD-7 |
 
 ## Deferred
@@ -585,10 +595,11 @@ ASSETS.md            # asset register (DR-3)
 - **Keyed Voucher hashing:** an HMAC with a server key would protect codes in a stolen table; v1 accepts the unkeyed hash (AD-30). Revisit with Gift cards (Step 2), which hold paid value.
 - **Whole-sauna prices and Bookable-whole marks:** Lisa chooses the values in the first §4.9 story, and they go into `seeds/` (AD-18).
 - **Fill order for started Windows** (FR-38, F2): If-time 7 adds a per-Window Fill-order snapshot that `placement(wid)` reads. Its signature stays.
-- **Railway deployment and production TLS:** the Caddyfile already has the plain-HTTP mode for Railway (AD-27). The deployment, a production database, secrets, a public certificate, one year of HSTS and backups are out of scope for v1 (NFR-1, PRD §9).
+- **Content-Security-Policy** (FR-21, Lisa 2026-11-19): Caddy adds one only if time allows, after If-time 1 to 3. Until then `test_fr21_privacy.py` enforces "no third-party request". Revisit when If-time 3 is merged; the policy then lives in AD-27's headers and needs `'unsafe-inline'` scripts for Next.js without a nonce.
+- **Railway deployment and production TLS:** the Caddyfile already has the plain-HTTP mode for Railway (AD-27); the mode is untested in v1, and no story tests it. The deployment, a production database, secrets, a public certificate, one year of HSTS and backups are out of scope for v1 (NFR-1, PRD §9).
 - **The D3/D6 make-room flow and the remedy page** (FR-40, FR-42): If-time 7. AD-7 fixes what the Core must already hold.
 - **Holds per source address** (FR-35) **and a per-IP sign-in throttle**: neither can be tested meaningfully on localhost. Revisit with If-time 5, or before any real deployment. Behind Caddy, the client address then comes only from Caddy's `X-Forwarded-For`, trusted through uvicorn's `forwarded_allow_ips` for the proxy alone.
 - **Door-code lock simulator** (FR-45 to FR-50): Step 2. AD-14 reserves its seam.
 - **Performance targets:** none (NFR-7).
-- **Dependency audit** (NFR-8): `uv run --with pip-audit pip-audit` and `npm audit` at the freeze.
+- **Dependency audit** (NFR-8): `uv run --with pip-audit pip-audit` and `npm audit` at the freeze. The base images (`caddy:2.11`, `node:24-alpine`, `postgres:18`, `python:3.12-slim`) are scanned at the freeze too; the tool is chosen then.
 - **Production deployment, hosting, backups and monitoring:** out of scope. v1 runs only locally (NFR-1, §9).

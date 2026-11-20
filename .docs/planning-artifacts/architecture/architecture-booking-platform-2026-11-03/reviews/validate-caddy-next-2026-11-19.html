@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spine Validate Report</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1f1d1a;--muted:#6b665e;--line:#e3dfd6;--card:#fff;--high:#b3261e;--high-bg:#fbe9e7;--med:#8a5a00;--med-bg:#fdf3dc;--low:#3d5a80;--low-bg:#e8eef6;--ok:#2e6b3a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171614;--fg:#ece8e1;--muted:#a59f94;--line:#34312c;--card:#1f1d1a;--high:#ff8a80;--high-bg:#3a1d1b;--med:#f0c060;--med-bg:#33290f;--low:#9bb8e0;--low-bg:#1c2533;--ok:#8fd19e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:1.7rem;margin:0 0 4px}
+h2{font-size:1.2rem;margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.sub{color:var(--muted);margin:0 0 24px}
+.verdict{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--high);border-radius:8px;padding:16px 18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.tile b{display:block;font-size:1.8rem;line-height:1.1}
+.tile span{color:var(--muted);font-size:.9rem}
+.tile.h b{color:var(--high)}.tile.m b{color:var(--med)}.tile.l b{color:var(--low)}.tile.c b{color:var(--ok)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:12px 0}
+.card h3{margin:0 0 6px;font-size:1.02rem}
+.badge{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
+.b-h{background:var(--high-bg);color:var(--high)}.b-m{background:var(--med-bg);color:var(--med)}.b-l{background:var(--low-bg);color:var(--low)}
+.where{color:var(--muted);font-size:.9rem}
+.fix{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;background:var(--line);padding:1px 4px;border-radius:4px}
+ul{padding-left:20px}li{margin:4px 0}
+.decide{color:var(--med);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Validate: Caddy + Next.js amendment</h1>
+<p class="sub">ARCHITECTURE-SPINE.md · status final, updated 2026-11-19 · commit d946422 · report 2026-11-19 · spine not edited</p>
+
+<div class="verdict"><strong>Coherent and true to the PRD, but not ready for the skeleton story.</strong> Two high findings: a fresh clone cannot start the examiner's stack (H1, found by both lenses), and HT-2 cannot pass as written (H2). No critical findings, no leftovers from the old design, and NFR-2 is not contradicted (one API, not one server).</div>
+
+<div class="tiles">
+<div class="tile c"><b>0</b><span>critical</span></div>
+<div class="tile h"><b>2</b><span>high</span></div>
+<div class="tile m"><b>15</b><span>medium</span></div>
+<div class="tile l"><b>22</b><span>low</span></div>
+<div class="tile"><b>9 + 3</b><span>PRD/addendum + EXPERIENCE sentences to update</span></div>
+</div>
+<p class="where">Lenses now: rubric walker (2 high, 9 medium, 13 low) and reconcile PRD (1 high, 6 medium, 13 low), deduplicated. Earlier: adversarial and tech-currency (2026-11-19, fixes applied). Lint: 7 low, all false positives.</p>
+
+<h2>High</h2>
+<div class="card"><h3><span class="badge b-h">H1</span>Compose mounts a git-ignored file that a fresh clone lacks</h3>
+<div class="where">AD-14 (spine line 206), Structural Seed · NFR-1, SM-4, Glossary "Test switch", DR-5</div>
+<p>The examiner's stack mounts <code>config/test-switches.toml</code>. On a fresh clone Docker either creates a directory there (backend fails at startup, stray folder left) or refuses to start.</p>
+<div class="fix"><strong>Fix:</strong> mount the <code>./config</code> directory read-only; <code>BP_TEST_SWITCHES</code> defaults to <code>test-switches.toml</code> inside it; anything that is not a regular file counts as missing. The e2e fixture mounts its own temp dir through one compose variable. README: edit, then <code>docker compose restart backend</code>.</div></div>
+<div class="card"><h3><span class="badge b-h">H2</span>HT-2 expects headers on Caddy's automatic redirect</h3>
+<div class="where">AD-27 Headers (line 353), HT-2 (line 358) · FR-24</div>
+<p>The automatic HTTP→HTTPS redirect is served by a separate Caddy server and carries none of the site's headers (verified by tech-currency; correct per RFC 6797 §7.2).</p>
+<div class="fix"><strong>Fix:</strong> drop "including Caddy's own redirects"; HT-2 tests a page, an API 404, a static asset and a Caddy-generated HTTPS error (backend stopped). HT-1 checks only <code>Location</code>.</div></div>
+
+<h2>Medium</h2>
+<div class="wrap"><table>
+<tr><th>ID</th><th>Where</th><th>Finding</th></tr>
+<tr><td>M1</td><td>AD-27 Modes, AD-22</td><td>Mode values use Caddy placeholders that never expand (incl. Railway <code>{$PORT}</code>); e2e env file sets neither <code>SITE_ADDRESS</code> nor <code>BP_HTTPS</code></td></tr>
+<tr><td>M2</td><td>AD-27 Tests, Seed</td><td>Core-era e2e fixture (no root, no TLS) undefined</td></tr>
+<tr><td>M3</td><td>AD-14 vs AD-27</td><td>No way to mount the e2e temporary switch file into the container</td></tr>
+<tr><td>M4</td><td>AD-27 Entry</td><td><code>handle /api/*</code> does not match a bare <code>/api</code></td></tr>
+<tr><td>M5</td><td>Seed, AD-22</td><td><code>booking_dev</code> never created; default database URL not stated</td></tr>
+<tr><td>M6</td><td>Seed commands</td><td><code>uv run pytest</code> needs a db the README never starts (SM-4)</td></tr>
+<tr><td>M7</td><td>AD-12, AD-15, AD-18</td><td>No single base path for repo-root <code>migrations/</code>, <code>seeds/</code>, <code>content/</code></td></tr>
+<tr><td>M8</td><td>AD-17 Image</td><td><code>.dockerignore</code> entries are names, not <code>**/</code> patterns</td></tr>
+<tr><td>M9</td><td>AD-27, AD-10</td><td>Starlette's slash redirect points at <code>http://localhost:8443</code> behind Caddy</td></tr>
+<tr><td>M10</td><td>AD-27 README</td><td>README no longer states the FR-24 localhost Secure-cookie limit</td></tr>
+<tr><td>M11</td><td>Conventions, tests</td><td>Browser-side FR-21/FR-25 checks have no test layer · <span class="decide">CSP: Lisa decides</span></td></tr>
+<tr><td>M12</td><td>AD-17 focus</td><td>Focus-to-<code>h1</code> defeats the "Before you come" direct link (FR-1.4, FR-8) · <span class="decide">Lisa decides</span></td></tr>
+<tr><td>M13</td><td>AD-17</td><td>Next.js default 404/error pages and a throwing <code>server-api</code> break FR-22 and "This page is not available."</td></tr>
+<tr><td>M14</td><td>AD-17, Styling</td><td><code>create-next-app</code> favicon and logos break DR-3 and EXPERIENCE item 9</td></tr>
+<tr><td>M15</td><td>AD-18</td><td><code>create-admin</code> on the host does not reach the compose database (FR-15)</td></tr>
+</table></div>
+
+<h2>Low (22)</h2>
+<ul>
+<li>Diagrams: <code>uv run booking-platform</code> vs "no <code>uv run</code> at runtime"; only the FR-24 end state shown; healthchecks must never write</li>
+<li>Config and ops: host/port and test variables not named; DB port wording; no named volume for Caddy <code>/data</code>; base image, healthcheck commands, proxy healthcheck; reset/logs/<code>down -v</code></li>
+<li>Edge cases: <code>127.0.0.1</code>, cached 308, HTTP/3 on unpublished UDP; <code>sessionStorage</code> during server render</li>
+<li>FR-22/FR-23: CSS Modules, <code>styled-jsx</code>, <code>style</code> props not forbidden; route announcer may double-announce; no-script behaviour (<span class="decide">Lisa decides</span>)</li>
+<li>FR-21/NFR-8: logs of Caddy and Next.js containers; image audit missing; dev telemetry on; TLS ends at Caddy</li>
+<li>Map and docs: capability map rows; axe-core version; Railway mode untested; EXPERIENCE.md still says SPA</li>
+</ul>
+
+<h2>Source updates</h2>
+<p>The spine is right and these sources are stale. Exact quotes and wording in <code>review-reconcile-prd-caddy-next-2026-11-19.md</code>.</p>
+<ul>
+<li><strong>PRD (7):</strong> §4.7 "never travel unencrypted"; FR-24 "HTTP listener"; NFR-1 ×3; DR-2 first bullet; Glossary Test switch</li>
+<li><strong>Addendum (2):</strong> §M.1 "What the examiner installs"; §M.2 Q4</li>
+<li><strong>EXPERIENCE.md (3):</strong> <code>/confirmation/:reference</code>; "the SPA"; "base URL … not set yet"</li>
+</ul>
+
+<h2>Next step</h2>
+<p>An Update run: H1, H2 and M1–M7 before the skeleton story; M10–M15 in the same run, with Lisa's three decisions. The lows can land in the stories that touch them. Then the source updates.</p>
+<p class="where">Full reviews: review-rubric-caddy-next-2026-11-19.md · review-reconcile-prd-caddy-next-2026-11-19.md · validate-caddy-next-2026-11-19.md</p>
+</main>
+</body>
+</html>
