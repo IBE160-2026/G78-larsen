@@ -21,7 +21,7 @@ This document provides the complete epic and story breakdown for the Saunalöyly
 
 The PRD, the spine and the UX spines stay the source of truth. Each requirement below is a short handle on the full text; a story names the FR consequences (FR-40.1 style, or the bullet) and the AD numbers it delivers, and the developer reads the source for the detail.
 
-**Build process (Lisa, 2026-11-20).** These choices apply to every epic and story:
+**Build process (Lisa, 2026-11-19).** These choices apply to every epic and story:
 
 - **Vertical slices.** Each epic, and as far as possible each story, delivers one piece of user value through every layer it needs: migration, `db`, `services`, `api`, frontend page and tests. Code for one feature stays in that feature's own modules (one `services/<feature>.py`, one `api` router file, one route folder in `frontend/app/`), so a slice can be read, reviewed and reverted on its own.
 - **DRY through shared folders.** Anything a second slice needs is moved to, or created in, a shared home instead of being copied: backend `src/booking_platform/{config.py, db/, services/errors.py, services/outbox.py, services/reference.py …}` and `api/errors.py`; frontend `frontend/components/` (shared UI components), `frontend/lib/` (`api.js`, `server-api.js`, formatting helpers), `frontend/app/styles.css` (the one stylesheet) and `content/` (text shared by pages and emails). Tests share `tests/conftest.py`, `tests/client.py` and `tests/e2e/conftest.py`.
@@ -324,7 +324,7 @@ The PRD, the spine and the UX spines stay the source of truth. Each requirement 
 
 ## Epic List
 
-**Order and stopping points.** Epics are built in order 1 → 5. Each one works without the ones after it. After Epic 2 the Core is done; after Epic 3 the floor (Core plus HTTPS) is reached. Whatever is not reached by the feature cutoff (11 December) is reported as not delivered (DR-2). On 2026-11-20, with about 20 stories and interactive building, Epics 1 to 3 are the realistic target, and Epics 4 and 5 are planned so that they can be started if time allows.
+**Order and stopping points.** Epics are built in order 1 → 5. Each one works without the ones after it. After Epic 2 the Core is done; after Epic 3 the floor (Core plus HTTPS) is reached. Whatever is not reached by the feature cutoff (11 December) is reported as not delivered (DR-2). On 2026-11-19, with about 20 stories and interactive building, Epics 1 to 3 are the realistic target, and Epics 4 and 5 are planned so that they can be started if time allows.
 
 ### Epic 1: A Guest finds a session and books seats
 A Guest opens the website, sees what Saunalöyly is and how to prepare, picks a date and a number of Seats, sees every session with its true Seats left and one total, enters a name and email, reviews the terms and pays with a Simulated payment. The Guest gets a confirmation page and the email as sent. However many Guests press Pay at once, no Seat is ever sold twice, and a Guest who loses gets a clear message, the nearest sessions with room and no charge. The Guest pages are complete (final copy, images, fonts), private by design and accessible on a laptop.
