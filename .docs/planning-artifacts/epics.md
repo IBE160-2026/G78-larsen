@@ -27,7 +27,7 @@ The PRD, the spine and the UX spines stay the source of truth. Each requirement 
 - **DRY through shared folders.** Anything a second slice needs is moved to, or created in, a shared home instead of being copied: backend `src/booking_platform/{config.py, db/, services/errors.py, services/outbox.py, services/reference.py …}` and `api/errors.py`; frontend `frontend/components/` (shared UI components), `frontend/lib/` (`api.js`, `server-api.js`, formatting helpers), `frontend/app/styles.css` (the one stylesheet) and `content/` (text shared by pages and emails). Tests share `tests/conftest.py`, `tests/client.py` and `tests/e2e/conftest.py`.
 - **Tests in every story.** Each story's acceptance criteria include its tests, run by `uv run pytest` (NFR-6). There is no separate test epic.
 - **Lisa takes part in each story.** Stories are built one at a time with `bmad-build` in interactive sessions, with Lisa reviewing as the work goes, rather than in one autonomous `/goal` run. PRD §10, §10.1 and §10.3 were updated to match on 2026-11-19. Stories are therefore sized for one interactive session each.
-- **Traceability.** One branch and one pull request per story, with FR numbers in the commit messages (architecture Conventions, examiner criterion 1).
+- **Traceability.** One branch and one pull request per story, with FR numbers in the commit messages (architecture Conventions, examiner criterion 1). Branches are named `story/<epic>-<story>-<short-name>`, for example `story/1-1-backend-structure` (Lisa, 2026-11-20). Lisa merges each pull request herself once the story's tests are green and she has reviewed it, with a normal merge commit (not squash) so the FR-numbered commits stay in `main`; the next story branches from the updated `main`.
 
 ## Requirements Inventory
 
@@ -515,7 +515,7 @@ So that I want to visit and can start booking in one step.
 **And** any new reference column added by this story's migration gets the seed value as its default in the same change (AD-18)
 
 **Given** the Venue facts
-**When** a client calls the public Venue-facts endpoint (`GET /api/venue`, or the path chosen in the story)
+**When** a client calls the public Venue-facts endpoint (`GET /api/venue`, confirmed by Lisa 2026-11-20)
 **Then** it returns the Venue name, address and contact, opening hours, Session length, price per Seat in øre and the Saunas (id, name, Capacity) in Fill order, needs no session and writes nothing (AD-4, AD-16)
 **And** `tests/test_fr01_venue.py` asserts the response shape and that a restart does not change or duplicate the seeded rows (NFR-10)
 
@@ -582,7 +582,7 @@ So that I know in seconds whether there is room for us and what it will cost.
 **And** `tests/test_fr13_windows.py` holds `test_e1`, `test_e2`, the DST refusals and the idempotent generation, moving the clock only through `clock.off` (AD-4)
 
 **Given** a date and a number of Seats from 1 to 10
-**When** the Guest's client calls the Window listing (`GET /api/windows?date=&seats=`, or the path chosen in the story)
+**When** the Guest's client calls the Window listing (`GET /api/windows?date=&seats=`, confirmed by Lisa 2026-11-20)
 **Then** it returns every Window of that Venue date that is inside the Booking horizon and before its Booking deadline, in time order, each with id, start, end, `seats_left` from `seats_left()` and `already_started`, plus `today`, `horizon_end` and `horizon_days` (FR-3, AD-5, AD-16)
 **And** Windows past their Booking deadline are left out, and the listing writes nothing except `ensure_generated()` (AD-4)
 **And** a date outside the horizon or malformed, or a Seat number outside 1–10, is refused and nothing is written (FR-2, FR-18 IV-1, IV-2)
