@@ -42,6 +42,7 @@ Kjøre `bmad-build` på [spec-1-5-pay-and-confirmation.md](../../.docs/implement
 - Lukket åpent punkt: «implementer Story 1.5» (issues.md).
 - Manuell sjekk: dev-stakken bygget på nytt (`docker compose up --build --wait`); `0006` kjørt mot dev-databasen (ingen gamle bookinger å backfille), 12 eksempelbookinger lagt inn som planlagt. Lisa booket i nettleseren på http://localhost:8000: ok. Punktet er lukket i issues.md.
 - Lisa godkjente de tre tekstene («Accept the booking terms», «The booking could not be completed, please try again.», «The booking could not be loaded, please try again.») og satte Story 1.5 til `done` i `sprint-status.yaml`.
+- Pushet til `origin/main` (`9ae9165..0b954c7`): Story 1.5 (`386518d`), sprint-status `done` (`4046fa1`) og loggene.
 
 ### Åpne punkter
 - ~~Godkjenn tre tekster~~ — godkjent, se Resultat.
