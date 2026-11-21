@@ -2,13 +2,23 @@
 page loads exactly one stylesheet of ours and no <style> element. No cookie is set, except on Book seats and on the
 Administrator's Sign-in, which each set exactly one: the session cookie (AD-8). Other Administrator pages open no
 session (Story 2.1). Details, Review and Confirmation (Story 1.5) keep that one cookie, and a name
-with a script tag is shown as text on Review and Confirmation, never run (FR-18 IV-5)."""
+with a script tag is shown as text on Review and Confirmation, never run (FR-18 IV-5).
+
+Story 2.4 adds the Administrator pages: an anonymous visit to each Administrator address goes to Sign-in; Sign-in,
+Booking list and Outbox keep every request on the origin, one cookie and one stylesheet of ours; and after a Booking,
+a sign-in and a sign-out the compose logs hold neither the test password, nor a session token, nor the request body
+(AD-19)."""
 
 from __future__ import annotations
+
+import json
+import secrets
+import uuid
 
 import pytest
 from playwright.sync_api import Page
 
+from .admin import LOGIN, SIGN_IN, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 from .test_fr05_book_and_pay import book_in_browser, free_windows, open_session, review_draft, set_draft
 
 SCRIPT_NAME = "<script>window.__pwned = 1</script><b>Bold</b>"
@@ -119,3 +129,93 @@ def test_a_name_with_a_script_tag_is_text_on_review_and_confirmation(page: Page,
     # Confirmation's summary has no name row; the name reaches it only as the API's JSON, never as markup
     assert page.locator("main script, main b").count() == 0
     assert page.evaluate("() => window.__pwned") is None
+
+
+# --- The Administrator pages (Story 2.4) ----------------------------------------------------------------------------
+
+ADMIN_PAGES = ["/admin", "/admin/bookings", "/admin/outbox"]
+
+
+def _other_origins(base_url: str, urls: list[str]) -> list[str]:
+    return [u for u in urls if not (u == base_url or u.startswith(base_url + "/"))]
+
+
+def _one_stylesheet_of_ours(page: Page, base_url: str) -> None:
+    sheets = page.evaluate("() => Array.from(document.styleSheets).map(s => s.href)")
+    assert len(sheets) == 1 and (sheets[0] or "").startswith(base_url + "/"), sheets
+    assert page.locator("style").count() == 0
+
+
+def _session_token(page: Page) -> str:
+    return next(c["value"] for c in page.context.cookies() if c["name"] == "bp_session")
+
+
+@pytest.mark.parametrize("path", ADMIN_PAGES)
+def test_an_anonymous_visit_to_an_administrator_address_goes_to_sign_in(page: Page, base_url, path):
+    page.goto(base_url + path)
+    page.wait_for_url(base_url + SIGN_IN)
+    page.wait_for_selector("#password")
+
+
+def test_sign_in_booking_list_and_outbox_stay_on_the_origin_with_one_cookie_and_one_stylesheet(page: Page, base_url):
+    requests = []
+    page.on("request", lambda r: requests.append(r.url))
+    open_sign_in(page, base_url)
+    assert [c["name"] for c in page.context.cookies()] == ["bp_session"]  # Sign-in sets exactly one
+    _one_stylesheet_of_ours(page, base_url)
+
+    type_login(page, LOGIN["password"])
+    page.wait_for_url(base_url + "/admin/bookings")
+    page.locator("#date").wait_for()
+    page.wait_for_load_state("networkidle")
+    _one_stylesheet_of_ours(page, base_url)
+
+    page.goto(base_url + "/admin/outbox")
+    page.locator(".outbox-entry").first.wait_for()
+    page.wait_for_load_state("networkidle")
+    _one_stylesheet_of_ours(page, base_url)
+
+    assert [c["name"] for c in page.context.cookies()] == ["bp_session"]
+    assert requests, "no request was recorded"
+    others = _other_origins(base_url, requests)
+    assert not others, f"requests to another origin: {others}"
+
+
+def test_the_password_tokens_and_request_bodies_never_reach_the_logs(page: Page, base_url, stack):
+    """A Guest books from the browser and sends one refused booking body; then the Administrator is refused once with a
+    wrong password, signs in and signs out in the same browser. The compose logs of the whole e2e stack hold none of
+    the passwords, session tokens, idempotency keys or request bodies (AD-19, FR-21)."""
+    marker = secrets.token_hex(8)
+    name, email = f"Logcheck {marker}", f"logcheck-{marker}@example.com"
+    wrong_password = f"wrong-password-{marker}"
+    window = free_windows(base_url)[-1]
+    tokens, keys = set(), [str(uuid.uuid4()), str(uuid.uuid4())]
+    post = """async ({body, key}) => (await fetch('/api/bookings', {method: 'POST', credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'Idempotency-Key': key}, body})).status"""
+
+    open_session(page, base_url)
+    tokens.add(_session_token(page))
+    body = json.dumps({"window_id": window["id"], "seats": 1, "name": name, "email": email})
+    assert page.evaluate(post, {"body": body, "key": keys[0]}) == 201
+    refused = json.dumps({"window_id": window["id"], "seats": 0, "name": f"Refused {marker}",
+                          "email": f"refused-{marker}@example.com"})
+    assert page.evaluate(post, {"body": refused, "key": keys[1]}) == 422
+
+    open_sign_in(page, base_url)
+    tokens.add(_session_token(page))
+    type_login(page, wrong_password)
+    page.locator("[data-error-summary]").wait_for()
+    open_sign_in(page, base_url)
+    type_login(page, LOGIN["password"])
+    page.wait_for_url(base_url + "/admin/bookings")
+    page.locator("#date").wait_for()
+    tokens.add(_session_token(page))
+    page.get_by_role("navigation", name="Administrator").get_by_role("button", name="Sign out").click()
+    page.wait_for_url(base_url + SIGN_IN)
+    page.wait_for_load_state("networkidle")
+    tokens.update(c["value"] for c in page.context.cookies() if c["name"] == "bp_session")
+
+    logs = stack.compose("logs", "--no-color").stdout
+    assert "POST /api/bookings" in logs and "POST /api/admin/sign-in" in logs  # the access log is on
+    for secret in (LOGIN["password"], wrong_password, *tokens, *keys, marker, body, refused):
+        assert secret not in logs, f"{secret!r} is in the compose logs"

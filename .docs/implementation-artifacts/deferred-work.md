@@ -44,3 +44,9 @@
 - source_spec: none
   summary: Update mockups/key-booking-list.html to the denser Booking list style in DESIGN.md (commit 1541485) and fix DESIGN.md front matter, which still lists heading-md for the session group.
   evidence: Split from the Story 2.3 Outbox intent (2026-11-21); independently shippable design-doc work, not part of the Outbox.
+- source_spec: none
+  summary: Story 2.4 part B — rewrite the README in the order the story lists (tools, compose, dev, tests, test login and sample Bookings, Outbox, create-admin and switches, folders), add the security and "Not delivered" sections, run the fresh-clone check, add `tests/manual/core-accessibility.md` with Lisa's manual passes (keyboard, 200 % zoom, tab order, NVDA), and record "Core done" in the session log.
+  evidence: Split from the Story 2.4 intent (2026-11-21, Lisa chose "A first"); independently shippable docs and manual work that needs Lisa at the laptop; Story 2.4 stays in progress until it is done.
+- source_spec: `.docs/implementation-artifacts/spec-2-4-core-done-automated-checks.md`
+  summary: Make the other keyboard flows that change the Seat number and then Tab to a Session (`test_fr02_book_seats.py:139`, `test_fr05_book_and_pay.py:57`) wait on the `/api/windows?…seats=N` response instead of `networkidle`.
+  evidence: Unverified (maybe-false, medium if true): the same pattern failed 1 in 5 runs in the new zoom test (focus lost when the rows were replaced after Tab reached them); the older tests have not been seen failing.
