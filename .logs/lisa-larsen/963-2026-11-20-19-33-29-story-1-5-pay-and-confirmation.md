@@ -41,10 +41,11 @@ Kjøre `bmad-build` på [spec-1-5-pay-and-confirmation.md](../../.docs/implement
 - Første fulle testkjøring ble stoppet av Claude Code på grunn av lite minne. Dev-stakken ble stoppet (`docker compose stop`, data beholdt), Docker Desktop og WSL avsluttet og startet igjen, og testene kjørt i to deler (API, så e2e).
 - Lukket åpent punkt: «implementer Story 1.5» (issues.md).
 - Manuell sjekk: dev-stakken bygget på nytt (`docker compose up --build --wait`); `0006` kjørt mot dev-databasen (ingen gamle bookinger å backfille), 12 eksempelbookinger lagt inn som planlagt. Lisa booket i nettleseren på http://localhost:8000: ok. Punktet er lukket i issues.md.
+- Lisa godkjente de tre tekstene («Accept the booking terms», «The booking could not be completed, please try again.», «The booking could not be loaded, please try again.») og satte Story 1.5 til `done` i `sprint-status.yaml`.
 
 ### Åpne punkter
-- Godkjenn tre tekster som ikke står i EXPERIENCE.md: «Accept the booking terms» (avkrysningsfeil), «The booking could not be completed, please try again.» (avvisning på Review), «The booking could not be loaded, please try again.» (lastefeil på Review/Confirmation).
+- ~~Godkjenn tre tekster~~ — godkjent, se Resultat.
 - Story 1.6: hvis gjestens økt slettes (purge) etter en betaling der svaret gikk tapt, forsvinner nøkkelen med økten (`ON DELETE CASCADE`), og et nytt forsøk kan booke og belaste to ganger; uten purge gir nytt forsøk `invalid_key` i det uendelige. Se triage-rad 2 i specen.
 - Review.js åpner en ny økt etter `401 no_session` og beholder nøkkelen — oppførsel fra Story 1.6 som kom med i 1.5; vurder den i 1.6.
 - ~~Manuell sjekk i nettleseren~~ — gjort, se Resultat.
-- Story 1.5 står som `review` i `sprint-status.yaml`; sett `done` etter egen gjennomgang (f.eks. `bmad-walkthrough`).
+- ~~Sett Story 1.5 til `done`~~ — gjort, se Resultat.
