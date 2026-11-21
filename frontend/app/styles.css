@@ -1153,3 +1153,143 @@ a {
 .sign-in-form .notice {
   margin-top: var(--space-3);
 }
+
+/* ------------------------------------------------------------------ Booking list (FR-16, UX-DR31) */
+
+/* Visually hidden, still read by assistive technology (the Booking table's caption). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The date Text field with "Previous day" and "Next day" beside it. */
+.date-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.date-bar-field {
+  width: var(--date-column);
+  max-width: 100%;
+}
+
+.date-bar-links {
+  display: flex;
+  gap: var(--space-4);
+  /* level with the input: the label's line plus its gap above */
+  margin-top: calc(var(--type-label-size) * var(--type-label-line) + var(--space-1));
+  font-size: var(--type-body-sm-size);
+  line-height: var(--control-height);
+}
+
+.admin-main > .notice,
+.session-groups-none {
+  margin-top: var(--space-5);
+  max-width: var(--measure-text);
+}
+
+.session-groups-none {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.session-groups {
+  margin-top: var(--space-5);
+}
+
+/* Session group: a rule above each group, and below the last one. */
+.session-group {
+  border-top: 1px solid var(--color-border);
+}
+
+.session-group:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.session-group-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-5);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* A session with no Seats left: the unavailable fill, with the state also in words ("Sold out"). */
+.session-group-full .session-group-header {
+  background: var(--color-unavailable);
+}
+
+.session-group-figures {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.session-group-figures strong {
+  font-weight: 600;
+}
+
+.session-group-none {
+  padding: 0 var(--space-3) var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Booking table: fixed columns, so a long email wraps instead of widening the page; numbers right-aligned. */
+.booking-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-bottom: var(--space-5);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.booking-table th {
+  padding: var(--space-1) var(--space-3);
+  text-align: left;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}
+
+.booking-table td {
+  padding: var(--space-1) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+}
+
+.booking-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.booking-table .col-reference {
+  width: 132px;
+}
+
+.booking-table .col-name {
+  width: 22%;
+}
+
+.booking-table .col-seats {
+  width: 80px;
+}
+
+.booking-table .col-total {
+  width: 120px;
+}
+
+.booking-table .col-time {
+  width: 180px;
+}

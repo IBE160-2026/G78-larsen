@@ -2,8 +2,9 @@
 
 Startup: read the configuration (AD-14, AD-22), create `booking_dev` when the default URL is used, apply the
 migrations (AD-15), open the pool, apply the seed (AD-18), generate the Windows up to the Booking horizon (FR-13),
-create the sample Bookings that do not exist yet (AD-18) and purge expired sessions (AD-8). The seed file is also checked before uvicorn starts (`booking_platform.main`), so
-an invalid seed stops startup with one line.
+create the sample Bookings that do not exist yet (AD-18), run the retention catch-up (FR-21: anonymise the Bookings
+due for retention and clear their Outbox emails) and purge expired sessions (AD-8). The seed file is also checked
+before uvicorn starts (`booking_platform.main`), so an invalid seed stops startup with one line.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from . import config, db
 from .api import admin, errors, public
 from .api.deps import UNSAFE_METHODS, same_origin
 from .db import migrate
-from .services import seed, sessions, windows
+from .services import catchup, seed, sessions, windows
 
 log = logging.getLogger("booking_platform")
 
@@ -33,6 +34,9 @@ async def lifespan(_: FastAPI):
         seed.apply()
         log.info("generated %d windows", windows.ensure_generated())
         seed.apply_bookings()  # the sample Bookings need their Windows (AD-18)
+        caught_up = catchup.run()  # counts only, never a name or an email (AD-19)
+        log.info("retention catch-up: %d bookings anonymised, %d emails cleared",
+                 caught_up["bookings_anonymised"], caught_up["emails_cleared"])
         purged = sessions.purge_expired()
         log.info("purged %d expired sessions", purged)
         yield
