@@ -43,3 +43,31 @@ Fortsette med Story 2.4 («Core done: the examiner can run, sign in and check ev
   - «Core done» i sesjonsloggen.
 - Til den manuelle zoom-sjekken: i 200 % zoom (683 px bredt) brytes e-postadressen på Review midt i ordet («zoom@example.c / om»), og venstre kolonne er stort sett tom. Vurder det mot WCAG 1.4.4 og 1.4.10.
 - Mulig samme ustabilitet i `test_fr02_book_seats.py:139` og `test_fr05_book_and_pay.py:57`: de venter på `networkidle` etter at antall plasser endres. Ført i `deferred-work.md`.
+
+## 2026-11-21 kl. 11:05 — Lisa Larsen
+
+### Oppgave
+Lisa ba om «push pull», likt som for Story 1.1: én gren og én pull request per story. Deretter ba hun om det samme for Story 1.5–2.1, uten at noe går tapt.
+
+### Plan
+- Story 2.2, 2.3 og 2.4 del A lå bare lokalt på `main`, 16 commits foran `origin/main`.
+  - Hver story fikk sin egen gren og sin egen PR mot `main`.
+  - Lokal `main` ble flyttet tilbake til `origin/main`. Commitene ligger på grenene.
+- Story 1.5, 1.6 og 2.1 var allerede pushet rett til `main`.
+  - Lisa godtok anbefalingen om PR-er bare for dokumentasjon. `main` ble ikke skrevet om, og ingen force-push ble brukt.
+  - Hver story fikk en base-gren på committen før storyen (`pr-base/…`) og en story-gren. PR-en går mellom de to, så diffen er nøyaktig storyen. PR-ene ble lukket uten merge.
+
+### Resultat
+- Pushet `story/2-2-booking-list`, `story/2-3-outbox` og `story/2-4-core-done-automated-checks`. Åpne PR-er mot `main`, som skal merges i rekkefølge:
+  - [#5](https://github.com/IBE160-2026/G78-larsen/pull/5) Story 2.2
+  - [#6](https://github.com/IBE160-2026/G78-larsen/pull/6) Story 2.3
+  - [#7](https://github.com/IBE160-2026/G78-larsen/pull/7) Story 2.4 del A
+- Pushet `pr-base/1-5`, `pr-base/1-6` og `pr-base/2-1`, og story-grenene `story/1-5-pay-and-confirmation`, `story/1-6-refusals-charged-nothing` og `story/2-1-admin-sign-in-out`. Dokumentasjons-PR-ene ble lukket uten merge, og hver har en merknad om at den bare er en oversikt:
+  - [#8](https://github.com/IBE160-2026/G78-larsen/pull/8) Story 1.5: 10 commits
+  - [#9](https://github.com/IBE160-2026/G78-larsen/pull/9) Story 1.6: 5 commits
+  - [#10](https://github.com/IBE160-2026/G78-larsen/pull/10) Story 2.1: 8 commits
+- PR-tekstene følger formatet fra #1–4, med krav, endringer, tester, review og lenker til spec og sesjonslogg.
+- Ingen commit gikk tapt, og `origin/main` er uendret (`b177e4a`).
+
+### Åpne punkter
+- Merge PR #5, #6 og #7 i den rekkefølgen. Hver gren bygger på den forrige, så #6 og #7 viser også de tidligere storyenes commits til de er merget.
