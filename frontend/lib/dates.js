@@ -92,6 +92,18 @@ export function clockTime(timestamp) {
   return timestamp.slice(11, 16);
 }
 
+/** "01.12.2026 10:00" of an ISO timestamp the API writes in Venue time, sliced from the text (no clock, no Intl). */
+export function dottedTime(timestamp) {
+  return `${dotted(timestamp.slice(0, 10))} ${clockTime(timestamp)}`;
+}
+
+/** The date `n` days after (or before, for a negative `n`) a date: "2026-12-02" from ("2026-12-01", 1). */
+export function addDays(iso, n) {
+  const { year, month, day } = parts(iso);
+  const d = new Date(Date.UTC(year, month - 1, day + n));
+  return isoDate(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+}
+
 /** "4 weeks" for 28 days, "10 days" otherwise. */
 export function horizonPhrase(days) {
   if (days % 7 === 0) return days === 7 ? '1 week' : `${days / 7} weeks`;

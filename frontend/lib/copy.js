@@ -143,6 +143,32 @@ export const ADMIN = Object.freeze({
   signOutFailed: 'Sign-out could not be completed, please try again.',
 });
 
+// The Booking list (FR-16, UX-DR31, UX-DR37): every Window is a "session" in the copy. A malformed typed date uses
+// BOOK.dateFormat.
+export const BOOKING_LIST = Object.freeze({
+  date: 'Date',
+  previousDay: 'Previous day',
+  nextDay: 'Next day',
+  noSessions: 'No sessions on this day', // Lisa, 2026-11-21
+  noBookings: 'No bookings',
+  soldOut: 'Sold out',
+  seatCapacity: (n) => `Seat capacity ${n}`,
+  seatsBooked: (n) => `Seats booked ${n}`,
+  seatsLeft: (n) => `Seats left ${n}`,
+  session: (start, end) => `Session ${start} to ${end}`,
+  caption: (start, end) => `Bookings in the session ${start} to ${end}`,
+  columns: Object.freeze({
+    reference: 'Reference',
+    name: 'Name',
+    email: 'Email',
+    seats: 'Seats',
+    total: 'Total',
+    time: 'Time of booking',
+  }),
+  // EXPERIENCE.md: a failed read shows a Notice with "please try again".
+  failed: 'The booking list could not be loaded, please try again.',
+});
+
 // Sign-in (FR-15, UX-DR30). Every refusal is the one message, in an Error summary with no Field error (PW-5).
 export const SIGN_IN = Object.freeze({
   heading: 'Sign in',

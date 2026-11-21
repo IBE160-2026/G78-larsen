@@ -21,12 +21,10 @@ class Strict(BaseModel):
 _ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 
-class WindowsQuery(Strict):
-    """`GET /api/windows?date=&seats=` (AD-16): both optional, but a value that is present must be valid. The date
-    is a Venue date written yyyy-mm-dd, and only that form is accepted."""
+class DateQuery(Strict):
+    """An optional `date` query field: a Venue date written yyyy-mm-dd, and only that form is accepted."""
 
     date: dt.date | None = None
-    seats: Seats | None = None
 
     @field_validator("date", mode="before")
     @classmethod
@@ -34,6 +32,17 @@ class WindowsQuery(Strict):
         if value is not None and not (isinstance(value, str) and _ISO_DATE.fullmatch(value)):
             raise ValueError("not a yyyy-mm-dd date")
         return value
+
+
+class WindowsQuery(DateQuery):
+    """`GET /api/windows?date=&seats=` (AD-16): both optional, but a value that is present must be valid."""
+
+    seats: Seats | None = None
+
+
+class BookingListQuery(DateQuery):
+    """`GET /api/admin/bookings?date=` (FR-16): the date is optional (the API's today); any calendar date is
+    allowed. No other field."""
 
 
 class SessionIn(Strict):

@@ -7,11 +7,13 @@ which has no dependency because the caller is not signed in yet (FR-15)."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response
+from typing import Annotated
 
-from ..services import auth, blocks, marks, sessions, settings, whole
+from fastapi import APIRouter, Depends, Query, Request, Response
+
+from ..services import auth, blocks, booking_list, marks, sessions, settings, whole
 from .deps import clear_session_cookie, current_session, require_admin, set_session_cookie
-from .schemas import BlockIn, MarkIn, SettingsIn, SignInIn, WholeIn
+from .schemas import BlockIn, BookingListQuery, MarkIn, SettingsIn, SignInIn, WholeIn
 
 router = APIRouter(prefix="/api/admin", redirect_slashes=False, dependencies=[Depends(require_admin)])
 sign_in_router = APIRouter(prefix="/api/admin", redirect_slashes=False)
@@ -39,6 +41,15 @@ def sign_out(response: Response, s: sessions.Session = Depends(require_admin)):
 def me():
     """The Administrator page guard's check: 200 for a signed-in Administrator, 401 otherwise."""
     return {"role": "admin"}
+
+
+@router.get("/bookings")
+def bookings(query: Annotated[BookingListQuery, Query()]):
+    """The Booking list of one Venue date (FR-16, AD-4, AD-5): every Window of the date in time order with its
+    figures and active Bookings, oldest first. Without `date`, the API's today. Takes no lock; the only write is
+    `windows.ensure_generated()`, and a refused request (422) writes nothing. Name and email of a Booking due for
+    retention are masked (FR-21)."""
+    return booking_list.day(query.date)
 
 
 @router.post("/whole-bookings", status_code=201)
