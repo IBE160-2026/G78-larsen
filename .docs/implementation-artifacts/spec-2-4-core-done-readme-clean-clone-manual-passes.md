@@ -2,7 +2,8 @@
 title: 'Story 2.4 (part B): Core done — README, fresh clone, manual passes'
 type: 'chore'
 created: '2026-11-21'
-status: 'ready-for-dev'
+status: 'in-review'
+baseline_commit: '9e1598a9d680c26d818233fb6135d03f4e14bac2'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -52,10 +53,10 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `README.md` -- rewrite per Always; security and "Not delivered" sections -- DR-2, DR-5, FR-21, AD-14/18/27
-- [ ] fresh clone in a new temp folder -- run the README word for word; fix README/code for each failure; note commands and results for the log -- NFR-1, SM-4
+- [x] `README.md` -- rewrite per Always; security and "Not delivered" sections -- DR-2, DR-5, FR-21, AD-14/18/27
+- [x] fresh clone in a new temp folder -- run the README word for word; fix README/code for each failure; note commands and results for the log -- NFR-1, SM-4
 - [ ] `tests/manual/core-accessibility.md` -- checklist with the four rows; HALT for Lisa's results, then fill them in -- FR-23, DR-1
-- [ ] `.docs/sensorveiledning-kravsporing.md` -- rows 3 and 6 -- DR-1, DR-2
+- [x] `.docs/sensorveiledning-kravsporing.md` -- rows 3 and 6 -- DR-1, DR-2
 - [ ] session log (sesjonslogg) -- fresh-clone record; "Core is done" or the exact list of what is missing -- §10.1
 
 **Acceptance Criteria:**
@@ -65,9 +66,44 @@ context:
 
 ## Implementation Notes
 
+- Implemented inline (not by a dispatched subagent): the spec pauses for Lisa's manual passes and stops/starts her local stack.
+- Fresh clone (2026-11-21, run by the agent): `docker compose down` of `g78-larsen`; `git clone https://github.com/IBE160-2026/G78-larsen.git g78-fresh-clone` in the session scratchpad at `7aa4e14` (= `origin/main`). The folder is named `g78-fresh-clone`, not `G78-larsen`, so compose gets its own project and volumes; otherwise every command as in the README.
+  - `docker compose up --build --wait` -- all four healthy in 33 s.
+  - Browser script (Playwright, clicks) on `http://localhost:8000`: Landing with "Before you come"; Book seats (2 seats) → Details → Review → Pay → Confirmation `7JVM8BCA`; anonymous `/admin/bookings` → Sign-in; sign-in with the test login; Booking list shows the booking; Outbox shows the email with the reference; tomorrow's sample booking (Ingrid Berg) in the Booking list.
+  - `docker compose ps` (4 healthy), `docker compose logs backend proxy` (no test password or guest email in them).
+  - Test switches: `cp` (also run in PowerShell), `payment = "fail"`, `docker compose restart backend` → `POST /api/bookings` gives `409 payment_failed`; file removed and backend restarted. `git status` stays clean (file git-ignored).
+  - `docker compose exec backend booking-platform create-admin`: without a TTY it answers "cancelled, nothing written"; with `-T` and piped input it prints "created", exit 0. The interactive run and `uv run booking-platform create-admin` (Windows `getpass` reads the console only) need Lisa at a terminal.
+  - `docker compose down`; `uv sync`; `docker compose up -d --wait db`; `uv run booking-platform dev` (`/api/health` ok); `npm --prefix frontend ci`; `npm --prefix frontend run dev` (`/`, `/book-seats`, `/api/venue` 200 on port 3000).
+  - `uv run playwright install chromium`; `uv run pytest -q` -- 536 passed in 12 min 34 s.
+  - `docker compose down -v` (clone project only).
+- The README's commands were written before the run and run from it; the clone's code is `origin/main`, and this story changes no code, so the code under test is the one that will be merged. The README file inside the clone was the old one.
+- Added after the run and verified separately: `uv run booking-platform dev` against `booking_dev` while the `g78-larsen` stack runs (`/api/health` ok on both; `booking`, `booking_dev` and `booking_test` in one `db`).
+- README fixes found by the run: compose (`booking`) and dev (`booking_dev`) do not share a database; `cp` works in PowerShell; test run takes 10–15 minutes; log lines hold method, path, status and error code.
+- Repo: `npm --prefix frontend run build` passes.
+
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Route | Evidence / action |
+|---|---|---|---|---|---|
+| 1 | blind, edge | Fresh clone ran the old README file | low | patch | Commands came from the new README; code identical (docs-only diff). Notes say so; coexistence claim added later was run separately |
+| 2 | blind | Spec `in-review` while manual-pass and session-log tasks are open | false | reject | Workflow sets the status; open tasks wait on Lisa (HALT) and the session log, written at session end. Fix would edit the spec |
+| 3 | blind, edge | Kravsporing row 6 cites a session log not yet written | low | reject | The log is written at the end of this session (sesjonslogg), before commit |
+| 4 | blind | Kravsporing row 3 status still says "Ingen tester" | low | patch | Status column updated with the test count and layers |
+| 5 | blind, edge | README says manual results exist; Reflow called the only known gap | medium | patch | Wording now: checklist and results in `tests/manual/`; Reflow the only gap the automated tests know |
+| 6 | blind | Checklist rows 2 and 4 omit Administrator pages | false | reject | Rows are as the frozen intent lists them (FR-23 AC) |
+| 7 | blind, edge | Row 1 misses the Outbox keyboard test | low | patch | Added `test_fr17_outbox.py::test_the_confirmation_of_a_browser_booking_from_the_bar_with_the_keyboard_alone` |
+| 8 | blind, edge | Interactive `create-admin` commands not run as written | medium | patch + human | README says to run it in a real terminal; Lisa runs the three commands (pending, see Implementation Notes) |
+| 9 | blind, edge | Dropped `BP_TEST_MUTATE`, FR-10 direct writes, password-not-overwritten, dev sign-in URL, `/api/health` | medium | patch | Re-added each in one line; `serve` left out (not run) |
+| 10 | blind | "SC9 levert uten HTTPS" under "Ikke levert" reads as a contradiction | low | patch | Reworded: SC9's HTTPS part is missing |
+| 11 | blind | FR-25..51 called wholly unbuilt | medium | patch | FR-35, FR-36, FR-40, FR-41 exist in the store with tests (`services/holds.py`, `services/blocks.py`); README says so |
+| 12 | blind | 19:00 row has no seat count | low | patch | "5 (44 av 44 plasser)" (seeds/bookings.json sums to 44) |
+| 13 | blind | Security claims `/docs` off and admin redirect cite no test | low | patch | Cite `tests/test_fr20_access.py:84` and `tests/e2e/test_fr15_sign_in.py:101` |
+| 14 | edge | README never says how to turn test switches off | medium | patch | Delete the file and restart backend |
+| 15 | edge | Re-running `cp` overwrites edited switches | low | patch | Same sentence: `cp` only the first time |
+| 16 | edge | `down -v` also removes `booking_dev` | low | patch | One sentence under `down -v` |
+| 17 | verification-gap | No gaps (docs-only diff) | -- | -- | -- |
 
 ## Verification
 
