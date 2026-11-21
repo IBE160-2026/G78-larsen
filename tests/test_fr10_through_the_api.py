@@ -2,6 +2,9 @@
 
 Parallel requests are real threads sending real HTTP requests. Every response must be a definite answer
 (200/201 or 409): a 5xx would be a deadlock or error that leaked out (FR-14).
+
+The last-Seat race is in `test_fr11_last_seat_race.py` and the all-or-nothing cases A6 and A7 in
+`test_fr12_all_or_nothing.py` (Story 1.6); the helpers here are shared with them.
 """
 
 from __future__ import annotations
@@ -15,8 +18,6 @@ import psycopg
 
 from client import admin_client, api_client
 from conftest import EARLY, clear, set_clock, state, win_start
-
-ROUNDS = 100  # FR-11: 100 repetitions per run
 
 
 def parallel(fns):
@@ -77,31 +78,6 @@ def test_parallel_requests_never_book_more_than_is_left(api, world, pg):
         assert all(x.json()["detail"]["error"] == "no_seat_free" for x in res if x.status_code == 409)
         s = state(pg)
         assert s["booked"] == s["real_booked"] == accepted and s["left"] == 44 - accepted >= 0
-
-
-def test_the_last_seat_has_exactly_one_winner(api, world, pg):
-    """FR-11: two parallel requests for the one remaining Seat create exactly one Booking. 100 repetitions."""
-    for r in range(ROUNDS):
-        clear(pg)
-        fill(api, 43)
-        assert left(api) == 1
-        ca, cb = guests(world, 2)
-        a, b = parallel([lambda: book(ca, 1), lambda: book(cb, 1)])
-        ca.close(), cb.close()
-        assert sorted([a.status_code, b.status_code]) == [201, 409], (r, a.text, b.text)
-        assert left(api) == 0
-        assert state(pg)["booked"] == 44
-
-
-def test_a_request_for_more_than_is_left_is_rejected_as_a_whole(api, pg):
-    """FR-12: 42 of 44 booked, a request for 3 is rejected and nothing changes; with all 44 booked, 1 is rejected."""
-    fill(api, 42)
-    r = api.book(1, 3)
-    assert r.status_code == 409 and r.json()["detail"]["error"] == "no_seat_free"
-    assert left(api) == 2 and state(pg)["real_booked"] == 42
-    assert api.book(1, 2).status_code == 201
-    r = api.book(1, 1)
-    assert r.status_code == 409 and left(api) == 0
 
 
 def test_two_guests_holding_the_last_seat_one_hold_succeeds(api, world, pg):

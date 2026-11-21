@@ -31,3 +31,7 @@
 - source_spec: `.docs/implementation-artifacts/spec-1-5-pay-and-confirmation.md`
   summary: E2e-test Review's refusal path (Notice shown, Pay re-enabled, the draft key unchanged; after 401 a new session and a successful retry).
   evidence: `frontend/components/Review.js` `pay()` catch branch has no test; Story 1.6 replaces the refusal Notices, so the test belongs there (a Playwright `page.route` stub returning 409 suffices).
+  status: done (Story 1.6, `tests/e2e/test_fr11_refusals.py`: every refusal state on Review against the real stack, including `401 no_session` with a successful retry under the same key).
+- source_spec: `.docs/implementation-artifacts/spec-1-6-refusals-charged-nothing.md`
+  summary: E2e-test Review's fallback to the listing's `nearest` (other dates) when the refused session's date has no other session with room, and that choosing one reloads Review for that date.
+  evidence: Unverified (maybe-false, medium if true): every refusal in `tests/e2e/test_fr11_refusals.py` uses a date with eight empty Windows, so the fallback branch in `Review.js` `nearestSessions` never runs; settle by filling the date's other seven Windows in the seats-taken test.

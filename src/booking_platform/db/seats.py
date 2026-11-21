@@ -18,6 +18,18 @@ def before_booking_deadline(c: psycopg.Connection, window_id: int) -> bool | Non
     return None if row is None else row[0]
 
 
+def within_horizon(c: psycopg.Connection, window_id: int) -> bool | None:
+    """True while the Window starts no later than the end of the Booking horizon, judged on app_now() (the SQL
+    predicate `within_horizon`); None for an unknown Window."""
+    row = c.execute("SELECT within_horizon(id) FROM windows WHERE id = %s", (window_id,)).fetchone()
+    return None if row is None else row[0]
+
+
+def seats_left(c: psycopg.Connection, window_id: int) -> int:
+    """Seats left in the Window now (the store's `seats_left()`, counting live Holds)."""
+    return c.execute("SELECT seats_left(%s)", (window_id,)).fetchone()[0]
+
+
 def live_hold(c: psycopg.Connection, session_id: int, window_id: int) -> int | None:
     row = c.execute("SELECT id FROM holds WHERE session_id = %s AND window_id = %s AND expires_at > app_now()",
                     (session_id, window_id)).fetchone()

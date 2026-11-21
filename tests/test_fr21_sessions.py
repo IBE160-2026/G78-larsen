@@ -8,6 +8,7 @@ app_now(). Expired rows are purged at startup. Nothing secret reaches the backen
 from __future__ import annotations
 
 import datetime as dt
+import uuid
 
 import httpx
 import pytest
@@ -116,13 +117,29 @@ def test_expired_sessions_are_purged_at_startup(api, world, pg, database, tmp_pa
     try:
         assert rows(pg, "SELECT count(*) FROM sessions WHERE token_hash = sha256('expired')") == [(0,)]
         assert rows(pg, "SELECT session_id FROM holds") == [(None,)]  # ON DELETE SET NULL
-        # the Booking stays, without its session, and still takes its Seats; the key went with the session
+        # the Booking stays, without its session, and still takes its Seats; so does its key (0007, AD-9)
         assert rows(pg, "SELECT session_id, status FROM bookings WHERE id = %s", (booking_id,)) == [(None, "active")]
         assert rows(pg, "SELECT window_booked_seats(2)") == [(3,)]
-        assert rows(pg, "SELECT count(*) FROM idempotency_keys WHERE booking_id = %s", (booking_id,)) == [(0,)]
+        assert rows(pg, "SELECT session_id FROM idempotency_keys WHERE booking_id = %s", (booking_id,)) == [(None,)]
         assert rows(pg, "SELECT count(*) FROM sessions WHERE id = %s", (api.session_id,)) == [(1,)]  # still valid
     finally:
         second.stop()
+
+
+def test_a_key_outlives_its_session_so_a_retry_after_a_purge_never_charges_twice(api, world, pg):
+    """AD-9 (0007): a paid key whose session is gone (purged, signed out) stays with `session_id` NULL; the same
+    request from a new session is `409 invalid_key` and writes nothing: one Booking, one payment."""
+    key = str(uuid.uuid4())
+    assert api.book(1, 2, key=key).status_code == 201
+    pg.execute("DELETE FROM sessions WHERE id = %s", (api.session_id,))  # what the purge does
+    pg.commit()
+    assert rows(pg, "SELECT session_id FROM idempotency_keys WHERE key = %s", (key,)) == [(None,)]
+    assert api.book(1, 2, key=key).status_code == 401  # the old cookie names no session any more
+    with api_client(world) as fresh:
+        r = fresh.book(1, 2, key=key)
+    assert r.status_code == 409 and r.json() == {"detail": {"error": "invalid_key"}}, r.text
+    assert rows(pg, "SELECT (SELECT count(*) FROM bookings), (SELECT count(*) FROM payments), "
+                    "(SELECT count(*) FROM outbox_emails), (SELECT count(*) FROM idempotency_keys)") == [(1, 1, 1, 1)]
 
 
 def test_no_token_cookie_or_body_reaches_the_backend_log(api, backend):

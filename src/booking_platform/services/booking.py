@@ -2,10 +2,12 @@
 read (AD-12).
 
 `create` is one `db.run`: the charge is decided before `lock_windows` (AD-13); after the lock the key is read first
-(AD-9), then the Window rules (`ensure_open_for_booking`), the session's Hold on the Window is released (so its Seats
-are not counted twice), the Booking is inserted through `services.reference` (AD-20), the `payments` row is written,
-the confirmation goes through `outbox.send` (AD-12), and last the key row. Only a success stores a key. The store
-decides capacity (FR-10).
+(AD-9), then the Window rules (`ensure_open_for_booking`: `outside_horizon`, then `deadline_passed`), the session's
+Hold on the Window is released (so its Seats are not counted twice), Seats left is read and a request for more is
+`409 no_seat_free` with the fact `seats_left` (FR-12, AD-16), the Booking is inserted through `services.reference`
+(AD-20), the `payments` row is written, the confirmation goes through `outbox.send` (AD-12), and last the key row. Only
+a success stores a key; a refusal raises, so `db.run` rolls back everything, the deleted Hold included. The store's
+`booked_within_capacity` stays the backstop for capacity (FR-10).
 
 The Booking's value is stored (`price_per_seat_ore`, `total_ore`) and every response and email shows the stored
 values, never a recomputation (AD-13). No Sauna name or id appears in anything here (FR-4).
@@ -128,6 +130,9 @@ def create(session_id: int, window_id: int, seats: int, name: str, email: str, k
             raise Refused("invalid_key")
         ensure_open_for_booking(c, window_id)
         sq.delete_holds(c, session_id, window_id)
+        left = sq.seats_left(c, window_id)  # after the lock and without this session's Hold (FR-12, AD-16)
+        if left < seats:
+            raise Refused("no_seat_free", seats_left=max(left, 0))
         venue = vq.venue_facts(c)
         price = venue[7]
         booking_id, _ = reference.claim(

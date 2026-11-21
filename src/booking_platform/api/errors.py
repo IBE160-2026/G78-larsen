@@ -24,7 +24,8 @@ STATUS: dict[str, int] = {
     "rule_refused": 409,  # a named store rule (FR-29, FR-41)
     "already_exists": 409,  # one of the slice's UNIQUE keys
     "deadline_passed": 409,  # past the Window's Booking deadline (FR-39)
-    "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2)
+    "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2), or a Window
+    # that starts after it, on a booking, Hold or Whole-sauna booking (FR-18 IV-2, AD-4)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
     "invalid_key": 409,  # an Idempotency-Key already used by another session or for another request (AD-9)
     "payment_pending": 409,  # the payment is held (test switch `payment = "hold"`, AD-14); nothing written

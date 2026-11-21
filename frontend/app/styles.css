@@ -934,6 +934,11 @@ a {
   margin-top: var(--space-5);
 }
 
+/* A refusal Notice on Review (UX-DR25): the message, then "The nearest sessions with room:" or the Book seats link. */
+.notice .notice-next {
+  margin-top: var(--space-2);
+}
+
 @media (max-width: 1199px) {
   .review-cols {
     grid-template-columns: minmax(0, 1fr);

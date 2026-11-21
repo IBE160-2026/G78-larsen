@@ -41,6 +41,21 @@ def test_nothing_can_be_held_booked_or_booked_whole_after_the_booking_deadline(a
     assert api.book(2, 1).status_code == 201  # the next Window is open
 
 
+def test_nothing_can_be_held_booked_or_booked_whole_beyond_the_booking_horizon(api, admin, pg):
+    """FR-18 IV-2, FR-29: a Window that starts after the end of the Booking horizon (28 days)."""
+    set_clock(pg, win_start(0) - dt.timedelta(days=29))
+    for c, path, body in [(api, "/api/holds", dict(window_id=1, seats=1)),
+                          (api, "/api/bookings", booking_body(1, 1)),
+                          (admin, "/api/admin/whole-bookings", dict(window_id=1, sauna_id=4))]:
+        r = c.post(path, json=body, headers=new_key())
+        assert r.status_code == 409 and r.json()["detail"]["error"] == "outside_horizon", (path, r.text)
+    written = pg.execute("SELECT (SELECT count(*) FROM holds), (SELECT count(*) FROM bookings), "
+                         "(SELECT count(*) FROM whole_bookings), (SELECT count(*) FROM payments), "
+                         "(SELECT count(*) FROM outbox_emails), (SELECT count(*) FROM idempotency_keys)").fetchone()
+    pg.rollback()
+    assert written == (0, 0, 0, 0, 0, 0)
+
+
 def test_a_payment_after_the_hold_expired_books_only_if_the_seats_are_free(api, world, pg):
     """FR-36."""
     a, b, c = api, api_client(world), api_client(world)

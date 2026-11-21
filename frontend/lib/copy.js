@@ -72,8 +72,7 @@ export const DETAILS = Object.freeze({
   enterEmail: 'Enter a valid email address',
 });
 
-// Review (UX-DR24). The refusal Notices of Story 1.6 are not here yet: until then every refusal shows the
-// "please try again" Notice with Pay kept.
+// Review (UX-DR24, UX-DR25).
 export const REVIEW = Object.freeze({
   heading: 'Review',
   back: 'Back',
@@ -86,7 +85,43 @@ export const REVIEW = Object.freeze({
   // EXPERIENCE.md: a refusal shows a Notice with "please try again"; the first words are to be confirmed by Lisa.
   tryAgain: 'The booking could not be completed, please try again.',
   loadFailed: 'The booking could not be loaded, please try again.',
+  // The refusals of Story 1.6, verbatim from EXPERIENCE.md (Page and message wording).
+  seatsLeft: (n) => `Only ${seatsWord(n)} left in this session. You have not been charged.`,
+  noSeatFree: 'No seat free. You have not been charged.',
+  closed: 'This session can no longer be booked. You have not been charged.',
+  paymentFailed: 'The payment failed. You have not been charged. You can pay again.',
+  mayBePaid: 'This booking may already be paid. Check your email for a confirmation before you book again.',
+  nearest: 'The nearest sessions with room:',
+  bookSeats: 'Book seats',
 });
+
+/**
+ * Review's one code -> message mapping (AD-16). Every code here is in `api/errors.py` and `lib/api.js` STATUS.
+ * - `closed`: the session cannot be had (Notice with Nearest sessions; Pay, the note and the checkbox removed)
+ * - `failed`: the payment failed (Error summary; Pay kept)
+ * - `paid`: the key is known elsewhere (Notice with a Book seats link; Pay removed)
+ * - `retry`: anything else, including `payment_pending`, `try_again`, `no_session` and no answer (Notice; Pay kept)
+ * @param {string} code the envelope's `error`
+ * @param {object} facts the envelope's facts (`seats_left` for `no_seat_free`)
+ * @returns {{kind: 'closed'|'failed'|'paid'|'retry', text: string}}
+ */
+export function reviewRefusal(code, facts = {}) {
+  switch (code) {
+    case 'no_seat_free': {
+      const n = facts.seats_left;
+      return { kind: 'closed', text: Number.isInteger(n) && n >= 1 ? REVIEW.seatsLeft(n) : REVIEW.noSeatFree };
+    }
+    case 'deadline_passed':
+    case 'outside_horizon':
+      return { kind: 'closed', text: REVIEW.closed };
+    case 'payment_failed':
+      return { kind: 'failed', text: REVIEW.paymentFailed };
+    case 'invalid_key':
+      return { kind: 'paid', text: REVIEW.mayBePaid };
+    default:
+      return { kind: 'retry', text: REVIEW.tryAgain };
+  }
+}
 
 // Confirmation (UX-DR27).
 export const CONFIRMATION = Object.freeze({

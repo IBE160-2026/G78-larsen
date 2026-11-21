@@ -82,6 +82,8 @@ def test_when_every_attempt_conflicts_the_guest_is_told_to_try_again_and_nothing
     assert r.status_code == 503 and r.json() == {"detail": {"error": "try_again"}}, r.text
     assert force_conflict.attempts() == db.RETRIES, "bounded: exactly RETRIES attempts, no more, no fewer"
     assert rows(pg, table) == 0
+    if table == "bookings":  # a Booking that never came has no charge, no email and no key (FR-12, FR-14)
+        assert [rows(pg, t) for t in ("payments", "outbox_emails", "idempotency_keys")] == [0, 0, 0]
 
 
 def test_a_failed_booking_leaves_the_guests_hold_untouched(api, pg, force_conflict):

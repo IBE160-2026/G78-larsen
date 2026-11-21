@@ -160,9 +160,12 @@ def get_window(window_id: int) -> dict:
 
 
 def ensure_open_for_booking(c: psycopg.Connection, window_id: int) -> None:
-    """The Window exists and its Booking deadline has not passed. Call after the Window is locked (AD-4)."""
-    is_open = q.before_booking_deadline(c, window_id)
-    if is_open is None:
+    """The Window exists, starts inside the Booking horizon and its Booking deadline has not passed, judged in that
+    order on app_now(). Call after the Window is locked (AD-4)."""
+    inside = q.within_horizon(c, window_id)
+    if inside is None:
         raise Refused("not_found")
-    if not is_open:
+    if not inside:
+        raise Refused("outside_horizon", message="the Window starts after the end of the Booking horizon")
+    if not q.before_booking_deadline(c, window_id):
         raise Refused("deadline_passed", message="the Booking deadline has passed")
