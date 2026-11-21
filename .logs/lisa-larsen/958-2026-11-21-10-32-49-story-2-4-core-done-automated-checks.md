@@ -71,3 +71,22 @@ Lisa ba om «push pull», likt som for Story 1.1: én gren og én pull request p
 
 ### Åpne punkter
 - Merge PR #5, #6 og #7 i den rekkefølgen. Hver gren bygger på den forrige, så #6 og #7 viser også de tidligere storyenes commits til de er merget.
+
+## 2026-11-21 kl. 11:15 — Lisa Larsen
+
+### Oppgave
+Lisa ba om `gh pr merge` for de åpne PR-ene.
+
+### Plan
+- Merget PR #5, #6 og #7 i rekkefølge med merge-commit, slik som #1–4. Grenene ble beholdt.
+
+### Resultat
+- `origin/main` har nå tre merge-commits:
+  - `ca464b1`: #5, Story 2.2
+  - `ae6ac4b`: #6, Story 2.3
+  - `a52c56e`: #7, Story 2.4 del A
+- Lokal `main` er oppdatert med fast-forward.
+- Lukket: «merge PR #5, #6 og #7 i den rekkefølgen».
+
+### Åpne punkter
+- Ingen nye. Story 2.4 del B står fortsatt i `issues.md`.
