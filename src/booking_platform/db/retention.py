@@ -9,6 +9,8 @@ import psycopg
 # What a due Booking's name and email read as, and become (Lisa, 2026-11-21).
 ANONYMISED_NAME = "Anonymised"
 ANONYMISED_EMAIL = "anonymised@example.invalid"
+# What a due Booking's Outbox recipient and body read as, and become (Lisa, 2026-11-21): what `clear_emails` stores.
+CLEARED = ""
 
 
 def anonymise_bookings(c: psycopg.Connection) -> int:

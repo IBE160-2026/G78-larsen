@@ -11,9 +11,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 
-from ..services import auth, blocks, booking_list, marks, sessions, settings, whole
+from ..services import auth, blocks, booking_list, marks, outbox, sessions, settings, whole
 from .deps import clear_session_cookie, current_session, require_admin, set_session_cookie
-from .schemas import BlockIn, BookingListQuery, MarkIn, SettingsIn, SignInIn, WholeIn
+from .schemas import BlockIn, BookingListQuery, MarkIn, OutboxQuery, SettingsIn, SignInIn, WholeIn
 
 router = APIRouter(prefix="/api/admin", redirect_slashes=False, dependencies=[Depends(require_admin)])
 sign_in_router = APIRouter(prefix="/api/admin", redirect_slashes=False)
@@ -50,6 +50,14 @@ def bookings(query: Annotated[BookingListQuery, Query()]):
     `windows.ensure_generated()`, and a refused request (422) writes nothing. Name and email of a Booking due for
     retention are masked (FR-21)."""
     return booking_list.day(query.date)
+
+
+@router.get("/outbox")
+def outbox_emails(query: Annotated[OutboxQuery, Query()]):
+    """Every simulated email, newest first (FR-17, AD-12), with time, recipient, subject and body exactly as stored.
+    One SELECT (the Venue time zone included): no lock, no write. Recipient and body of an email whose Booking is due for retention
+    read as '' (FR-21). Any query field is `422 invalid_input`."""
+    return outbox.listing()
 
 
 @router.post("/whole-bookings", status_code=201)

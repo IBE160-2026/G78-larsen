@@ -3,6 +3,9 @@
 - Once app_now() (moved through `clock.off`) is more than 12 months after the end of a Booking's Window, the Booking
   list returns its name and email as "Anonymised" / "anonymised@example.invalid", and the row is not written.
 - One day before the limit nothing is masked.
+- The Outbox (`GET /api/admin/outbox`) returns the recipient and body of every email linked to a due Booking as '',
+  without writing; an email linked to a Booking not due, an email with no Booking and every subject are unchanged.
+  After the catch-up the read gives the same values.
 - `services.catchup.run()` anonymises the due Bookings and sets the recipient and body of their Outbox emails to '';
   Bookings not due and their emails are untouched; a second run counts 0 and changes nothing.
 - A backend started with the clock past the limit anonymises at startup and logs the counts only.
@@ -60,6 +63,25 @@ def window_bookings(world) -> dict[int, list[dict]]:
         r = admin.get("/api/admin/bookings", params={"date": DAY})
     assert r.status_code == 200, r.text
     return {w["id"]: w["bookings"] for w in r.json()["windows"]}
+
+
+def outbox(world) -> dict[str, tuple[str, str]]:
+    """The Outbox, read by an Administrator signed in on the clock as it is now: subject -> (recipient, body)."""
+    with admin_client(world) as admin:
+        r = admin.get("/api/admin/outbox")
+    assert r.status_code == 200, r.text
+    return {e["subject"]: (e["recipient"], e["body"]) for e in r.json()["emails"]}
+
+
+UNLINKED = ("Unlinked", "staff@example.com", "An email with no Booking.")
+
+
+@pytest.fixture
+def unlinked(booked, pg):
+    """An Outbox email with no Booking, written straight to the store."""
+    subject, recipient, body = UNLINKED
+    pg.execute("INSERT INTO outbox_emails (recipient, subject, body) VALUES (%s, %s, %s)", (recipient, subject, body))
+    pg.commit()
 
 
 def test_the_predicate(booked, pg):
@@ -121,3 +143,35 @@ def test_a_backend_started_past_the_limit_anonymises_at_startup(booked, pg, data
     log = b.output()
     assert "retention catch-up: 1 bookings anonymised, 1 emails cleared" in log
     assert "Ingrid Berg" not in log and "ingrid@example.com" not in log
+
+
+def test_the_outbox_masks_due_emails_on_read_without_writing(booked, unlinked, world, pg):
+    set_clock(pg, PAST)
+    before = rows(pg)
+    got = outbox(world)
+    assert got[f"Booking confirmed: {booked[1]}"] == ("", "")
+    recipient, body = got[f"Booking confirmed: {booked[3]}"]
+    assert recipient == "ingrid@example.com" and booked[3] in body
+    assert got[UNLINKED[0]] == UNLINKED[1:]
+    assert len(got) == 3  # every subject is unchanged
+    assert rows(pg) == before
+    assert all(recipient == "ingrid@example.com" and body
+               for _, booking_id, recipient, _, body, _ in before[1] if booking_id is not None)  # stored unmasked
+
+
+def test_one_day_before_the_limit_the_outbox_masks_nothing(booked, unlinked, world, pg):
+    set_clock(pg, LIMIT - dt.timedelta(days=1))
+    got = outbox(world)
+    for wid in (1, 3):
+        recipient, body = got[f"Booking confirmed: {booked[wid]}"]
+        assert recipient == "ingrid@example.com" and booked[wid] in body
+    assert got[UNLINKED[0]] == UNLINKED[1:]
+
+
+def test_the_outbox_reads_the_same_after_the_catch_up(booked, unlinked, world, pool, pg):
+    set_clock(pg, PAST)
+    masked = outbox(world)
+    assert catchup.run() == {"bookings_anonymised": 1, "emails_cleared": 1}
+    assert outbox(world) == masked
+    _, emails = rows(pg)
+    assert sum(1 for e in emails if e[2] == "" and e[4] == "") == 1
