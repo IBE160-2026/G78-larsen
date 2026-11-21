@@ -45,6 +45,10 @@ class BookingListQuery(DateQuery):
     allowed. No other field."""
 
 
+class OutboxQuery(Strict):
+    """`GET /api/admin/outbox` (FR-17) takes no query field: any field is an unknown field."""
+
+
 class SessionIn(Strict):
     """`POST /api/session` takes an empty JSON object."""
 

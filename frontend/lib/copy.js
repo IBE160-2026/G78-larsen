@@ -169,6 +169,17 @@ export const BOOKING_LIST = Object.freeze({
   failed: 'The booking list could not be loaded, please try again.',
 });
 
+// The Outbox (FR-17, FR-21, UX-DR32). A recipient or body masked for retention arrives as '' (Lisa, 2026-11-21).
+export const OUTBOX = Object.freeze({
+  heading: 'Outbox',
+  noEmails: 'No emails',
+  sent: (time) => `Sent ${time}`,
+  to: (recipient) => `To ${recipient}`,
+  anonymised: 'Anonymised',
+  removed: 'Removed after 12 months.',
+  failed: 'The outbox could not be loaded, please try again.',
+});
+
 // Sign-in (FR-15, UX-DR30). Every refusal is the one message, in an Error summary with no Field error (PW-5).
 export const SIGN_IN = Object.freeze({
   heading: 'Sign in',

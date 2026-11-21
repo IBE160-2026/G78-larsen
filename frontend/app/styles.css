@@ -1092,6 +1092,15 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* An Outbox entry (UX-DR32): Email as sent with the subject, time and recipient in label above the body. */
+.outbox-entry .reference-label {
+  margin-bottom: var(--space-1);
+}
+
+.outbox-entry .email-body {
+  margin-top: var(--space-1);
+}
+
 /* ------------------------------------------------------------------ Administrator pages (UX-DR3, UX-DR30; DESIGN.md) */
 
 /* The Administrator bar: full width in --color-bar, --color-on-bar text in weight 600, the name on the left and the
@@ -1193,12 +1202,14 @@ a {
 }
 
 .admin-main > .notice,
-.session-groups-none {
+.session-groups-none,
+.outbox-none {
   margin-top: var(--space-5);
   max-width: var(--measure-text);
 }
 
-.session-groups-none {
+.session-groups-none,
+.outbox-none {
   font-size: var(--type-body-sm-size);
   line-height: var(--type-body-sm-line);
 }

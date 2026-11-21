@@ -41,3 +41,6 @@
 - source_spec: `.docs/implementation-artifacts/spec-2-1-admin-sign-in-out.md`
   summary: E2e-test that an Administrator page restored from the back/forward cache after sign-out re-checks `GET /api/admin/me` (`AdminGuard` `pageshow`) and goes to Sign-in.
   evidence: The current Back step returns to the first Sign-in entry (sign-out uses `router.replace`), so no Administrator page is restored and the `pageshow` listener never runs in a test.
+- source_spec: none
+  summary: Update mockups/key-booking-list.html to the denser Booking list style in DESIGN.md (commit 1541485) and fix DESIGN.md front matter, which still lists heading-md for the session group.
+  evidence: Split from the Story 2.3 Outbox intent (2026-11-21); independently shippable design-doc work, not part of the Outbox.
