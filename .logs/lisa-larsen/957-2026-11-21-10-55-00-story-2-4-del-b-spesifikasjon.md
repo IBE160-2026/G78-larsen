@@ -21,7 +21,7 @@ Lisa ba om å starte del B av Story 2.4: README-en, kjøring fra en fersk klone,
   - Lisa kjører de manuelle sjekkene (tastatur, 200 % zoom, tabulatorrekkefølge, NVDA med Chrome) mens agenten venter. Agenten fører inn resultatene hun rapporterer.
   - Agenten kjører sjekken fra en fersk klone på laptopen, i en ny mappe. Først stopper den stakken `g78-larsen` med `docker compose down` uten `-v`, og etterpå starter den den igjen.
 - `epic-2-context.md` er bygget på nytt med nesten samme innhold. Endringer: `POST /api/admin/sign-in` er lagt til, og formen på feilsvarene og fargene i Administrator-linjen er tatt med.
-- Ingenting er committet unntatt denne loggen. Spesifikasjonen og `epic-2-context.md` ligger ukommittert på `main`.
+- Lisa ba om commit. Spesifikasjonen og `epic-2-context.md` er committet som `55b07d0` på den nye grenen `story/2-4-core-done-part-b`, som implementeringen fortsetter på. Ingenting er pushet.
 
 ### Åpne punkter
 - Implementeringen av del B gjenstår og startes i en ny `bmad-build`-økt fra spesifikasjonen. Punktet var allerede åpent i `issues.md`.
