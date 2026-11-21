@@ -1220,8 +1220,16 @@ a {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-1) var(--space-5);
-  padding: var(--space-2) var(--space-3);
+  gap: 0 var(--space-5);
+  padding: var(--space-1) var(--space-3);
+}
+
+/* The session's time in the text family, as on Book seats (session-time-selected), not a heading font. */
+.session-group-time {
+  font-family: var(--font-text);
+  font-size: var(--type-session-time-selected-size);
+  line-height: var(--type-session-time-selected-line);
+  font-weight: var(--type-session-time-selected-weight);
 }
 
 /* A session with no Seats left: the unavailable fill, with the state also in words ("Sold out"). */
@@ -1239,7 +1247,6 @@ a {
 }
 
 .session-group-none {
-  padding: 0 var(--space-3) var(--space-3);
   color: var(--color-muted);
   font-size: var(--type-body-sm-size);
   line-height: var(--type-body-sm-line);
@@ -1247,16 +1254,18 @@ a {
 
 /* Booking table: fixed columns, so a long email wraps instead of widening the page; numbers right-aligned. */
 .booking-table {
-  width: 100%;
+  /* a small indent under the session's header, so the rows read as belonging to it */
+  width: calc(100% - var(--space-4));
+  margin-left: var(--space-4);
   table-layout: fixed;
   border-collapse: collapse;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
   font-size: var(--type-body-sm-size);
   line-height: var(--type-body-sm-line);
 }
 
 .booking-table th {
-  padding: var(--space-1) var(--space-3);
+  padding: 2px var(--space-3);
   text-align: left;
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
@@ -1264,7 +1273,7 @@ a {
 }
 
 .booking-table td {
-  padding: var(--space-1) var(--space-3);
+  padding: 2px var(--space-3);
   border-top: 1px solid var(--color-border);
   overflow-wrap: anywhere;
 }

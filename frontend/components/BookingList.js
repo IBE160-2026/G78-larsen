@@ -7,8 +7,8 @@
 //   the API answers for its own `today`; the browser clock is never read (AD-4, AD-16).
 // - "Previous day" and "Next day" are real Text links to the neighbouring dates. The date field commits on Enter or
 //   blur and replaces the address; a malformed date shows the Field error "Enter the date as dd.mm.yyyy".
-// - Each group: the time in heading-md (named "Session 10:00 to 11:30"), the figures on one line in tabular figures,
-//   then the Booking table, or "No bookings". A session with no Seats left has the unavailable header with
+// - Each group: the time in session-time-selected (named "Session 10:00 to 11:30") and the figures on one line in
+//   tabular figures, with "No bookings" on that same line when the session is empty; otherwise the Booking table. A session with no Seats left has the unavailable header with
 //   "Seats left 0" and "Sold out" in weight 600, so the state is said in words.
 // - Stored text (name, email) is rendered as React text, never as HTML (IV-5).
 // - A 401 goes to Sign-in; any other failure shows the "please try again" Notice.
@@ -36,7 +36,7 @@ function SessionGroup({ session }) {
   return (
     <section className={full ? 'session-group session-group-full' : 'session-group'}>
       <div className="session-group-header">
-        <h2 className="heading-md tabular" aria-label={BOOKING_LIST.session(start, end)}>
+        <h2 className="session-group-time tabular" aria-label={BOOKING_LIST.session(start, end)}>
           {start}–{end}
         </h2>
         <p className="session-group-figures tabular">
@@ -54,10 +54,9 @@ function SessionGroup({ session }) {
             <span>{BOOKING_LIST.seatsLeft(session.seats_left)}</span>
           )}
         </p>
+        {session.bookings.length === 0 && <p className="session-group-none">{BOOKING_LIST.noBookings}</p>}
       </div>
-      {session.bookings.length === 0 ? (
-        <p className="session-group-none">{BOOKING_LIST.noBookings}</p>
-      ) : (
+      {session.bookings.length > 0 && (
         <table className="booking-table">
           <caption className="visually-hidden">{BOOKING_LIST.caption(start, end)}</caption>
           <colgroup>

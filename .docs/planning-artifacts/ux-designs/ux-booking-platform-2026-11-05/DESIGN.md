@@ -441,8 +441,8 @@ Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, 
 **Administrator** (Session group and Booking table rendered in [`key-booking-list.html`](mockups/key-booking-list.html), the rest spine only)
 
 - **Administrator bar.** `{colors.bar}` fill, `{colors.on-bar}` text in weight 600, `{spacing.3}` by `{spacing.5}` padding, as the bar in [`color-themes-3.html`](mockups/color-themes-3.html). Name on the left, links on the right.
-- **Session group.** Time in `{typography.heading-md}`, figures on one line beside it in `{typography.body-sm}` with tabular figures, rule above. A full Session has a `{colors.unavailable}` header, with its figures in weight 600.
-- **Booking table.** Header in `{typography.label}`, rows in `{typography.body-sm}` with 1 px `{colors.border}` lines, numbers right-aligned in tabular figures.
+- **Session group.** Time in `{typography.session-time-selected}` (text family, not a heading font), figures on one line beside it in `{typography.body-sm}` with tabular figures, rule above; a Session with no Bookings says "No bookings" on that same line, so an empty Session is one line (Lisa, 2026-11-21: denser list for overview). A full Session has a `{colors.unavailable}` header, with "Seats left 0" and "Sold out" in weight 600.
+- **Booking table.** Header in `{typography.label}`, rows in `{typography.body-sm}` with 1 px `{colors.border}` lines and 2 px vertical cell padding, indented `{spacing.4}` under the Session header (compact, Lisa 2026-11-21), numbers right-aligned in tabular figures.
 - **Outbox entry.** Same block as Email as sent, with time, recipient and subject above the body in `{typography.label}`.
 
 **If-time plug-ins (spine only, none built in Core)**
