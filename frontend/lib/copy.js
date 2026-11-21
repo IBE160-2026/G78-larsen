@@ -139,7 +139,7 @@ export const ADMIN = Object.freeze({
   bookingList: 'Booking list',
   outbox: 'Outbox',
   signOut: 'Sign out',
-  // Not in EXPERIENCE.md's wording tables (it says only "please try again"): to be confirmed by Lisa.
+  // Not in EXPERIENCE.md's wording tables (it says only "please try again"); approved by Lisa 2026-11-21.
   signOutFailed: 'Sign-out could not be completed, please try again.',
 });
 
