@@ -30,13 +30,14 @@ Planlegge Story 1.6, «A Guest who cannot get the seats is told why and charged 
 ## 2026-11-21 kl. 00:19 — Lisa Larsen
 
 ### Oppgave
-Implementere Story 1.6 fra specen med `/bmad-build .docs/implementation-artifacts/spec-1-6-refusals-charged-nothing.md`: gjesten får vite hvorfor bookingen ble avvist, og ingenting belastes.
+Implementere Story 1.6 fra specen med `/bmad-build .docs/implementation-artifacts/spec-1-6-refusals-charged-nothing.md`: gjesten får vite hvorfor bookingen ble avvist, og ingenting belastes. Etterpå gikk Lisa gjennom storyen i nettleseren.
 
 ### Plan
 - `bmad-build` steg 3–5 etter [specen](../../.docs/implementation-artifacts/spec-1-6-refusals-charged-nothing.md).
 - Steg 3: en subagent implementerte specen. Den stoppet midt i arbeidet fordi bruksgrensen ble nådd, og fortsatte etterpå.
 - Steg 4: tre reviewere gikk gjennom diffen. De fant 23 punkter, og hvert punkt er vurdert i triageloggen i specen.
 - Steg 5: specen ble satt til `done`, sprint-status til `review`, og arbeidet ble committet lokalt.
+- Gjennomgang i nettleseren: compose-stakken ble startet, og avvisningene ble laget med SQL og testbryteren.
 
 ### Resultat
 - Commit `7dbe87a` (ikke pushet). Commiten inneholder:
@@ -54,11 +55,15 @@ Implementere Story 1.6 fra specen med `/bmad-build .docs/implementation-artifact
   1 punkt er utsatt til `deferred-work.md`, og 13 er avvist.
 - **Lukket:** de to Story 1.5-punktene om nøkkelen og ny økt etter `401`, og punktet «implementer Story 1.6». Story 1.5-oppføringen i `deferred-work.md` om e2e-test av Review er merket som ferdig.
 
+- **Gjennomgang i nettleseren** (Lisa, 10.12.2026 på dev-stakken). Fire tilfeller ble prøvd, og alle var riktige:
+  - **Plassene tatt** (43 av 44 booket): «Only 1 seat left…» med nærmeste økter 10:00, 11:30 og 14:30.
+  - **Siste plass borte:** «No seat free…» med nærmeste økter.
+  - **Betalingen feilet** (`payment = "fail"`): feiloppsummering, og tittelen ble «Error: Review - Saunalöyly». Etter at bryteren ble slått av, ble det én booking `MT9XNKDV` med én betaling, én e-post og én nøkkel.
+  - **Økten tapt** (`DELETE FROM sessions`): «please try again», og neste Pay ga én booking `B9N7XGFR` under den nye økten.
+
+  Frist og `invalid_key` dekkes bare av e2e-testene. Fyllbookingen er slettet; `MT9XNKDV` og `B9N7XGFR` ligger igjen i dev-databasen.
+- **Lisa godkjente** de tre valgene som ikke står i specen, og satte Story 1.6 til `done`: commit `2936cfb`, der README også er oppdatert.
+
 ### Åpne punkter
-- Gå gjennom Story 1.6, for eksempel med `bmad-walkthrough` og i nettleseren, og sett den til `done` i `sprint-status.yaml`.
-- Godkjenn tre valg subagenten tok som ikke står i specen:
-  - Etter `invalid_key` starter «Book seats» et nytt utkast, men tar med navn og e-post.
-  - «please try again»-meldingen tar også fokus.
-  - Etter `invalid_key` fjernes Pay, betalingsnotatet og avkrysningsboksen.
 - Utsatt test (`deferred-work.md`): Review faller tilbake til listingens `nearest` på andre datoer når dagen er full. Det kjøres aldri i noen test.
 - Vurder en oppbevaringsregel for `idempotency_keys`. Nøklene blir ikke lenger slettet sammen med økten (review-rad 17, avvist som liten).
