@@ -185,3 +185,4 @@
 - [x] 2026-11-21 [story-2-1-admin-sign-in-out](961-2026-11-21-01-22-04-story-2-1-admin-sign-in-out.md) — gå gjennom Story 2.1 (f.eks. `bmad-walkthrough` og i nettleseren) og sett den til `done` i `sprint-status.yaml` (løst 2026-11-21: Lisa testet i nettleseren og satte storyen til `done`, commit `8e73267`)
 - [x] 2026-11-21 [story-2-2-booking-list](960-2026-11-21-04-11-07-story-2-2-booking-list.md) — implementer Story 2.2 i ny økt: `/bmad-build .docs/implementation-artifacts/spec-2-2-booking-list.md` (løst 2026-11-21)
 - [ ] 2026-11-21 [story-2-2-booking-list](960-2026-11-21-04-11-07-story-2-2-booking-list.md) — Story 2.3: Outbox-siden må maskere `recipient`/`body` for Bookings med `retention_due` (catch-up kjører bare ved oppstart)
+- [ ] 2026-11-21 [story-2-2-booking-list](960-2026-11-21-04-11-07-story-2-2-booking-list.md) — mockupen `key-booking-list.html` viser gammel stil for Booking list; oppdater til den tettere stilen i DESIGN.md (commit `1541485`)
