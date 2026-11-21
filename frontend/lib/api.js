@@ -6,6 +6,7 @@
 export const STATUS = Object.freeze({
   no_session: 401,
   not_signed_in: 401,
+  sign_in_refused: 401,
   cross_origin: 403,
   not_allowed: 403,
   not_found: 404,

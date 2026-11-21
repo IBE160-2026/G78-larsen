@@ -131,3 +131,24 @@ export const CONFIRMATION = Object.freeze({
   sentByEmail: 'Sent by email:',
   loadFailed: 'The booking could not be loaded, please try again.',
 });
+
+// The Administrator pages (UX-DR3, UX-DR30, EXPERIENCE.md). The copy never uses the word "session" for a sign-in.
+export const ADMIN = Object.freeze({
+  name: 'Saunalöyly',
+  nav: 'Administrator',
+  bookingList: 'Booking list',
+  outbox: 'Outbox',
+  signOut: 'Sign out',
+  // Not in EXPERIENCE.md's wording tables (it says only "please try again"): to be confirmed by Lisa.
+  signOutFailed: 'Sign-out could not be completed, please try again.',
+});
+
+// Sign-in (FR-15, UX-DR30). Every refusal is the one message, in an Error summary with no Field error (PW-5).
+export const SIGN_IN = Object.freeze({
+  heading: 'Sign in',
+  email: 'Email',
+  password: 'Password',
+  submit: 'Sign in',
+  refused: 'Wrong email or password',
+  failed: 'Sign-in could not be completed, please try again.',
+});

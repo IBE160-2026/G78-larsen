@@ -27,6 +27,12 @@ Both fonts are self-hosted in `frontend/public/fonts/` and loaded through `@font
 | `fonts/finlandica-variable.woff2` | Every page: headings and the Wordmark | [`ofl/finlandica/Finlandica[wght].ttf`](https://github.com/google/fonts/tree/main/ofl/finlandica) (google/fonts commit `a60a77e`), Finlandica 1.064, © 2015 The Finlandica Project Authors, SIL OFL 1.1 ([`OFL-Finlandica.txt`](frontend/font-licenses/OFL-Finlandica.txt)) | Variable weight 400–700. SHA-256 `097c7b41…3b6f` |
 | `fonts/source-sans-3-variable.woff2` | Every page: all text | [`ofl/sourcesans3/SourceSans3[wght].ttf`](https://github.com/google/fonts/tree/main/ofl/sourcesans3) (google/fonts commit `914ec11`), Source Sans 3 3.052, © 2010–2020 Adobe, with Reserved Font Name "Source", SIL OFL 1.1 ([`OFL-SourceSans3.txt`](frontend/font-licenses/OFL-SourceSans3.txt)) | Variable weight 200–900, upright only. SHA-256 `f336c96e…dccb` |
 
+## Data
+
+Files that ship with the backend rather than the website.
+
+The common-password list (`src/booking_platform/data/common-passwords.txt`, Story 2.1) is what `services.auth.check_password_rules` refuses a new password against (FR-19, PW-2). It is derived from [`Passwords/Common-Credentials/100k-most-used-passwords-NCSC.txt`](https://github.com/danielmiessler/SecLists/blob/1a7bb9127eca9e6ff2fc0301c597fe6e16a0cb56/Passwords/Common-Credentials/100k-most-used-passwords-NCSC.txt) in SecLists (commit `1a7bb91`, 99 840 lines, SHA-256 `c2e56968…76e0`), © Daniel Miessler and contributors, [MIT licence](https://github.com/danielmiessler/SecLists/blob/master/LICENSE). Filter: each line NFC-normalised, kept when it has 15 or more characters (shorter ones are refused by the length rule anyway), lower-cased, de-duplicated and sorted, one entry per line with LF endings. Result: 329 entries, SHA-256 `e96e3cc8…0274`.
+
 ## Known exception
 
 The Venue name "Saunalöyly" is kept although other parties hold marks for "Löyly", because the Venue is fictional and not used in trade (PRD §12 Q10).

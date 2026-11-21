@@ -8,9 +8,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Query, Request, Response
 
-from .. import config
 from ..services import booking, holds, sessions, venue, windows
-from .deps import COOKIE, current_session, require_session
+from .deps import COOKIE, current_session, require_session, set_session_cookie
 from .schemas import BookingIn, BookingResult, HoldIn, SessionIn, VenueOut, WindowsQuery
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
@@ -44,8 +43,7 @@ def open_session(_: SessionIn, request: Request, response: Response):
     """Create an anonymous session, or return the caller's existing one while it is still valid (AD-8)."""
     s, token = sessions.open_session(request.cookies.get(COOKIE))
     if token is not None:
-        response.set_cookie(COOKIE, token, httponly=True, samesite="strict", path="/",
-                            secure=config.settings().https)
+        set_session_cookie(response, token)
     return {"role": s.role}
 
 

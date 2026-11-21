@@ -35,3 +35,9 @@
 - source_spec: `.docs/implementation-artifacts/spec-1-6-refusals-charged-nothing.md`
   summary: E2e-test Review's fallback to the listing's `nearest` (other dates) when the refused session's date has no other session with room, and that choosing one reloads Review for that date.
   evidence: Unverified (maybe-false, medium if true): every refusal in `tests/e2e/test_fr11_refusals.py` uses a date with eight empty Windows, so the fallback branch in `Review.js` `nearestSessions` never runs; settle by filling the date's other seven Windows in the seats-taken test.
+- source_spec: `.docs/implementation-artifacts/spec-2-1-admin-sign-in-out.md`
+  summary: Bound the cost of sign-in: the Argon2id verify (64 MiB, t=3) runs inside the `db.run` transaction while holding the throttle row lock and a pool connection, so a burst of sign-ins can starve the pool.
+  evidence: `services/auth.py` `sign_in` `work`; prescribed by the Story 2.1 intent (AD-11). Options: a verify semaphore, or verify outside the transaction with a re-check of the lock.
+- source_spec: `.docs/implementation-artifacts/spec-2-1-admin-sign-in-out.md`
+  summary: E2e-test that an Administrator page restored from the back/forward cache after sign-out re-checks `GET /api/admin/me` (`AdminGuard` `pageshow`) and goes to Sign-in.
+  evidence: The current Back step returns to the first Sign-in entry (sign-out uses `router.replace`), so no Administrator page is restored and the `pageshow` listener never runs in a test.

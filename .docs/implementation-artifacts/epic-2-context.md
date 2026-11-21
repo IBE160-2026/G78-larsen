@@ -1,0 +1,60 @@
+# Epic 2 Context: The Administrator sees who is coming
+
+<!-- Compiled from planning artifacts. Edit freely. Regenerate with compile-epic-context if planning docs change. -->
+
+## Goal
+
+Give Saunalöyly's staff a safe back office and finish the Core. The Administrator signs in with a throttled, hashed password and sees every session (Window) of a chosen day with its Seat capacity, Seats booked, Seats left and every Booking. The Administrator can also read every simulated email in the Outbox exactly as it was sent. Anonymous visitors and Guests get nothing from any Administrator address or endpoint. The epic ends with "Core done": the examiner can start the platform, sign in and run every test from a fresh clone by following the README alone, and the automated and manual accessibility passes cover every Core page. After this epic the Core is complete, and Epic 3 (HTTPS) is next.
+
+## Stories
+
+- Story 2.1: Administrator signs in and out
+- Story 2.2: Booking list for a chosen day
+- Story 2.3: Outbox
+- Story 2.4: Core done: the examiner can run, sign in and check everything
+
+## Requirements & Constraints
+
+- **Sign-in:** a seeded Administrator (`admin@saunaloyly.example`) has a documented local test password, which Lisa chooses in Story 2.1 and writes in the README. Accounts and password changes go only through the seed or `booking-platform create-admin`, which prompts twice without echo and never takes the password as an argument or env var. The API never returns a password or hash.
+- **Same answer for every failure:** a wrong password, an unknown email and a throttled email all get the same `401` and the copy "Wrong email or password". Argon2 verification runs against a dummy hash for unknown emails, so timing reveals nothing either.
+- **Throttle:** after 5 failures in a row for one email (lower-cased, known or unknown), that email is refused for 15 minutes, even with the right password. A success resets the count. Parallel wrong attempts must all be counted.
+- **Passwords:** stored only as salted slow hashes, and the same password gives different hashes. A new password needs at least 15 characters, at least 64 must be allowed, and any characters are accepted. It is refused if it is on the common list or equals the email (case-insensitive). There are no composition rules, and paste and password managers work.
+- **Access:** the server checks the role on every Administrator request. An anonymous caller, including a Guest's booking-flow session, gets `401` and learns nothing, not even a count. Sign-out revokes the session, and the old token then gets `401`.
+- **Booking list figures:** they must equal what Guests see for the same Window. A new Booking appears on the next load. Stored text (name, email) is always rendered escaped (IV-5). A malformed date or an unknown query field gets `422 invalid_input`.
+- **Outbox:** every email is listed newest first with its time, recipient, subject and full body exactly as stored, with plain-text links that start with `BP_BASE_URL`. A Booking's confirmation body equals the "Sent by email:" block that the Confirmation page showed.
+- **Retention (FR-21):** after 12 months past a Booking's Window, its name and email are masked on read, and the linked Outbox recipient and body are masked too. Nothing is written on read; the startup catch-up anonymises them later.
+- **Logs:** the test password, session tokens and request bodies never appear in the compose logs.
+- **Layout and accessibility:** Administrator pages meet WCAG 2.2 AA (1.4.10 Reflow is the one known gap), have no horizontal scroll at 1024, 1366 and 1920 px, and work with the keyboard alone.
+- **Core done:** every Core page has final copy and images. SC1, SC9 without HTTPS and the laptop part of SC10 pass, `main` is green, and the README's "Not delivered" section is true on the day it is merged.
+- **Tests are part of done in every story**, and all of them run with `uv run pytest`.
+
+## Technical Decisions
+
+- **Schema (Story 2.1 migration):** the migration creates only `accounts(id, email UNIQUE, password_hash, role)`, `sessions.account_id` (a nullable FK) and `sign_in_throttle(email_lower PK, failures, locked_until)`. The throttle table has no FK to `accounts`.
+- **Passwords:** hashed with Argon2id via `argon2-cffi` defaults in PHC format, and rehashed at sign-in when the parameters change. `services.auth.check_password_rules(password, email)` is the one rule function, used by the seed, `create-admin` and later sign-up. The common list ships as `src/booking_platform/data/common-passwords.txt`.
+- **Throttle transaction:** each sign-in runs in one `db.run(work)`. It upserts and locks the throttle row `FOR UPDATE` before deciding, and it returns a refusal from `work` (rather than raising it) so that the failure count commits. Time comes from `app_now()`, and tests move the clock only through `clock.off`.
+- **Sessions:** the Sign-in page calls `POST /api/session`, and no other Administrator page load creates a session. Sign-in rotates the token on the same `sessions` row, sets the Administrator role and gives an 8 h sliding lifetime. Sign-out (`POST /api/admin/sign-out`) deletes the row and clears the cookie. Both are state-changing requests, so the CSRF rule applies: without a same-origin `Origin` or `Sec-Fetch-Site`, the request gets `403 cross_origin`.
+- **Router:** every Administrator endpoint is on the single `/api/admin/` router. Its dependency resolves the caller from `sessions.account_id` and role: anonymous gets `401`, a signed-in non-Administrator gets `403`, and neither changes anything. The test fixture's Administrator session must now come from a real sign-in with the seeded account.
+- **Booking list API:** `GET /api/admin/bookings?date=YYYY-MM-DD` returns every Window starting on that Venue date in time order, including Windows with no Bookings. Each Window has `start`, `end`, `seat_capacity`, `seats_booked` and `seats_left`, taken only from `window_open_capacity()`, `window_booked_seats()` and `seats_left()`. Its Bookings come oldest first with reference, name, email, Seats, `total_ore` and `created_at`. The endpoint takes no lock and writes nothing apart from `ensure_generated()`. The page's default date is the API's `today`, never the browser clock.
+- **Outbox API:** `GET /api/admin/outbox` reads `outbox_emails` newest first, with no lock and no write. Only `/api/admin/` lists the Outbox.
+- **Retention:** `retention_due(booking_id)` is the one SQL predicate. In this epic it is true when `app_now()` is more than 12 months after the end of the Booking's Window; Epic 4 adds the Voucher clause. `services/catchup.py` anonymises Bookings and clears their Outbox emails at startup, with one function per effect.
+- **Errors and copy:** new refusal codes go in `api/errors.py` and are mirrored once in `frontend/lib/`. Money is shown as "NOK 500" from integer øre, and times as `dd.mm.yyyy HH:MM` in Europe/Oslo.
+- **Frontend:** shared pieces live in `frontend/components/`: the Administrator bar is new, and Error summary, Notice, Text field and Email-as-sent are reused. The Outbox entry reuses Email-as-sent with extra header lines, so the two never drift. Browser calls go only through `lib/api.js`. All styling is in the one `app/styles.css`.
+- **Tests:** the API tests are `tests/test_fr15_sign_in.py`, `test_fr19_passwords.py`, `test_fr16_booking_list.py` and `test_fr17_outbox.py`. The e2e tests are `tests/e2e/test_fr15_sign_in.py`, `test_fr16_booking_list.py`, `test_fr17_outbox.py`, `test_fr23_accessibility.py` and `test_fr23_keyboard_and_zoom.py`, and Story 2.4 extends `tests/e2e/test_fr21_privacy.py`. Every keyboard step goes through `tests/e2e/a11y.py` (`press`, `tab_to`, `tab_order`, `zoomed`, `check_axe`, `no_horizontal_scroll`).
+
+## UX & Interaction Patterns
+
+- **Administrator shell:** a full-width Administrator bar, no rail and one column up to 1320 px. On Sign-in the bar shows the name only. On other Administrator pages it holds Booking list, Outbox and Sign out.
+- **Sign-in:** the page shows the bar, the heading, email, password and "Sign in", in that order. Every refusal shows an Error summary with "Wrong email or password" and no Field error. An anonymous visit to any Administrator address goes to Sign-in and shows nothing else. After sign-out, Back also leads to Sign-in, and so does the next action after the session expires. The copy never uses the word "session" for this.
+- **Booking list:** the page has a date Text field (default today) with "Previous day" and "Next day" links. There is one group per session in time order: the time in `heading-md`, then capacity, booked and left on one line in tabular figures, then the Booking table. Numbers are right-aligned. A session with no Bookings shows "No bookings". A full session has an `unavailable` header with "Sold out" and "Seats left 0" in weight 600, so the state is not shown by colour alone. A failed read shows a Notice with "please try again". Reception finds a Guest with the browser's find, so no search feature is added.
+- **Outbox:** the heading is "Outbox". Entries are always open, with time, recipient and subject in `label` above the body in `small`, and line breaks are kept. An empty Outbox shows "No emails".
+- **Titles:** "Sign in – Saunalöyly", "Booking list – Saunalöyly" and "Outbox – Saunalöyly", each prefixed with "Error: " while an Error summary shows. Focus goes to the `h1` after navigation.
+- **Core-done manual passes (Story 2.4):** they confirm the automated checks rather than repeat them. They cover keyboard only, 200 % zoom at 1366×768 and 1920×1080 (screenshots in `test-results/zoom/`), the Book seats tab order, and NVDA with Chrome on Book seats, Review and Confirmation. Results go in `tests/manual/core-accessibility.md`.
+
+## Cross-Story Dependencies
+
+- **Epic 1:** this epic depends only on Epic 1. It reuses the `/api/admin/` router, sessions, the outbox service, the Window functions, the e2e fixture, `a11y.py` and the shared components and stylesheet.
+- **Story 2.1 first:** Story 2.1 underpins the other stories. It switches the Administrator test fixture to real sign-in. Until Story 2.2 lands, the post-sign-in address shows only the bar and a heading.
+- **Story 2.2 to 2.3:** Story 2.2 introduces `retention_due` and the startup catch-up, and Story 2.3 reuses them for Outbox masking.
+- **Story 2.4 last:** Story 2.4 depends on Stories 2.1 to 2.3 and on all Epic 1 pages. It finalises the README (dev and compose commands, test login, sample Bookings, Outbox, `create-admin`, test switches, folders, a security section and the "Not delivered" list) and the `ASSETS.md` check. It also runs the fresh-clone check and records it in the session log.
+- **Later epics:** Epic 3 (HTTPS) and Epics 4 and 5 shorten the README's "Not delivered" list. They also extend the Booking list with status, history, Whole-sauna bookings and Placement, and extend retention with the Voucher clause.

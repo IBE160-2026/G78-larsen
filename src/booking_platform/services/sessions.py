@@ -14,6 +14,7 @@ from ..db import sessions as q
 class Session:
     id: int
     role: str
+    account_id: int | None = None  # set only by sign-in; a Guest's booking session has none (RB-1)
 
 
 def token_hash(token: str) -> bytes:
@@ -26,7 +27,12 @@ def resolve(token: str | None) -> Session | None:
     if not token or len(token) > 200:
         return None
     row = db.statement(lambda c: q.resolve_and_touch(c, token_hash(token)))
-    return None if row is None else Session(id=row[0], role=row[1])
+    return None if row is None else Session(id=row[0], role=row[1], account_id=row[2])
+
+
+def new_token() -> str:
+    """A fresh cookie token: 256 random bits, URL-safe."""
+    return secrets.token_urlsafe(32)
 
 
 def open_session(token: str | None) -> tuple[Session, str | None]:
@@ -35,9 +41,9 @@ def open_session(token: str | None) -> tuple[Session, str | None]:
     current = resolve(token)
     if current is not None:
         return current, None
-    new_token = secrets.token_urlsafe(32)  # 256 random bits
-    sid = db.run(lambda c: q.create(c, token_hash(new_token), "guest"))
-    return Session(id=sid, role="guest"), new_token
+    token = new_token()
+    sid = db.run(lambda c: q.create(c, token_hash(token), "guest"))
+    return Session(id=sid, role="guest"), token
 
 
 def purge_expired() -> int:

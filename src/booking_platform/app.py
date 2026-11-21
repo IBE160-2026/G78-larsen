@@ -97,6 +97,7 @@ def create_app() -> FastAPI:
                   docs_url=None, redoc_url=None, openapi_url=None)
     errors.install(app)
     app.include_router(public.router)
+    app.include_router(admin.sign_in_router)
     app.include_router(admin.router)
     app.add_middleware(RequestGuard)
     return app

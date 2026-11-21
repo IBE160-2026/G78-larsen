@@ -5,17 +5,17 @@ passes the same-origin rule (AD-8); `test_fr18_csrf.py` sends other origins on p
 from __future__ import annotations
 
 import hashlib
-import secrets
+import json
 import ssl
 import uuid
+from pathlib import Path
 
 import httpx
 import psycopg
 
-from booking_platform.db.sessions import lifetime
-
 COOKIE = "bp_session"
-ADMIN = "'admin'"  # the role as an SQL literal, for lifetime()
+# The seeded Administrator (`seeds/admin.json`, Story 2.1): the fixture signs in with it for real (AD-21).
+ADMIN_LOGIN = json.loads((Path(__file__).resolve().parents[1] / "seeds" / "admin.json").read_text(encoding="utf-8"))
 GUEST = {"name": "Test Guest", "email": "guest@example.com"}  # the Guest's details in every test booking
 
 # One TLS context for every client: building one per client costs tens of milliseconds, and the races create
@@ -76,14 +76,18 @@ def api_client(base: str, *, session: bool = True, origin: str | None = None, ti
     return c
 
 
-def admin_client(base: str, pg: psycopg.Connection) -> ApiClient:
-    """A client with an Administrator session, inserted straight into the store until sign-in exists (Story 2.1)."""
-    token = secrets.token_urlsafe(32)
-    sid = pg.execute("INSERT INTO sessions (token_hash, role, created_at, expires_at) "
-                     f"SELECT %s, 'admin', n, n + {lifetime(ADMIN)} FROM (SELECT app_now() AS n) x RETURNING id",
-                     (token_hash(token),)).fetchone()[0]
-    pg.commit()
-    c = ApiClient(base_url=base, timeout=60, headers={"Origin": base}, verify=_TLS)
-    c.cookies.set(COOKIE, token, domain=httpx.URL(base).host)
-    c._session_id = sid
+def sign_in(c: ApiClient, email: str | None = None, password: str | None = None) -> httpx.Response:
+    """`POST /api/admin/sign-in`, by default with the seeded Administrator's login."""
+    body = {"email": ADMIN_LOGIN["email"] if email is None else email,
+            "password": ADMIN_LOGIN["password"] if password is None else password}
+    return c.post("/api/admin/sign-in", json=body)
+
+
+def admin_client(base: str, pg: psycopg.Connection | None = None) -> ApiClient:
+    """A client with an Administrator session made by a real sign-in with the seeded account (AD-21): an anonymous
+    session first, then `POST /api/admin/sign-in`. (`pg` is no longer needed; it stays for the existing callers.)"""
+    c = api_client(base)
+    r = sign_in(c)
+    assert r.status_code == 200 and r.json() == {"role": "admin"}, r.text
+    c._session_id = None  # the token changed (the row is the same); look it up again when asked
     return c

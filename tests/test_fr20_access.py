@@ -1,8 +1,9 @@
 """FR-20 / AD-10: Administrator access is decided at the router, and the API answers unknown paths with JSON.
 
-Every Administrator endpoint is under `/api/admin/`: anonymous callers get `401 not_signed_in`, Guest sessions
-get `403 not_allowed`, and neither changes anything. Unknown paths, slash variants and 405s answer the JSON
-`404 not_found` envelope; the backend never redirects, and `/docs` and `/openapi.json` are off.
+Every Administrator endpoint is under `/api/admin/`: anonymous callers get `401 not_signed_in`, and so do Guest
+sessions, which have no account (RB-1, Story 2.1); neither changes anything. (`403 not_allowed` is kept for an
+account without the Administrator role, which the Core does not have.) Unknown paths, slash variants and 405s answer
+the JSON `404 not_found` envelope; the backend never redirects, and `/docs` and `/openapi.json` are off.
 """
 
 from __future__ import annotations
@@ -58,10 +59,11 @@ def test_an_anonymous_caller_gets_401_and_changes_nothing(furnished, world, pg, 
 
 
 @pytest.mark.parametrize("method,path,kw", ADMIN_CALLS, ids=IDS)
-def test_a_guest_session_gets_403_and_changes_nothing(furnished, api, pg, method, path, kw):
+def test_a_guest_session_gets_401_and_changes_nothing(furnished, api, pg, method, path, kw):
+    """A Guest's booking session has no account, so it counts as anonymous (RB-1, Story 2.1)."""
     before = snapshot(pg)
     r = api.request(method, path, **kw)
-    assert r.status_code == 403 and r.json() == {"detail": {"error": "not_allowed"}}, r.text
+    assert r.status_code == 401 and r.json() == {"detail": {"error": "not_signed_in"}}, r.text
     assert snapshot(pg) == before
 
 

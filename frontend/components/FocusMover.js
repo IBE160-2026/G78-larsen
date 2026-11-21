@@ -49,7 +49,22 @@ export default function FocusMover() {
       return;
     }
     const heading = target || document.querySelector('h1');
-    if (heading) focus(heading);
+    if (heading) {
+      focus(heading);
+      return;
+    }
+    // A page that renders its h1 later (an Administrator page waits for its guard): focus the h1 when it appears,
+    // unless something else has taken focus by then. Given up after 10 s. No effect cleanup: the observer ends itself
+    // (a rerun for the same pathname in Strict Mode returns above without starting another).
+    const observer = new MutationObserver(() => {
+      const h1 = document.querySelector('h1');
+      if (!h1) return;
+      observer.disconnect();
+      const active = document.activeElement;
+      if (!active || active === document.body || active === document.documentElement) focus(h1);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => observer.disconnect(), 10000);
   }, [pathname]);
 
   useEffect(() => {

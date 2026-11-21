@@ -1,15 +1,44 @@
-"""The `/api/admin` router (AD-10). Its one dependency requires an Administrator session: anonymous callers get
-401 `not_signed_in`, other sessions 403 `not_allowed`, and neither changes anything."""
+"""The `/api/admin` routers (AD-10).
+
+`router` carries the one dependency that requires an Administrator: anonymous callers (no session, or a session with
+no account) get 401 `not_signed_in`, other accounts 403 `not_allowed`, and neither changes anything. Every
+Administrator endpoint is on it, sign-out and `me` included. `sign_in_router` holds only `POST /api/admin/sign-in`,
+which has no dependency because the caller is not signed in yet (FR-15)."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 
-from ..services import blocks, marks, settings, whole
-from .deps import require_admin
-from .schemas import BlockIn, MarkIn, SettingsIn, WholeIn
+from ..services import auth, blocks, marks, sessions, settings, whole
+from .deps import clear_session_cookie, current_session, require_admin, set_session_cookie
+from .schemas import BlockIn, MarkIn, SettingsIn, SignInIn, WholeIn
 
 router = APIRouter(prefix="/api/admin", redirect_slashes=False, dependencies=[Depends(require_admin)])
+sign_in_router = APIRouter(prefix="/api/admin", redirect_slashes=False)
+
+
+@sign_in_router.post("/sign-in")
+def sign_in(body: SignInIn, request: Request, response: Response):
+    """Sign the caller's browser session in (FR-15, AD-8, AD-11). Without a valid session `401 no_session` (the page
+    opens one and retries); every refusal is the same `401 sign_in_refused`. On success the same session row gets a
+    new token, so the old one names nothing, and the cookie is set as by `POST /api/session`."""
+    token = auth.sign_in(current_session(request), body.email, body.password)
+    set_session_cookie(response, token)
+    return {"role": "admin"}
+
+
+@router.post("/sign-out")
+def sign_out(response: Response, s: sessions.Session = Depends(require_admin)):
+    """Delete the session row and clear the cookie (FR-15); the old token then gets 401 everywhere."""
+    auth.sign_out(s)
+    clear_session_cookie(response)
+    return {"ok": True}
+
+
+@router.get("/me")
+def me():
+    """The Administrator page guard's check: 200 for a signed-in Administrator, 401 otherwise."""
+    return {"role": "admin"}
 
 
 @router.post("/whole-bookings", status_code=201)

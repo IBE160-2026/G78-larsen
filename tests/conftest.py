@@ -139,6 +139,7 @@ def root_without_sample_bookings(workdir: Path) -> Path:
         shutil.copytree(config.paths.CONTENT, root / "content")
         (root / "seeds").mkdir()
         shutil.copy(config.paths.SEEDS / "venue.json", root / "seeds" / "venue.json")
+        shutil.copy(config.paths.SEEDS / "admin.json", root / "seeds" / "admin.json")
         (root / "config").mkdir()
     return root
 
@@ -206,13 +207,14 @@ def pg(database):
 
 @pytest.fixture
 def world(pg, server):
-    """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY.
+    """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY, no
+    session and no sign-in throttle row. The accounts stay: the seed creates them when the backend starts.
 
     The three Windows sit on the seed schedule's 10:00, 11:30 and 13:00 Oslo slots of 2026-12-01. No Window has been
     generated yet (`windows_generated_through` is NULL); the first Window listing generates the rest of the horizon
     and skips these three, which overlap."""
     pg.execute("TRUNCATE releases, marks, holds, blocks, whole_bookings, idempotency_keys, payments, outbox_emails, "
-               "bookings, windows, saunas, sessions RESTART IDENTITY CASCADE")
+               "bookings, windows, saunas, sessions, sign_in_throttle RESTART IDENTITY CASCADE")
     pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5, "
                "booking_horizon_days = 28, windows_generated_through = NULL")
     for i, n, cap in SAUNAS:
@@ -233,7 +235,7 @@ def api(world):
 
 @pytest.fixture
 def admin(world, pg):
-    """A client with an Administrator session (inserted by the fixture until Story 2.1)."""
+    """A client with an Administrator session, signed in for real with the seeded account (Story 2.1)."""
     with admin_client(world, pg) as c:
         yield c
 

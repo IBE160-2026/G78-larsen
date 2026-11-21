@@ -17,6 +17,7 @@ log = logging.getLogger("booking_platform.api")
 STATUS: dict[str, int] = {
     "no_session": 401,  # a Guest write without a session (AD-8)
     "not_signed_in": 401,  # anonymous caller on /api/admin/ (AD-10)
+    "sign_in_refused": 401,  # every failed sign-in: wrong password, unknown email or throttled email (FR-15, PW-5)
     "cross_origin": 403,  # a state-changing request that is not same-origin (AD-8)
     "not_allowed": 403,  # a session without the Administrator role on /api/admin/ (AD-10)
     "not_found": 404,  # unknown path, 405, unknown or not yours (AD-10)

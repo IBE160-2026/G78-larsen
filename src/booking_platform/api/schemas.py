@@ -40,6 +40,15 @@ class SessionIn(Strict):
     """`POST /api/session` takes an empty JSON object."""
 
 
+class SignInIn(Strict):
+    """`POST /api/admin/sign-in` (FR-15): the email and the password, as typed. No shape rule beyond the caps and no
+    U+0000 (which the store cannot hold), so a short or odd value is an ordinary refused sign-in, never a different
+    answer (PW-5)."""
+
+    email: Annotated[str, Field(max_length=254, pattern=r"^[^\x00]*$")]  # the store refuses U+0000: a shape error
+    password: Annotated[str, Field(max_length=1024, pattern=r"^[^\x00]*$")]
+
+
 class HoldIn(Strict):
     window_id: Id
     seats: Seats

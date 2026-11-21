@@ -13,6 +13,11 @@ Window given as days after the Venue date of the run plus a start time, created 
 under one fixed seed session with the entry's fixed idempotency key. An entry whose key is already stored is skipped,
 so a restart, on any day, creates no duplicates. The seed always pays `ok` (the payment switch applies only to HTTP
 requests).
+
+The seeded Administrator (`seeds/admin.json`, Story 2.1) is `{"email", "password"}`: the documented local test login.
+`load()` checks it with `services.auth.check_password_rules`, so a password that breaks a rule stops startup with one
+line that never contains the password. `apply()` inserts the account only when its email is absent, so a restart
+never rehashes and never overwrites a password set with `create-admin`. A missing file means no seeded account.
 """
 
 from __future__ import annotations
@@ -32,7 +37,7 @@ from ..db import bookings as bq
 from ..db import sessions as sq
 from ..db import venue as q
 from ..db import windows as wq
-from . import booking
+from . import auth, booking
 from .errors import Refused
 from .venue import VenueSeed
 
@@ -40,6 +45,7 @@ log = logging.getLogger("booking_platform.seed")
 
 VENUE_FILE = "venue.json"
 BOOKINGS_FILE = "bookings.json"
+ADMIN_FILE = "admin.json"
 # The seed session's token hash: fixed, and no token hashes to it, so no browser can act as the seed (AD-18).
 SEED_TOKEN_HASH = hashlib.sha256(b"booking-platform seed session, never a cookie").digest()
 
@@ -70,14 +76,17 @@ def _invalid(path: Path, e: ValidationError) -> SeedError:
 
 
 def load(directory: Path | None = None, tz: str | None = None) -> VenueSeed:
-    """Read and validate `seeds/venue.json`; raises SeedError. `tz` is the Venue time zone the schedule is checked
-    against (default: the `settings.venue_tz` default, since the store is not read before startup)."""
+    """Read and validate `seeds/venue.json` and `seeds/admin.json`; raises SeedError. `tz` is the Venue time zone the
+    schedule is checked against (default: the `settings.venue_tz` default, since the store is not read before
+    startup)."""
     path = (directory or config.paths.SEEDS) / VENUE_FILE
     data = _read(path)
     try:
-        return VenueSeed.model_validate(data, context={"tz": tz} if tz else None)
+        venue = VenueSeed.model_validate(data, context={"tz": tz} if tz else None)
     except ValidationError as e:
         raise _invalid(path, e) from None
+    load_admin(directory)
+    return venue
 
 
 def apply(directory: Path | None = None) -> int:
@@ -94,7 +103,42 @@ def apply(directory: Path | None = None) -> int:
 
     inserted = db.run(work)
     log.info("applied seed %s: %d saunas inserted", VENUE_FILE, inserted)
+    admin = load_admin(directory)
+    if admin is not None:
+        created = db.run(lambda c: auth.set_account(c, admin.email, admin.password, overwrite=False))
+        log.info("applied seed %s: %d accounts created", ADMIN_FILE, int(created))
     return inserted
+
+
+# ------------------------------------------------------------------ the seeded Administrator (AD-18, Story 2.1)
+
+
+class AdminSeed(BaseModel):
+    """The shape of `seeds/admin.json`. The password is checked by `check_password_rules` in `load_admin`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: Annotated[str, Field(min_length=3, max_length=auth.EMAIL_MAX, pattern=auth.EMAIL.pattern)]
+    password: Annotated[str, Field(max_length=auth.MAX_LENGTH)]
+
+
+def load_admin(directory: Path | None = None) -> AdminSeed | None:
+    """Read and check `seeds/admin.json`; raises SeedError (one line, never the password). None when it is absent."""
+    path = (directory or config.paths.SEEDS) / ADMIN_FILE
+    if not path.exists():
+        return None
+    data = _read(path)
+    try:
+        admin = AdminSeed.model_validate(data)
+    except ValidationError as e:
+        first = e.errors()[0]
+        field = ".".join(str(p) for p in first.get("loc", ())) or "(file)"
+        raise SeedError(f"seed file {_name(path)}: {field}: is invalid") from None  # the message could quote the value
+    try:
+        auth.check_password_rules(admin.password, admin.email)
+    except auth.PasswordRuleError as e:
+        raise SeedError(f"seed file {_name(path)}: password: {e.reason}") from None
+    return admin
 
 
 # ------------------------------------------------------------------ sample Bookings (AD-18, Story 1.5)

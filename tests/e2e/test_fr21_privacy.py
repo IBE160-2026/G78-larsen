@@ -1,6 +1,7 @@
 """FR-21 on every Guest page: every request goes to the stack's own origin (no third party, fonts included), and each
-page loads exactly one stylesheet of ours and no <style> element. No cookie is set, except on Book seats, which sets
-exactly one: the session cookie (AD-8). Details, Review and Confirmation (Story 1.5) keep that one cookie, and a name
+page loads exactly one stylesheet of ours and no <style> element. No cookie is set, except on Book seats and on the
+Administrator's Sign-in, which each set exactly one: the session cookie (AD-8). Other Administrator pages open no
+session (Story 2.1). Details, Review and Confirmation (Story 1.5) keep that one cookie, and a name
 with a script tag is shown as text on Review and Confirmation, never run (FR-18 IV-5)."""
 
 from __future__ import annotations
@@ -52,6 +53,18 @@ def test_book_seats_sets_exactly_one_session_cookie_and_every_request_goes_to_th
     page.wait_for_selector(".cal-grid")
     page.wait_for_load_state("networkidle")
     assert [c["name"] for c in page.context.cookies()] == ["bp_session"]  # the existing session is kept
+
+
+def test_an_administrator_page_opens_no_session(page: Page, base_url):
+    """`/admin/bookings` with its guard's `GET /api/admin/me` held unanswered: no `POST /api/session`, no cookie."""
+    posts = []
+    page.on("request", lambda r: posts.append(r.url) if r.method == "POST" else None)
+    page.route("**/api/admin/me", lambda route: None)  # never answered
+    page.goto(base_url + "/admin/bookings")
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(1000)
+    assert not [u for u in posts if u.endswith("/api/session")], posts
+    assert page.context.cookies() == []
 
 
 @pytest.mark.parametrize("path", PAGES + [BOOK_SEATS])
