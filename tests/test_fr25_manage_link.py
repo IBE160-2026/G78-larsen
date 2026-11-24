@@ -318,7 +318,7 @@ def test_the_read_returns_the_booking_and_writes_nothing(before_cutoff, api, pg)
             "window": {"id": 2, "date": "2026-12-01", "start": "2026-12-01T11:30:00+01:00",
                        "end": "2026-12-01T13:00:00+01:00"},
             "total_ore": 50000, "status": "active", "version": 0, "change_allowed": True,
-            "cutoff_at": "2026-11-30T23:30:00+01:00", "history": [],
+            "cutoff_at": "2026-11-30T23:30:00+01:00", "cancelled_at": None, "history": [],
         }
         assert "set-cookie" not in r.headers
     assert stored(pg) == before and counts(pg) == count

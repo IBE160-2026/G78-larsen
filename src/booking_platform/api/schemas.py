@@ -83,6 +83,15 @@ class MoveIn(Strict):
     version: Int4
 
 
+class VoucherIn(Strict):
+    """`POST /api/manage/{reference}/seats/voucher` (FR-27, AD-29): the Seats to give up and the Booking's `version` as
+    the page read it. Any whole number is accepted here, as in `MoveIn`: Seats outside 1 to the Booking's Seats are
+    `409 change_invalid`, another version `409 booking_changed`, never a shape error."""
+
+    seats: Int4
+    version: Int4
+
+
 class HoldIn(Strict):
     window_id: Id
     seats: Seats

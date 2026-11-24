@@ -1095,6 +1095,7 @@ a {
 /* Manage booking (FR-25): until when the Booking can be changed, or why it no longer can, under the summary. The
    confirming step (first used in Story 4.2) below it. */
 .manage-until,
+.manage-cancelled,
 .summary + .notice {
   margin-top: var(--space-5);
   max-width: var(--measure-text);
@@ -1108,9 +1109,15 @@ a {
   margin-top: var(--space-5);
 }
 
-/* Move seats (Story 4.2): the link on the Manage page, and the step's parts. */
+/* Move seats (Story 4.2) and Give up seats (Story 4.3): the Change links on the Manage page, side by side, and the
+   step's parts. */
 .manage-changes {
-  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: 0;
+  list-style: none;
 }
 
 .move-notice,

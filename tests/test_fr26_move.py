@@ -188,7 +188,7 @@ def test_a_full_move_changes_the_window_of_the_same_booking(guest, admin, pg):
     entry = {"action": "move", "at": guest.get(f"/api/manage/{ref}").json()["history"][0]["at"], "seats": 2,
              "from_window": {"id": 1, "start": "2026-12-01T10:00:00+01:00", "end": "2026-12-01T11:30:00+01:00"},
              "to_window": {"id": 2, "start": "2026-12-01T11:30:00+01:00", "end": "2026-12-01T13:00:00+01:00"},
-             "new_reference": None}
+             "new_reference": None, "voucher_value_ore": None}
     assert guest.get(f"/api/manage/{ref}").json()["history"] == [entry]
     assert entry["at"].startswith("2026-11-30T21:0") and entry["at"].endswith("+01:00")
     ws = {w["id"]: w for w in admin.get("/api/admin/bookings", params={"date": DAY}).json()["windows"]}
@@ -361,7 +361,7 @@ def test_the_refusal_order(guest, pg):
     assert move(guest, ref, late, 5, version=7).json()["detail"]["error"] == "booking_changed"
     assert move(guest, ref, 2, 2).json()["detail"]["error"] == "cutoff_passed"
     # a cancelled Booking comes first of all
-    pg.execute("UPDATE bookings SET status = 'cancelled' WHERE reference = %s", (ref,))
+    pg.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', cancel_remedy = 'voucher' WHERE reference = %s", (ref,))
     pg.commit()
     before = everything(pg)
     refused(move(guest, ref, late, 5, version=7), "booking_cancelled")

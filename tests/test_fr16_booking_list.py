@@ -83,9 +83,11 @@ def test_a_day_with_bookings_lists_every_window_in_order_and_bookings_oldest_fir
     assert (w2["seat_capacity"], w2["seats_booked"], w2["seats_left"]) == (44, 6, 38)
     assert [b["reference"] for b in w2["bookings"]] == [first, raw, second]
     b = w2["bookings"][0]
-    assert set(b) == {"reference", "name", "email", "seats", "total_ore", "created_at", "status", "history"}
+    assert set(b) == {"reference", "name", "email", "seats", "total_ore", "created_at", "status", "cancelled_at",
+                      "cancel_cause", "cancel_remedy", "history"}  # Story 4.3: the cancellation columns
     assert (b["name"], b["email"], b["seats"], b["total_ore"]) == ("Test Guest", "guest@example.com", 3, 75000)
     assert (b["status"], b["history"]) == ("active", [])  # Story 4.2: status and Change history (FR-16)
+    assert (b["cancelled_at"], b["cancel_cause"], b["cancel_remedy"]) == (None, None, None)
     created = dt.datetime.fromisoformat(b["created_at"])
     assert created.utcoffset() == dt.timedelta(hours=1)  # Venue time
     assert ws[0]["bookings"] == [] and ws[2]["bookings"] == []
@@ -105,7 +107,7 @@ def test_cancelled_bookings_are_listed_with_their_status_outside_the_seats_booke
     """Story 4.2 (Lisa, 2026-11-24): a cancelled Booking stays in the list with its status; it takes no Seats."""
     ref = book_seats(api, 1, 2)[0]
     other = book_seats(api, 1, 3)[0]
-    pg.execute("UPDATE bookings SET status = 'cancelled' WHERE reference = %s", (ref,))
+    pg.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', cancel_remedy = 'voucher' WHERE reference = %s", (ref,))
     pg.commit()
     w = booking_list(admin, date=DAY)["windows"][0]
     assert [(b["reference"], b["status"]) for b in w["bookings"]] == [(ref, "cancelled"), (other, "active")]

@@ -32,9 +32,12 @@ def insert_key(c: psycopg.Connection, key: uuid.UUID, session_id: int, endpoint:
 # ------------------------------------------------------------------ payments (AD-13)
 
 
-def insert_payment(c: psycopg.Connection, booking_id: int, direction: str, method: str, amount_ore: int) -> int:
-    return c.execute("INSERT INTO payments (booking_id, direction, method, amount_ore) VALUES (%s, %s, %s, %s) "
-                     "RETURNING id", (booking_id, direction, method, amount_ore)).fetchone()[0]
+def insert_payment(c: psycopg.Connection, booking_id: int, direction: str, method: str, amount_ore: int,
+                   voucher_id: int | None = None) -> int:
+    """One `payments` row; `voucher_id` is set exactly when the method is `voucher` (the store checks it)."""
+    return c.execute("INSERT INTO payments (booking_id, direction, method, amount_ore, voucher_id) "
+                     "VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                     (booking_id, direction, method, amount_ore, voucher_id)).fetchone()[0]
 
 
 # ------------------------------------------------------------------ the Outbox (AD-12)

@@ -230,6 +230,31 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | Subject "Booking changed: {ref}"; body "Booking changed", the Venue block, reference, date, session, Seats and total of the Booking now; for a split also "Seats moved: N", "New booking reference: {new}", "The moved seats have their own confirmation email."; last "The Manage link in your booking confirmation email still works." | Change email. The split-off Booking gets the normal confirmation email with its own Manage link |
 | "Moved {N seat(s)} on {dd.mm.yyyy HH:MM} from {dd.mm.yyyy HH:MM–HH:MM} to {dd.mm.yyyy HH:MM–HH:MM}", plus " · new booking {ref}" for a split | Booking list, one line per Change under the Booking; a "Status" column shows Active or Cancelled |
 
+**Give up seats wording, accepted by Lisa (2026-11-24, Story 4.3, FR-27)**
+
+The Voucher value is always the Seats given up × the price per Seat stored on the Booking (what the Guest paid), not the current price.
+
+| Text | Where |
+|---|---|
+| "Give up seats for a voucher" | Link on the Manage page before the Cutoff, beside "Move seats" |
+| "Give up seats" | The step's heading |
+| "How many seats do you want to give up?" | The one question, left out when the Booking has 1 Seat |
+| "What will happen" with rows "Seats given up", "Seats left in this booking", "Voucher value" ("NOK {value}"), "Valid until" ({long date}) | Confirming step. "Seats left in this booking" only when some Seats remain |
+| "No money is paid back. The voucher can pay for a new booking until it expires." | Note in the confirming step |
+| "Nothing changes until you confirm." | Under the confirming step |
+| "Give up 1 seat", "Give up N seats" | Confirm button |
+| "Seats given up" | Result heading |
+| "Your booking has been changed." / "Your booking has been cancelled." | Result line: some Seats / all Seats |
+| "Your voucher code is in the email below." | Result, before the email under "Sent by email:" |
+| "Back to your booking" | Result, link to the Manage page of the Booking |
+| "This booking was changed in the meantime. Check it and choose again." | `booking_changed`, `invalid_key`; the step opens fresh |
+| The Cutoff text of Manage booking | `cutoff_passed` |
+| "The change could not be completed, please try again." | Any other refusal |
+| "This booking was cancelled on {long date} at {HH:MM}. You gave up all seats for a voucher, which was sent by email." | Manage page of a Booking whose Seats were all given up: the link still opens it, it shows reference, date, session and the Seats given up, and offers no Changes (Open Item 19) |
+| Some Seats: subject "Booking changed: {ref}", body as the move's Change email (the Booking now: Seats and total). All Seats: subject "Booking cancelled: {ref}", body "Booking cancelled", the Venue block, reference, date, session, "Seats given up: N". Both then: "Voucher", "Code: XXXX-XXXX-XXXX-XXXX", "Value: NOK {value}", "Valid until: {long date}", "Use the code when you pay for a new booking. A voucher is never paid out in money."; last "The Manage link in your booking confirmation email still works." | Voucher email. The only place the code appears |
+| "Gave up {N seat(s)} on {dd.mm.yyyy HH:MM} for a voucher of NOK {value}" | Booking list, history line under the Booking; never the code |
+| "Cancelled {dd.mm.yyyy HH:MM} · Guest · Voucher" | Booking list, Status cell of a cancelled Booking (time, cause, remedy); it stays listed, outside Seats booked |
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.
@@ -607,7 +632,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 ### If-time states left to the designer (PRD §7)
 
-19. Manage page after a Voucher: what remains shown if all Seats were given up.
+19. Manage page after a Voucher: what remains shown if all Seats were given up. Closed by Lisa 2026-11-24 (Story 4.3): the link still opens the Booking and shows it as cancelled (reference, date, session, the Seats given up) with "This booking was cancelled on {long date} at {HH:MM}. You gave up all seats for a voucher, which was sent by email." and no Changes. See the Give up seats wording in Voice and Tone.
 20. Manage page after a Venue cancellation.
 21. Manage page after the end of the Session. FR-25 says the link shows the Booking until then, and the page after that is undecided. It may simply be "This page is not available."
 22. Wording of the reason shown after the Cutoff.

@@ -22,14 +22,15 @@ def windows_on(c: psycopg.Connection, date: dt.date) -> list[tuple]:
 
 
 def bookings_on(c: psycopg.Connection, date: dt.date) -> list[tuple]:
-    """(id, window_id, reference, name, email, seats, total_ore, created_at, status) of every Booking in a Window of a
+    """(id, window_id, reference, name, email, seats, total_ore, created_at, status, cancelled_at, cancel_cause,
+    cancel_remedy) of every Booking in a Window of a
     Venue date, active and cancelled, oldest first (`created_at`, then `id`). A cancelled Booking takes no Seats; the
     figures come from the store functions alone. Name and email are masked when the Booking is due."""
     return c.execute(
         "SELECT b.id, b.window_id, b.reference, "
         "       CASE WHEN retention_due(b.id) THEN %(name)s ELSE b.name END, "
         "       CASE WHEN retention_due(b.id) THEN %(email)s ELSE b.email END, "
-        "       b.seats, b.total_ore, b.created_at, b.status "
+        "       b.seats, b.total_ore, b.created_at, b.status, b.cancelled_at, b.cancel_cause, b.cancel_remedy "
         "FROM bookings b JOIN windows w ON w.id = b.window_id "
         "WHERE venue_date(w.id) = %(date)s "
         "ORDER BY b.created_at, b.id",

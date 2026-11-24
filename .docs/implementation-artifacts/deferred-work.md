@@ -62,3 +62,6 @@
 - source_spec: `.docs/implementation-artifacts/spec-4-1-manage-link-opens-booking.md`
   summary: `db.manage.samples_without_token` re-issues a token and a "Manage your booking" email on every restart for any sample whose token was revoked without a replacement.
   evidence: Unverified (medium if true): today only `manage.issue` revokes, and it inserts a replacement in the same transaction. Settle it when Story 4.2 or Epic 5 adds a revoke without replacement: limit the query to Bookings that never had a token.
+- source_spec: `.docs/implementation-artifacts/spec-4-3-give-up-seats-for-a-voucher.md`
+  summary: The voucher step's own "Valid until" rule (29 February -> 28 February in `GiveUpSeats.js` `lastValidDate`) has no test; consider returning `last_valid_date` from the API instead of recomputing it in the browser.
+  evidence: Backend rule is tested with a 29 Feb clock, but the e2e runs at the real clock and the frontend has no unit runner; settled by a test with the stack clock on 29 Feb or by removing the browser computation.

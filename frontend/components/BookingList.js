@@ -12,7 +12,9 @@
 //   "Seats left 0" and "Sold out" in weight 600, so the state is said in words.
 // - Each Booking shows its status (Active or Cancelled; a cancelled one takes no Seats) and, under its row, one line
 //   per entry of its Change history: "Moved 1 seat on 24.11.2026 14:05 from 01.12.2026 10:00–11:30 to
-//   01.12.2026 11:30–13:00 · new booking ABCD1234" (Story 4.2, Lisa 2026-11-24).
+//   01.12.2026 11:30–13:00 · new booking ABCD1234" (Story 4.2, Lisa 2026-11-24), or "Gave up 1 seat on 24.11.2026
+//   14:05 for a voucher of NOK 250" (never the code). A cancelled Booking's Status is "Cancelled 24.11.2026 14:05 ·
+//   Guest · Voucher" (Story 4.3, Lisa 2026-11-24).
 // - Stored text (name, email) is rendered as React text, never as HTML (IV-5).
 // - A 401 goes to Sign-in; any other failure shows the "please try again" Notice.
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -36,11 +38,23 @@ const COLUMNS = 7;
 /** "01.12.2026 10:00–11:30" of a Window `{start, end}` in Venue time. */
 const sessionText = (w) => `${dottedTime(w.start)}–${clockTime(w.end)}`;
 
-/** One history line of a Booking (only `move` exists in Story 4.2). */
+/** One history line of a Booking: a move (Story 4.2) or a Voucher Change (Story 4.3). */
 function historyLine(entry) {
+  if (entry.action === 'voucher') {
+    return BOOKING_LIST.gaveUp(entry.seats, dottedTime(entry.at), nok(entry.voucher_value_ore));
+  }
   const line = BOOKING_LIST.moved(entry.seats, dottedTime(entry.at), sessionText(entry.from_window),
     sessionText(entry.to_window));
   return entry.new_reference ? line + BOOKING_LIST.newBooking(entry.new_reference) : line;
+}
+
+/** The Status cell: "Active", or "Cancelled 24.11.2026 14:05 · Guest · Voucher" (Story 4.3). */
+function statusText(b) {
+  if (b.status === 'cancelled' && b.cancelled_at) {
+    return BOOKING_LIST.cancelledAt(dottedTime(b.cancelled_at), BOOKING_LIST.cause[b.cancel_cause],
+      BOOKING_LIST.remedy[b.cancel_remedy]);
+  }
+  return BOOKING_LIST.status[b.status] ?? b.status;
 }
 
 function SessionGroup({ session }) {
@@ -109,7 +123,7 @@ function SessionGroup({ session }) {
                   <td className="num">{b.seats}</td>
                   <td className="num">{nok(b.total_ore)}</td>
                   <td className="num">{dottedTime(b.created_at)}</td>
-                  <td>{BOOKING_LIST.status[b.status] ?? b.status}</td>
+                  <td>{statusText(b)}</td>
                 </tr>
                 {(b.history || []).map((entry, i) => (
                   <tr className="booking-history" key={i}>
