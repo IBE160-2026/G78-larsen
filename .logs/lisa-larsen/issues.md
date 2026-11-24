@@ -215,7 +215,7 @@
 - [x] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — merge PR #13 (Story 4.1) (løst 2026-11-24: merget med vanlig merge, `c1d3e06`)
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — implementer Story 4.2 etter `.docs/implementation-artifacts/spec-4-2-move-seats.md` (ready-for-dev); ny `bmad-build`-økt på `story/4-2-move-seats` (løst 2026-11-24: implementert og reviewet, commit `3162778`, 434 API- og 174 e2e-tester grønne)
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — EXPERIENCE.md: før inn tekstene Lisa godkjente for flytting (steget, resultatet, avvisningene, Change-e-posten og «Your current session»)
-- [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — manuell gjennomgang av flyttingen i nettleseren (`bmad-walkthrough`), og sett Story 4.2 til `done` i `sprint-status.yaml`
+- [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — manuell gjennomgang av flyttingen i nettleseren (`bmad-walkthrough`), og sett Story 4.2 til `done` i `sprint-status.yaml` (løst 2026-11-24: testet og godkjent av Lisa, `done` i `bf2d7b8`)
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — lag PR for `story/4-2-move-seats` til `main`
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — avgjør om resultatsiden etter flytting skal ha en lenke videre (og teksten)
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — før inn FR-26 (Story 4.2) i `.docs/sensorveiledning-kravsporing.md`
