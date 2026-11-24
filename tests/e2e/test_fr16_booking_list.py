@@ -90,7 +90,8 @@ def test_a_guest_flow_booking_is_in_the_right_group(page: Page, base_url, browse
     }""", window["date"])
     stamp = next(b["created_at"] for b in created if b["reference"] == booked["reference"])
     expected_time = f"{stamp[8:10]}.{stamp[5:7]}.{stamp[0:4]} {stamp[11:16]}"
-    assert cells == [booked["reference"], "Marit Solberg", "ingrid@example.com", "1", "NOK 250", expected_time]
+    assert cells == [booked["reference"], "Marit Solberg", "ingrid@example.com", "1", "NOK 250", expected_time,
+                     "Active"]  # the Status column (Story 4.2)
     assert _norm(g.locator(".session-group-figures").inner_text()) == \
         "Seat capacity 44 · Seats booked 1 · Seats left 43"
     # every other session of the day is listed with "No bookings"

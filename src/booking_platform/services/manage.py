@@ -2,7 +2,7 @@
 and the read of the Booking it opens.
 
 - `issue` is the only writer of `access_tokens`. Only Booking creators call it, inside their own transaction: the Seat
-  flow (`services.booking.create`) and the seed. It locks the Booking `FOR NO KEY UPDATE`, revokes any unrevoked
+  flow (`services.booking.create`), a split (`services.change.move`) and the seed. It locks the Booking `FOR NO KEY UPDATE`, revokes any unrevoked
   Manage token of it, then stores the SHA-256 hash of a new 256-bit token. The raw token is returned only to build
   the email link and is never stored, logged or put in a path or query (AD-19).
 - `open` checks the token, creates or reuses the session (AD-8) and upserts the grant. Every bad token (unknown,
@@ -24,7 +24,7 @@ import psycopg
 
 from .. import config, db
 from ..db import manage as q
-from . import content, outbox, reference, sessions
+from . import content, history, outbox, reference, sessions
 from .errors import Refused
 
 MAX_TOKEN = 200  # a longer token is not one of ours; it is never hashed
@@ -35,13 +35,16 @@ def new_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def issue(c: psycopg.Connection, booking_id: int) -> str:
+def issue(c: psycopg.Connection, booking_id: int, *, grant_to: int | None = None) -> str:
     """Give the Booking a new Manage token in the caller's transaction and return the raw token (for the email link
-    only). Any earlier unrevoked Manage token of the Booking is revoked."""
+    only). Any earlier unrevoked Manage token of the Booking is revoked. With `grant_to` (a split, AD-29), that session
+    also gets a grant through the new token, so the Guest who split the Booking can open it at once."""
     q.lock_booking(c, booking_id)
     q.revoke(c, booking_id)
     token = new_token()
-    q.insert_token(c, booking_id, sessions.token_hash(token))
+    token_id = q.insert_token(c, booking_id, sessions.token_hash(token))
+    if grant_to is not None:
+        q.upsert_grant(c, grant_to, token_id)
     return token
 
 
@@ -83,33 +86,35 @@ def grant(session: sessions.Session | None, ref: str) -> int:
     return booking_id
 
 
+def booking_now(c: psycopg.Connection, booking_id: int) -> dict:
+    """The Booking as the Manage page shows it, in the caller's transaction (the Manage read, and every Change
+    response and `booking_changed` fact, AD-29)."""
+    row = q.booking(c, booking_id)
+    if row is None:
+        raise Refused("not_found")
+    ref, seats, window_id, date, start, end, total, status, version, allowed, cutoff_at, tz_name = row
+    tz = ZoneInfo(tz_name)
+    return {
+        "reference": ref,
+        "kind": "seats",
+        "seats": seats,
+        "sauna": None,
+        "window": {"id": window_id, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
+                   "end": end.astimezone(tz).isoformat()},
+        "total_ore": total,
+        "status": status,
+        "version": version,
+        "change_allowed": allowed,
+        "cutoff_at": cutoff_at.astimezone(tz).isoformat(),
+        "history": history.of_booking(c, booking_id, tz),
+    }
+
+
 def read(booking_id: int) -> dict:
     """The Booking as the Manage page shows it: the AD-23 serializer (`kind`, `seats`, `sauna`, `window`,
     `total_ore`, `status`) plus `reference`, `version`, `change_allowed` (the SQL predicate), `cutoff_at` and
-    `history` (always empty until Changes exist). Times are ISO strings in Venue time. Reads only."""
-
-    def work(c):
-        row = q.booking(c, booking_id)
-        if row is None:
-            raise Refused("not_found")
-        ref, seats, window_id, date, start, end, total, status, version, allowed, cutoff_at, tz_name = row
-        tz = ZoneInfo(tz_name)
-        return {
-            "reference": ref,
-            "kind": "seats",
-            "seats": seats,
-            "sauna": None,
-            "window": {"id": window_id, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
-                       "end": end.astimezone(tz).isoformat()},
-            "total_ore": total,
-            "status": status,
-            "version": version,
-            "change_allowed": allowed,
-            "cutoff_at": cutoff_at.astimezone(tz).isoformat(),
-            "history": [],
-        }
-
-    return db.run(work)
+    `history` (`services.history`). Times are ISO strings in Venue time. Reads only."""
+    return db.run(lambda c: booking_now(c, booking_id))
 
 
 def purge() -> int:

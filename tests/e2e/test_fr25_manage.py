@@ -63,7 +63,8 @@ def test_the_sample_link_from_the_outbox_opens_the_booking(page: Page, base_url,
     assert page.locator(".summary").inner_text().count("@") == 0  # no name or email on the page
     assert re.fullmatch(r"You can change this booking until \w+day \d{1,2} \w+ \d{4} at \d\d:\d\d\.",
                         page.locator(".manage-until").inner_text())
-    assert page.locator("button").count() == 0  # Story 4.1 offers no Change
+    assert page.locator("button").count() == 0  # the page itself changes nothing: Changes are links to their steps
+    assert page.get_by_role("link", name="Move seats").get_attribute("href") == f"/manage/{reference}/move"
     others = [u for u in requests if not (u == base_url or u.startswith(base_url + "/"))]
     assert not others, f"requests to another origin: {others}"
     assert not [u for u in requests if token in u.split("#", 1)[0]]  # the token is never in a path or query
@@ -91,6 +92,7 @@ def test_after_the_cutoff_the_page_gives_the_approved_reason(page: Page, base_ur
                 r"starts, and that was \w+day \d{1,2} \w+ \d{4} at \d\d:\d\d\.", notice.inner_text().strip()), (
                 notice.inner_text())
             assert page.locator(".manage-until").count() == 0
+            assert page.get_by_role("link", name="Move seats").count() == 0  # no Change offered (Story 4.2)
             a11y.check_axe(page)
         finally:
             c.rollback()

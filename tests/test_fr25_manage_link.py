@@ -137,7 +137,12 @@ def test_0010_fills_the_cutoff_of_existing_bookings_and_issues_no_token(tmp_path
         c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1)")
         c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
         c.execute(raw_booking(1, 2))
-    assert migrations.migrate(scratch_db) == ["0010_manage_links.sql"]
+    upto = tmp_path / "upto-0010"  # later migrations (0011 on) are not this test's
+    upto.mkdir()
+    for p in migrations.migration_files():
+        if p.name < "0011":
+            shutil.copy(p, upto / p.name)
+    assert migrations.migrate(scratch_db, upto) == ["0010_manage_links.sql"]
     with psycopg.connect(scratch_db) as c:
         assert c.execute("SELECT cutoff, version FROM bookings").fetchall() == [(dt.timedelta(hours=12), 0)]
         assert c.execute("SELECT count(*) FROM access_tokens").fetchone()[0] == 0

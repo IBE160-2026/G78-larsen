@@ -50,7 +50,8 @@ def request_hash(window_id: int, seats: int) -> bytes:
 # ------------------------------------------------------------------ the Booking as it is now
 
 
-def _facts(c: psycopg.Connection, booking_id: int) -> dict:
+def facts(c: psycopg.Connection, booking_id: int) -> dict:
+    """The Booking as it is now, as every Seat page and the confirmation email show it (with name and email)."""
     ref, date, start, end, seats, price, total, name, email, status, tz_name = q.booking(c, booking_id)
     tz = ZoneInfo(tz_name)
     return {"reference": ref, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
@@ -60,7 +61,7 @@ def _facts(c: psycopg.Connection, booking_id: int) -> dict:
 
 def _outcome(c: psycopg.Connection, booking_id: int) -> dict:
     """The Booking as it is now, plus the emails its action sent, read by Booking id (AD-9, AD-12)."""
-    return {"booking": _facts(c, booking_id), "emails": outbox.of_booking(c, booking_id)}
+    return {"booking": facts(c, booking_id), "emails": outbox.of_booking(c, booking_id)}
 
 
 # ------------------------------------------------------------------ the confirmation email (FR-8, UX-DR38)
@@ -128,7 +129,7 @@ def create(session_id: int, window_id: int, seats: int, name: str, email: str, k
         db.lock_windows(c, [window_id])
         known = q.key(c, key)  # the first statement after the lock (AD-9)
         if known is not None:
-            k_session, k_endpoint, k_hash, k_booking = known
+            k_session, k_endpoint, k_hash, k_booking, _k_change = known
             if k_session == session_id and k_endpoint == ENDPOINT and bytes(k_hash) == h:
                 return _outcome(c, k_booking)
             raise Refused("invalid_key")
@@ -141,7 +142,7 @@ def create(session_id: int, window_id: int, seats: int, name: str, email: str, k
         price = venue[7]
         booking_id, _ = reference.claim(
             lambda ref: sq.insert_booking(c, ref, window_id, seats, name, email, price, session_id))
-        booking = _facts(c, booking_id)
+        booking = facts(c, booking_id)
         payment.record(c, decided, booking_id, booking["total_ore"])
         token = manage.issue(c, booking_id)  # after the insert, in the same transaction (AD-28)
         subject, body = confirmation_email(booking, venue, manage.link(token))

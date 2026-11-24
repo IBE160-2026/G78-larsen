@@ -22,14 +22,20 @@ def link(path: str) -> str:
     return config.settings().base_url + path
 
 
-def send(c: psycopg.Connection, to: str, subject: str, body: str, *, booking_id: int | None = None) -> int:
-    """Store the email in the Outbox; returns its id."""
-    return q.insert_email(c, to, subject, body, booking_id)
+def send(c: psycopg.Connection, to: str, subject: str, body: str, *, booking_id: int | None = None,
+         change_id: int | None = None) -> int:
+    """Store the email in the Outbox; returns its id. An email a Change sends carries the Change's id (AD-29)."""
+    return q.insert_email(c, to, subject, body, booking_id, change_id)
 
 
 def of_booking(c: psycopg.Connection, booking_id: int) -> list[dict]:
     """The emails sent with a Booking, as `{subject, body}`, oldest first: what the Guest sees as sent."""
     return [{"subject": s, "body": b} for s, b in q.emails_of_booking(c, booking_id)]
+
+
+def of_change(c: psycopg.Connection, change_id: int) -> list[dict]:
+    """The emails a Change sent, as `{id, subject, body}`, oldest first (AD-9: a repeat reads them back by id)."""
+    return [{"id": i, "subject": s, "body": b} for i, s, b in q.emails_by_change(c, change_id)]
 
 
 def listing() -> dict:

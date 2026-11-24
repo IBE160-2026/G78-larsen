@@ -14,14 +14,14 @@ Det vanskelige er kapasiteten: plattformen skal aldri selge samme plass to gange
 
 ## Status (2026-11-24)
 
-Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Epic 4 er påbegynt: hver Seat-booking får en Manage-lenke i bekreftelses-e-posten, og lenken åpner bookingen uten konto (Story 4.1). Selve endringene (flytte plasser, Voucher) er ikke bygget ennå. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
+Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Epic 4 er påbegynt: hver Seat-booking får en Manage-lenke i bekreftelses-e-posten, og lenken åpner bookingen uten konto (Story 4.1). Med lenken kan gjesten flytte alle eller noen av plassene til en annen badstueøkt fram til 12 timer før start, og bookinglisten viser status og endringshistorikk (Story 4.2, FR-26). Voucher (FR-27, FR-28) er ikke bygget ennå. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
 
 ### Ikke levert
 
 Dette er ikke bygget per i dag (DR-2). Senere epics korter ned listen.
 
-- **Suksesskriteriene SC2–SC8**: hel badstue (SC2, SC4), endre plasser eller ta Voucher (SC3), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
-- **FR-26 til FR-51**: endringer og Vouchere (Manage-lenken, FR-25, åpner bookingen, men tilbyr ingen endring ennå), hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
+- **Suksesskriteriene SC2–SC8**: hel badstue (SC2, SC4), ta Voucher (SC3; å flytte plasser er levert), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
+- **FR-27 til FR-51**: Vouchere (FR-25 Manage-lenken og FR-26 flytte plasser er levert), hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
 - **Mobildelen av SC10**. Core er laget for laptop.
 - **WCAG 1.4.10 Reflow** (innhold i 320 CSS-piksler bredde uten rulling i to retninger) er ikke oppfylt før mobiloppsettet (FR-51) finnes. Det er det eneste avviket fra WCAG 2.2 AA som de automatiske testene kjenner, og tilgjengelighetsrapporten fra e2e-testene oppgir det. De manuelle testene og funnene deres står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
 
@@ -138,6 +138,8 @@ En omstart, også en senere dag, lager ingen kopier.
 E-post sendes ikke ut. Hver e-post plattformen sender, legges i **Outbox**, en simulert postkasse: `https://localhost:8443/admin/outbox` (lenken «Outbox» i Administrator-linjen). Den viser hver e-post slik den ble sendt, også de gjesten aldri ser på en side. Bekreftelsen fra en ny booking dukker opp her og på Confirmation-siden. Alle lenker i e-postene er absolutte og begynner med `https://localhost:8443` (`BP_BASE_URL`).
 
 **Eksempel på Manage-lenke:** hver eksempelbooking har en lenke i sin bekreftelses-e-post i Outbox (emne «Booking confirmed: …»), på linjen under «Manage your booking». Den ser slik ut: `https://localhost:8443/manage#t=…`. Åpne den i nettleseren, så vises bookingen på `/manage/<referanse>`, og tokenet er borte fra adresselinjen. En eksempelbooking som fantes før Manage-lenkene ble bygget, får i stedet sin egen e-post med emnet «Manage your booking: <referanse>». Lenken virker til bookingens badstueøkt er slutt (DR-2); etter det, og for en gjettet referanse, viser siden «This page is not available.». Tilgangen i nettleseren varer 30 minutter etter siste bruk; å åpne lenken på nytt gir den tilbake.
+
+**Prøv å flytte plasser** (FR-26): åpne en Manage-lenke som over, for en booking som starter om mer enn 12 timer (for eksempel eksempelbookingen om 5 dager kl. 10:00). Velg «Move seats», hvor mange plasser som skal flyttes (spørsmålet er borte når bookingen har én plass), en dato og en annen økt; din nåværende økt står i listen som «Your current session» og kan ikke velges. Steget viser hva som vil skje, og ingenting endres før du trykker «Move 1 seat» / «Move N seats». Resultatsiden viser e-postene endringen sendte under «Sent by email:». Flytter du bare noen av plassene, får de flyttede plassene en ny bookingreferanse og sin egen Manage-lenke i den andre e-posten. I bookinglisten (`/admin/bookings`) står begge bookingene i hver sin økt med status, og under den opprinnelige står en linje som «Moved 1 seat on … from … to … · new booking …». Etter fristen (12 timer før start) tilbyr Manage-siden ingen flytting og forklarer hvorfor.
 
 ## Drift
 

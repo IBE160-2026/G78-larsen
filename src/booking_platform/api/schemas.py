@@ -70,6 +70,19 @@ class ManageOpenIn(Strict):
     token: StrictStr
 
 
+Int4 = Annotated[int, Field(ge=-INT4_MAX - 1, le=INT4_MAX)]
+
+
+class MoveIn(Strict):
+    """`POST /api/manage/{reference}/seats/move` (FR-26, AD-29): the target Window, the Seats to move and the Booking's
+    `version` as the page read it. Any whole number of Seats and any version is accepted here: Seats outside 1 to the
+    Booking's Seats are `409 change_invalid`, another version `409 booking_changed`, never a shape error."""
+
+    window_id: Id
+    seats: Int4
+    version: Int4
+
+
 class HoldIn(Strict):
     window_id: Id
     seats: Seats

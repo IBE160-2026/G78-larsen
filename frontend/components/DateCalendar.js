@@ -7,7 +7,7 @@
 // are radios; other days are plain numbers. The grid is one radio group named "Pick a day, <Month> <Year>", one
 // tab stop with arrow keys, days with full names. It ends at `horizon_end` with "Booking opens 4 weeks ahead."
 // "Next month" and, once forward, "Previous month" move the month. No clock is read here: today and the horizon
-// come from the API (AD-4).
+// come from the API (AD-4). The move step (Story 4.2) passes its own `label` ("2. Choose a date").
 import { useEffect, useRef } from 'react';
 import FieldError from './FieldError';
 import Notice from './Notice';
@@ -55,7 +55,7 @@ function MonthGrid({ month, today, horizonEnd, bookable, date, onPick }) {
 }
 
 export default function DateCalendar({
-  facts, date, month, onMonth, text, onText, onCommitText, onPick, error, readFailed,
+  facts, date, month, onMonth, text, onText, onCommitText, onPick, error, readFailed, label = BOOK.dateQuestion,
 }) {
   // A month button that disappears after its press (Next on the second-to-last month, Previous on the second)
   // hands keyboard focus to the other month button, so focus never drops to the page body.
@@ -134,7 +134,7 @@ export default function DateCalendar({
   return (
     <div className="question question-date">
       <label className="q" htmlFor="date">
-        {BOOK.dateQuestion}
+        {label}
       </label>
       <input
         className="text-field"

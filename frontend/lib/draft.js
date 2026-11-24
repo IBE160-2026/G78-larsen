@@ -47,3 +47,44 @@ export function newKey() {
   const hex = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
+
+// The key slot of a Change (AD-9, Story 4.2): `sessionStorage` key `draft:change:<reference>:<action>`, holding the
+// idempotency key of the confirming step. It is made when the step opens, reused on a reload, and deleted on success,
+// on every refusal except `503 try_again`, and when the Guest leaves the step.
+const changeSlot = (reference, action) => `draft:change:${reference}:${action}`;
+// Without `sessionStorage` the key lives in memory per slot, so a retry from the same page sends the same key.
+const memoryKeys = new Map();
+
+/** The stored key of the Change, or null. */
+export function readChangeKey(reference, action) {
+  try {
+    const value = window.sessionStorage.getItem(changeSlot(reference, action));
+    if (typeof value === 'string' && value) return value;
+  } catch {
+    // no storage: the in-memory key below
+  }
+  return memoryKeys.get(changeSlot(reference, action)) ?? null;
+}
+
+/** The stored key of the Change, made and stored first when there is none. */
+export function changeKey(reference, action) {
+  const stored = readChangeKey(reference, action);
+  if (stored) return stored;
+  const key = newKey();
+  try {
+    window.sessionStorage.setItem(changeSlot(reference, action), key);
+  } catch {
+    memoryKeys.set(changeSlot(reference, action), key); // no storage: the key lives as long as the page
+  }
+  return key;
+}
+
+/** Delete the Change's key slot. */
+export function dropChangeKey(reference, action) {
+  memoryKeys.delete(changeSlot(reference, action));
+  try {
+    window.sessionStorage.removeItem(changeSlot(reference, action));
+  } catch {
+    // nothing stored
+  }
+}
