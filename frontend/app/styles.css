@@ -1109,15 +1109,46 @@ a {
   margin-top: var(--space-5);
 }
 
-/* Move seats (Story 4.2): the link on the Manage page, and the step's parts. */
+/* Move seats (Story 4.2) and Give up seats (Story 4.3): the Change links on the Manage page, side by side, and the
+   step's parts. */
 .manage-changes {
-  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
   padding: 0;
   list-style: none;
 }
 
-.manage-changes li + li {
-  margin-top: var(--space-3);
+/* Choice button (Lisa, 2026-11-24): a link with the Seat picker cell's look; filled like a chosen cell on hover and
+   press. */
+.button-choice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-size: var(--type-button-size);
+  line-height: var(--type-button-line);
+  font-weight: var(--type-button-weight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button-choice:hover,
+.button-choice:active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 1.5px solid var(--color-button-edge);
+}
+
+.button-choice:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
 }
 
 .move-notice,
