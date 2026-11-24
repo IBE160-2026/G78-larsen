@@ -221,4 +221,4 @@
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — avgjør om resultatsiden etter flytting skal ha en lenke videre (og teksten) (løst 2026-11-24: «Back to your booking», grenen `story/4-2-follow-ups`)
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — før inn FR-26 (Story 4.2) i `.docs/sensorveiledning-kravsporing.md` (løst 2026-11-24: rad 2, grenen `story/4-2-follow-ups`)
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — `story/4-2-follow-ups`: kjør `npm --prefix frontend run build` og e2e `tests/e2e/test_fr26_move.py` (ikke kjørt, brukskvoten tok slutt), push og lag PR (2026-11-24: build grønn, e2e `test_fr26_move.py` 3 passed; push og PR gjenstår) (løst 2026-11-24: pushet, PR #15)
-- [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — merge PR #15 (Story 4.2 follow-ups)
+- [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — merge PR #15 (Story 4.2 follow-ups) (løst 2026-11-24: merget med vanlig merge, `aa9c0c7`)
