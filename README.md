@@ -6,117 +6,63 @@ Gruppeprosjekt i **IBE160 Programmering med KI** ved Høgskolen i Molde, høsten
 
 - Lisa Katarina Larsen
 
-## Hva appen skal gjøre
+## Hva appen gjør
 
-Saunalöyly er et fiktivt, finsk-inspirert badstuanlegg med fire eller flere badstuer. Plattformen lar gjester velge dag og antall plasser, se hvilke tidsvinduer som har ledige plasser og hva det koster, og betale uten konto. Administrator logger inn og ser hvem som kommer til hvert vindu. Betaling, e-post og dørlåser er simulert.
+Saunalöyly er et fiktivt, finsk-inspirert badstuanlegg med fire badstuer. Gjester velger dag og antall plasser, ser hvilke økter som har ledige plasser og hva det koster, og betaler uten konto. Administrator logger inn og ser hvem som kommer til hver økt, og leser e-postene plattformen har sendt. Betaling og e-post er simulert.
 
-Det vanskelige er kapasiteten: plasser og hele badstuer trekker på de samme rommene, og plattformen skal aldri selge samme plass to ganger, heller ikke når to gjester trykker «Pay» i samme sekund. Hele kravsettet står i [PRD-en](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md).
+Det vanskelige er kapasiteten: plattformen skal aldri selge samme plass to ganger, heller ikke når to gjester trykker «Pay» i samme sekund. Hele kravsettet står i [PRD-en](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md).
 
 ## Status (2026-11-21)
 
-| Del | Status |
-|---|---|
-| Product brief | Ferdig |
-| Research (samtidighet, kapasitetsmodell, dørkoder) | Ferdig |
-| PRD | Ferdig. Planlagt v1 er Core + If-time 1–3 (HTTPS, endringer og Vouchere, hel badstue) |
-| UX | Ferdig ([EXPERIENCE.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPERIENCE.md), [DESIGN.md](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/DESIGN.md)) |
-| Arkitektur | Ferdig ([arkitekturspine](.docs/planning-artifacts/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md)): FastAPI + PostgreSQL, Next.js som frontend og Caddy som eneste inngang, alt i Docker Compose |
-| Epics og stories | Ferdig ([epics](.docs/planning-artifacts/epics.md)). Implementering pågår: Story 1.1 (backendstruktur), Story 1.2 (compose-stakken, vilkår og personvern), Story 1.3 (landingssiden), Story 1.4 (Book seats: dato, antall plasser og økt), Story 1.5 (betaling og bekreftelse) og Story 1.6 (avvisninger uten belastning) er ferdige, og fra Epic 2 Story 2.1 (Administrator logger inn og ut) |
-| Applikasjon | **Core-skiva på spinens backendstruktur (Story 1.1).** `src/booking_platform/` er delt i `api/` → `services/` → `db/` med `config.py` som løv. Skjemaet endres bare gjennom nummererte migrasjoner i `migrations/`. Alle stier ligger under `/api`, Administrator-endepunktene under `/api/admin/`, og økter er rader på serveren med hashet token i en informasjonskapsel. Story 1.2 la til compose-stakken (Caddy, FastAPI, Next.js og PostgreSQL), Next.js-frontenden med ett stilark og selvhostede fonter, og sidene for bookingvilkår (`/terms`) og personvern (`/privacy`). Story 1.3 la til landingssiden (`/`) med anlegget, «Before you come», badstuene og «Find us», `GET /api/venue` og seed-data i `seeds/`. Story 1.4 la til **Book seats** (`/book-seats`): gjesten velger dato, antall plasser (1–10) og økt, ser ekte ledige plasser og én totalsum, og valgene lagres i nettleserfanen (`sessionStorage`). Siden setter øktens informasjonskapsel og ingen annen. `GET /api/windows?date=&seats=` lister øktene for en dato innenfor bookinghorisonten (4 uker) og de nærmeste øktene med plass når datoen er full. Story 1.5 la til resten av bookingflyten: **Details** (`/book-seats/details`, navn og e-post), **Review** (`/book-seats/review`, oppsummering, bookingvilkår, avkrysning og «Pay NOK 500» med «Simulated payment: no money moves») og **Confirmation** (`/confirmation/[reference]`, bookingreferansen og e-posten slik den ble sendt). `POST /api/bookings` tar `{window_id, seats, name, email}` og en `Idempotency-Key`, og lagrer i én transaksjon bookingen med en referanse på 8 tegn (Crockford base32), pris og total i øre, en simulert kortbetaling, bekreftelses-e-posten i Outbox og nøkkelen; en gjentatt forespørsel med samme nøkkel gir det første svaret. `GET /api/bookings/{reference}/confirmation` svarer bare nettleserøkten som betalte, ellers samme 404. Tekst som deles av sider og e-post (bookingvilkårene og resepsjonssetningen) ligger i `content/`. Seeden legger inn tolv eksempelbookinger (`seeds/bookings.json`) én gang. Story 1.6 la til avvisningene: en booking vurderes etter låsen, i rekkefølgen utenfor bookinghorisonten (`outside_horizon`), forbi bookingfristen (`deadline_passed`) og for få plasser (`no_seat_free` med det sanne antallet ledige plasser), og en avvisning skriver ingenting. På Review blir gjesten stående med navn og e-post, får en melding som tar fokus og opptil tre nærmeste økter med plass, og ingenting belastes; en mislykket betaling gir en feiloppsummering og kan betales på nytt. En engangsnøkkel overlever nå økten sin (migrering `0007`), så et nytt forsøk etter at økten er slettet gir `409 invalid_key` og aldri en ny belastning. Story 2.1 la til innlogging for Administrator (migrering `0008`: `accounts`, `sessions.account_id` og `sign_in_throttle`). Passord lagres bare som Argon2id-hash (`argon2-cffi`, PHC-format), må ha minst 15 tegn, kan ikke stå på den pakkede listen over vanlige passord (`src/booking_platform/data/common-passwords.txt`, se `ASSETS.md`) og kan ikke være lik e-postadressen; alt annet er lov, også mellomrom og æøå. `POST /api/admin/sign-in` gir samme `401 sign_in_refused` for feil passord, ukjent e-post og sperret e-post, og etter 5 feil på rad sperres e-posten i 15 minutter, også for riktig passord. Innlogging gir økten et nytt token på samme rad med rollen Administrator og 8 timers glidende levetid; `POST /api/admin/sign-out` sletter økten. En gjests bookingøkt har ingen konto og får `401` på alle Administrator-endepunkter. Sidene `/admin/sign-in` og `/admin/bookings` (foreløpig bare Administrator-linjen og overskriften «Booking list»; selve listen kommer i Story 2.2) er på plass, og `/admin` sender videre til `/admin/bookings`. Outbox kan ennå ikke leses av Administrator (lenken i Administrator-linjen gir 404 til Story 2.3) |
-| Automatiserte tester | Skivas tester for FR-10/11/12/14/35/36/41 med påstandene beholdt, mens oppsettet er omformet (stier under `/api`, økter fra serveren, Administrator-økt fra en fixture, høyst 10 plasser per forespørsel eller rå innsettinger). Én endring i oppførsel: en avvisning fra databasen uten navngitt constraint gir nå 500 (`internal_error`), så retry-testen for en definitiv avvisning tvinger fram en navngitt constraint. I tillegg kommer tester for anlegget og seed-dataene (FR-1, `tests/test_fr01_venue.py`), CSRF (FR-18), tilgang (FR-20), økter (FR-21), inndata (FR-2), migrasjoner (DR-4), testbrytere og asset-registeret (DR-3) (`tests/`), og e2e-tester i nettleser mot hele stakken: ruting gjennom Caddy, feilsider, `<noscript>`, personvern (FR-21), tilgjengelighet med axe-core og tastatur (FR-22, FR-23), landingssiden (FR-1, `tests/e2e/test_fr01_landing.py`) og Book seats (FR-2, `tests/e2e/test_fr02_book_seats.py`) (`tests/e2e/`). Story 1.4 la til tester for øktplanen og genereringen (FR-13, NFR-3, `tests/test_fr13_windows.py`) og for øktlisten med nærmeste økter (FR-2, FR-3, `tests/test_fr03_listing.py`). Story 1.5 la til tester for betaling og engangsnøkkel (FR-6, `tests/test_fr06_payment.py`), bekreftelsen og e-posten (FR-8, `tests/test_fr08_confirmation.py`), validering av bookingforespørselen (FR-18, `tests/test_fr18_validation.py`), at ingen badstue vises i plassflyten (FR-4, `tests/test_fr04_no_sauna.py`), eksempelbookingene (`tests/test_dr5_seed_bookings.py`), og e2e-testen fra landingssiden til bekreftelsen med bare tastaturet (`tests/e2e/test_fr05_book_and_pay.py`). Story 1.6 la til kappløpet om siste plass med 100 runder (FR-11, `tests/test_fr11_last_seat_race.py`), alt-eller-ingenting med A6, A7, horisont og frist (FR-12, `tests/test_fr12_all_or_nothing.py`) og e2e-testen av avvisningene på Review (`tests/e2e/test_fr11_refusals.py`). Story 2.1 la til tester for innlogging, sperre og utlogging (FR-15, `tests/test_fr15_sign_in.py`), passordregler, hashing, seed og `create-admin` (FR-19, `tests/test_fr19_passwords.py`) og e2e-testen av innlogging og utlogging med bare tastaturet (`tests/e2e/test_fr15_sign_in.py`); Administrator-økten i testene kommer nå fra en ekte innlogging. Resten kommer sammen med hver story (PRD NFR-6) |
+Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Applikasjonen kjører over HTTP; HTTPS er neste epic. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
 
-Byggeperioden er 27. oktober – 15. desember 2026. Denne README-en oppdateres når appen finnes: installasjon, testbrukere, miljøvariabler og skjermbilder legges til da.
+### Ikke levert
+
+Dette er ikke bygget per i dag (DR-2). Senere epics korter ned listen.
+
+- **HTTPS** (FR-24, Epic 3). Plattformen svarer bare på HTTP. Resten av SC9 (validering, passord og roller) er levert; HTTPS-delen mangler.
+- **Suksesskriteriene SC2–SC8**: hel badstue (SC2, SC4), endre plasser eller ta Voucher (SC3), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
+- **FR-25 til FR-51**: Manage-lenker, endringer og Vouchere, hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
+- **Mobildelen av SC10**. Core er laget for laptop.
+- **WCAG 1.4.10 Reflow** (innhold i 320 CSS-piksler bredde uten rulling i to retninger) er ikke oppfylt før mobiloppsettet (FR-51) finnes. Det er det eneste avviket fra WCAG 2.2 AA som de automatiske testene kjenner, og tilgjengelighetsrapporten fra e2e-testene oppgir det. De manuelle testene og funnene deres står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
 
 ## Forutsetninger
 
-- [uv](https://docs.astral.sh/uv/) (installerer Python 3.12 etter behov, se `.python-version`)
-- Git
-- [Node.js](https://nodejs.org/) 24 LTS eller nyere (tester og utvikling av frontend)
+Tre verktøy må være installert:
+
+- [uv](https://docs.astral.sh/uv/) (installerer selv Python 3.12, se `.python-version`)
+- [Node.js](https://nodejs.org/) 24 LTS eller nyere (testene og utvikling av frontend)
 - [Docker](https://www.docker.com/) med Docker Compose (kjører hele plattformen)
 
-Databasen er PostgreSQL i en Docker-container (PRD §12 Q4, avgjort 2026-11-03; erstatter SQLite fra 2026-11-01). Hele plattformen kjører i Docker Compose: Caddy er eneste inngang, sender `/api` og `/api/*` til FastAPI og resten til Next.js. Plattformen kjører over HTTP til HTTPS-storyen (FR-24) er bygget.
+I tillegg trengs Git for å klone repoet.
 
 ## Kom i gang
-
-Én kommando starter hele plattformen:
 
 ```sh
 git clone https://github.com/IBE160-2026/G78-larsen.git
 cd G78-larsen
-docker compose up --build --wait   # bygger og starter proxy, backend, frontend og db; venter til alle er friske
+docker compose up --build --wait
 ```
 
-Åpne så `http://localhost:8000` (bruk `localhost`, ikke `127.0.0.1`: Caddy svarer bare for `localhost`). Bare Caddy har en publisert webport (`127.0.0.1:8000`); backend og frontend nås bare på det interne compose-nettverket. Databasen er i tillegg publisert på `127.0.0.1:55432` for utvikling og API-testene.
+Kommandoen bygger og starter de fire tjenestene (Caddy, FastAPI, Next.js og PostgreSQL) og venter til alle er friske. Første gang tar det noen minutter. Åpne så **`http://localhost:8000`**. Bruk `localhost`, ikke `127.0.0.1`: Caddy svarer bare for `localhost`.
 
-### Drift lokalt
+Caddy er eneste inngang og har den eneste publiserte webporten (`127.0.0.1:8000`). Den sender `/api` og `/api/*` til FastAPI og resten til Next.js. Backend og frontend nås bare på det interne compose-nettverket. Databasen er i tillegg publisert på `127.0.0.1:55432`, for utvikling og API-testene.
 
-```sh
-docker compose ps                    # status og helsesjekker for de fire tjenestene
-docker compose logs backend proxy    # logger fra backend og Caddy
-docker compose restart backend       # leser testbryterne på nytt (se under)
-docker compose down                  # stopper og fjerner containerne; data blir liggende
-docker compose down -v               # fjerner også volumene: databasen og Caddys data
-```
-
-Testbrytere: kopier `config/test-switches.example.toml` til `config/test-switches.toml`, endre den og kjør `docker compose restart backend`. Mappen `config/` er montert skrivebeskyttet i backend, og uten filen er alle brytere av.
-
-### Utvikling uten Docker for backend og frontend
+## Utvikling uten Docker for backend og frontend
 
 ```sh
-uv sync                              # installerer Python og avhengigheter i .venv
-docker compose up -d --wait db       # starter bare PostgreSQL 18 (port 55432)
-uv run booking-platform dev          # API-et på http://127.0.0.1:8001 med automatisk omstart
+uv sync                              # installerer Python og avhengighetene i .venv
+docker compose up -d --wait db       # starter bare PostgreSQL (port 55432)
+uv run booking-platform dev          # API-et på http://127.0.0.1:8001, starter på nytt ved endringer
 npm --prefix frontend ci             # én gang: frontendens avhengigheter
 npm --prefix frontend run dev        # Next.js på http://127.0.0.1:3000; /api/* sendes videre til 127.0.0.1:8001
 ```
 
-`uv run booking-platform dev` oppretter databasen `booking_dev` første gang, kjører migrasjonene i `migrations/` og svarer på `http://127.0.0.1:8001/api/health`. Ved hver oppstart legges badstuene fra `seeds/venue.json` inn der de mangler, og øktplanen (åtte økter à 1 t 30 min fra 10:00) legges inn hvis tabellen `window_schedule` er tom. Øktene (Windows) genereres fra planen: ved oppstart og ved hver lesing av øktlisten legges øktene fra i dag til slutten av bookinghorisonten inn, under en advisory-lås og bare for datoer etter `settings.windows_generated_through`, så en fersk klone alltid har datoer å booke og en slettet økt aldri kommer tilbake. Pris, åpningstider, øktlengde, adresse og kontakt kommer fra standardverdiene i migrasjon `0004`, som er de samme som i seed-fila (en test sjekker det), og seeden fyller bare en slik kolonne hvis den er NULL; en verdi som allerede står i databasen, overskrives aldri, og en ugyldig seed-fil stopper oppstarten med én linje som nevner filen og feltet. Etter genereringen legges eksempelbookingene i `seeds/bookings.json` inn gjennom den vanlige bookingtjenesten, under én fast seed-økt og med faste engangsnøkler, regnet i dager fra anleggets dato ved første oppstart: i morgen 14:30 (2 plasser), om to dager 17:30 (42 av 44), om tre dager 19:00 (fullt) og om fem dager 10:00 (4 plasser); i dag ingen. En booking med en nøkkel som allerede finnes, hoppes over, så en omstart (også en senere dag) lager ingen kopier. `uv run booking-platform serve` gjør det samme uten automatisk omstart.
+Kjør `uv run booking-platform dev` og `npm --prefix frontend run dev` i hvert sitt terminalvindu, og åpne **`http://127.0.0.1:3000`** (Administrator: `http://127.0.0.1:3000/admin/sign-in`). Backend svarer på `http://127.0.0.1:8001/api/health`. Compose-stakken kan kjøre samtidig: den bruker databasen `booking`, utviklingsoppsettet `booking_dev` i samme `db`-container.
 
-Konfigurasjonen leses bare fra `BP_*`-miljøvariabler, og alle har en standardverdi som virker lokalt:
+`uv run booking-platform dev` oppretter databasen `booking_dev` første gang og kjører migrasjonene i `migrations/`. Ved hver oppstart legges badstuene, øktplanen, eksempelbookingene og Administrator fra `seeds/` inn der de mangler; seeden overskriver aldri noe som allerede står i databasen. Øktene genereres fra planen fram til slutten av bookinghorisonten (4 uker), så en fersk klone alltid har datoer å booke.
 
-| Variabel | Standard | Betydning |
-|---|---|---|
-| `BP_DATABASE_URL` | `postgresql://postgres:booking@127.0.0.1:55432/booking_dev` | Databasen (`booking_dev` opprettes bare når standard-URL-en brukes) |
-| `BP_BASE_URL` | `http://127.0.0.1:3000` | Opprinnelsen nettleseren bruker; skrivende forespørsler må komme derfra (CSRF) |
-| `BP_HTTPS` | `off` | Gjør øktkapselen `Secure`; krever at `BP_BASE_URL` begynner med `https://` |
-| `BP_HOST`, `BP_PORT` | `127.0.0.1`, `8001` | Hvor backend lytter |
-| `BP_ROOT` | repoets rot | Rot for `migrations/`, `seeds/`, `content/` og `config/` (imaget setter `/app`) |
-| `BP_TEST_SWITCHES` | `config/test-switches.toml` | Testbrytere. Kopier `config/test-switches.example.toml` dit for å bruke dem; mangler filen, er alle av |
-
-Docker Compose og frontenden leser i tillegg disse (de er ikke `BP_*`, og backend leser dem ikke):
-
-| Variabel | Standard | Betydning |
-|---|---|---|
-| `HTTP_PORT` | `8000` | Porten Caddy lytter på og publiserer på `127.0.0.1`; også i `BP_BASE_URL` i compose |
-| `DB_PORT` | `55432` | Databaseporten på `127.0.0.1` (en annen verdi krever en tilsvarende `BP_DATABASE_URL`) |
-| `SWITCHES_DIR` | `./config` | Mappen som monteres skrivebeskyttet som `/app/config` i backend (testbryterne) |
-| `API_INTERNAL_URL` | compose: `http://backend:8000`, ellers `http://127.0.0.1:8001` | Hvor frontendens server kaller backend (`frontend/lib/server-api.js`) |
-
-### Innlogging for Administrator
-
-Seeden legger inn én Administrator første gang backend starter (`seeds/admin.json`); en omstart overskriver aldri passordet. Testinnloggingen gjelder bare lokalt:
-
-| E-post | Passord |
-|---|---|
-| `admin@saunaloyly.example` | `badstue-admin-test-2026` |
-
-Logg inn på `http://localhost:8000/admin/sign-in` (eller `http://127.0.0.1:3000/admin/sign-in` i utvikling). Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
-
-En ny Administrator, eller nytt passord for en som finnes, lages med `create-admin`. Kommandoen spør etter e-post og to ganger etter passordet uten å vise det; passordet tas aldri som argument eller miljøvariabel. Den kjører migrasjonene først, skriver e-posten og «created» eller «password changed», og et passord som bryter en regel gir én linje og exit-kode 2 uten at noe skrives.
-
-```sh
-docker compose exec backend booking-platform create-admin   # i compose-stakken
-uv run booking-platform create-admin                         # mot booking_dev (standard-URL-en)
-```
-
-I PowerShell er det de samme kommandoene; mot en annen database settes URL-en først:
-
-```powershell
-docker compose exec backend booking-platform create-admin
-$env:BP_DATABASE_URL = "postgresql://postgres:booking@127.0.0.1:55432/booking_dev"; uv run booking-platform create-admin
-```
-
-### Tester
+## Tester
 
 To forberedelser, én gang:
 
@@ -128,42 +74,137 @@ uv run playwright install chromium   # nettleseren til e2e-testene
 Deretter:
 
 ```sh
-uv run pytest            # API-testene og e2e-testene
+uv run pytest
 ```
 
-`uv run pytest` kjører to lag, så Docker må kjøre. API-laget (`tests/`) kjører først `docker compose up -d --wait db`, oppretter `booking_test` på nytt og starter backend som en egen prosess. E2e-laget (`tests/e2e/`) starter hele stakken som et eget compose-prosjekt, `booking_e2e`, på ledige porter (så det aldri kolliderer med stakken på 8000), kjører Playwright og axe-core mot den og fjerner den med `down -v` til slutt. Testene sender ekte HTTP-forespørsler til en ekte backend-prosess (`uv run booking-platform serve`) mot ekte PostgreSQL, og skriver også rett til databasen for å omgå API-et (FR-10). Hele settet tar ca. to–tre minutter, mer første gang imagene bygges. `BP_TEST_MUTATE=<navn>` slår av én beskyttelse i databasen (se `MUTATIONS` i `tests/conftest.py`) for å vise at testene da feiler.
+Docker må kjøre. Testene har to lag:
 
-### Hverdagskommandoer
+- **API-testene** (`tests/`) starter `db`-tjenesten, oppretter databasen `booking_test` på nytt og sender ekte HTTP-forespørsler til en egen backend-prosess mot ekte PostgreSQL. Noen skriver også rett til databasen for å vise at reglene holder utenom API-et (FR-10).
+- **E2e-testene** (`tests/e2e/`) starter hele stakken som et eget compose-prosjekt, `booking_e2e`, på ledige porter (så de aldri kolliderer med stakken på 8000), kjører Playwright og axe-core mot den og fjerner den med `down -v` til slutt.
+
+Hele settet (over 500 tester) tar 10–15 minutter, mer første gang imagene bygges. Skjermbildene fra 200 %-zoom-testen havner i `test-results/zoom/` (ikke i git). De manuelle tilgjengelighetstestene, med dato, nettleser, utfall og hvilken automatisk test som dekker hver av dem, står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
+
+`BP_TEST_MUTATE=<navn>` slår av én beskyttelse i databasen (se `MUTATIONS` i `tests/conftest.py`) for å vise at testene da feiler.
+
+## Administrator og eksempelbookinger
+
+Første gang backend starter, legger seeden inn én Administrator (`seeds/admin.json`); en omstart overskriver aldri passordet. Testinnloggingen gjelder bare lokalt:
+
+| E-post | Passord |
+|---|---|
+| `admin@saunaloyly.example` | `badstue-admin-test-2026` |
+
+Logg inn på `http://localhost:8000/admin/sign-in`. Etter innlogging åpnes **bookinglisten** på `http://localhost:8000/admin/bookings`, med gjestene per økt for valgt dato. Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
+
+Seeden legger også inn tolv eksempelbookinger (`seeds/bookings.json`), én gang, regnet i dager fra datoen backend startet første gang:
+
+| Dag | Økt | Bookinger | Hvordan økten ser ut |
+|---|---|---|---|
+| I morgen | 14:30 | 1 (2 plasser) | Vanlig |
+| Om 2 dager | 17:30 | 5 (42 av 44 plasser) | 2 plasser igjen |
+| Om 3 dager | 19:00 | 5 (44 av 44 plasser) | Fullt |
+| Om 5 dager | 10:00 | 1 (4 plasser) | Vanlig |
+
+En omstart, også en senere dag, lager ingen kopier.
+
+## Outbox
+
+E-post sendes ikke ut. Hver e-post plattformen sender, legges i **Outbox**, en simulert postkasse: `http://localhost:8000/admin/outbox` (lenken «Outbox» i Administrator-linjen). Den viser hver e-post slik den ble sendt, også de gjesten aldri ser på en side. Bekreftelsen fra en ny booking dukker opp her og på Confirmation-siden.
+
+## Drift
+
+### Ny Administrator eller nytt passord
 
 ```sh
-uv add <pakke>           # legg til avhengighet
-uv add --dev <pakke>     # legg til utviklingsavhengighet (tester, linter)
-uv remove <pakke>        # fjern avhengighet
-uv lock --upgrade        # oppgrader låste versjoner
+docker compose exec backend booking-platform create-admin   # i compose-stakken
+uv run booking-platform create-admin                         # mot booking_dev (utvikling)
 ```
 
-`pyproject.toml` er eneste kilde for avhengigheter, og `uv.lock` låser versjonene. Begge committes. Ikke bruk pip, venv, poetry eller `requirements.txt`, og ikke commit `.venv/`.
+I PowerShell er det de samme kommandoene. Mot en annen database settes URL-en først:
+
+```powershell
+$env:BP_DATABASE_URL = "postgresql://postgres:booking@127.0.0.1:55432/booking_dev"; uv run booking-platform create-admin
+```
+
+Kjør den i et vanlig terminalvindu (PowerShell, Terminal eller cmd), ikke gjennom en pipe: den spør etter e-post og to ganger etter passordet uten å vise det; passordet tas aldri som argument eller miljøvariabel. Den skriver e-posten og «created» eller «password changed». Passordet må ha minst 15 tegn, kan ikke stå på listen over vanlige passord og kan ikke være lik e-postadressen; et passord som bryter en regel, gir én linje og exit-kode 2 uten at noe lagres.
+
+### Testbrytere
+
+Testbryterne lar deg prøve en avvist betaling (`payment = "fail"`), en betaling som venter (`"hold"`) eller en tvunget databasekonflikt (`force_conflict = true`). Ingen av dem belaster noe eller lagrer en booking:
+
+```sh
+cp config/test-switches.example.toml config/test-switches.toml   # virker også i PowerShell
+docker compose restart backend
+```
+
+Endre `config/test-switches.toml` mellom de to kommandoene. Backend leser filen bare ved oppstart, så kjør `docker compose restart backend` etter hver endring (`cp` trengs bare første gang; den overskriver endringene dine). Uten filen er alle brytere av: slett den og kjør `docker compose restart backend` igjen for å slå dem av. Filen committes ikke.
+
+### Status, logger og stopp
+
+```sh
+docker compose ps                    # status og helsesjekker for de fire tjenestene
+docker compose logs backend proxy    # logger fra backend og Caddy
+docker compose down                  # stopper og fjerner containerne; dataene blir liggende
+docker compose down -v               # fjerner også volumene: databasen og Caddys data
+```
+
+Etter `down -v` starter neste `docker compose up --build --wait` med en tom database, ny seed og eksempelbookinger regnet fra den dagen. `down -v` fjerner også `booking_dev` fra utviklingsoppsettet, som ligger i samme `db`-container.
+
+## Konfigurasjon
+
+Alt har en standardverdi som virker lokalt, og ingen `.env`-fil trengs. Backend leser bare `BP_*`-miljøvariabler:
+
+| Variabel | Standard | Betydning |
+|---|---|---|
+| `BP_DATABASE_URL` | `postgresql://postgres:booking@127.0.0.1:55432/booking_dev` | Databasen (`booking_dev` opprettes bare når standard-URL-en brukes) |
+| `BP_BASE_URL` | `http://127.0.0.1:3000` | Opprinnelsen nettleseren bruker; skrivende forespørsler må komme derfra (CSRF) |
+| `BP_HTTPS` | `off` | Gjør øktkapselen `Secure`; krever at `BP_BASE_URL` begynner med `https://` |
+| `BP_HOST`, `BP_PORT` | `127.0.0.1`, `8001` | Hvor backend lytter |
+| `BP_ROOT` | repoets rot | Rot for `migrations/`, `seeds/`, `content/` og `config/` (imaget setter `/app`) |
+| `BP_TEST_SWITCHES` | `config/test-switches.toml` | Testbryterfilen; mangler den, er alle brytere av |
+
+Docker Compose og frontenden leser i tillegg disse:
+
+| Variabel | Standard | Betydning |
+|---|---|---|
+| `HTTP_PORT` | `8000` | Porten Caddy lytter på og publiserer på `127.0.0.1`; også i `BP_BASE_URL` i compose |
+| `DB_PORT` | `55432` | Databaseporten på `127.0.0.1` (en annen verdi krever en tilsvarende `BP_DATABASE_URL`) |
+| `SWITCHES_DIR` | `./config` | Mappen som monteres skrivebeskyttet som `/app/config` i backend (testbryterne) |
+| `API_INTERNAL_URL` | compose: `http://backend:8000`, ellers `http://127.0.0.1:8001` | Hvor frontendens server kaller backend (`frontend/lib/server-api.js`) |
+
+## Sikkerhet
+
+Slik beskyttes dataene i denne versjonen (FR-21). Det stemmer med personvernerklæringen på `http://localhost:8000/privacy` ([kilden](frontend/app/privacy/page.js)).
+
+- **Passord** lagres bare som Argon2id-hash. Testpassordet over står i klartekst i `seeds/admin.json` fordi det bare gjelder lokalt.
+- **Roller** sjekkes på serveren ved hver forespørsel. Alle Administrator-endepunkter ligger under `/api/admin/`, og uten en innlogget Administrator-økt svarer de `401`; en gjests bookingøkt gir ingen tilgang. Sidene under `/admin` sender en anonym besøkende til innloggingen (`tests/e2e/test_fr15_sign_in.py`).
+- **Økter** er rader på serveren. Nettleseren får én informasjonskapsel med et tilfeldig token, og databasen lagrer bare en hash av det. Gjesten får kapselen på Book seats; ved Administrator-innlogging får den samme kapselen et nytt token.
+- **Ingen tredjepartsforespørsler**: fontene og bildene er selvhostet (se `ASSETS.md`), og API-dokumentasjonen (`/docs`, `/openapi.json`) er slått av (`tests/test_fr20_access.py`).
+- **Ingen hemmeligheter i loggene** (AD-19): loggene har metode, sti, statuskode og feilkode, aldri forespørselskropper, hoder, informasjonskapsler, passord eller tokener. E2e-testene sjekker loggene for testpassordet, økttokenene og forespørselskroppene.
+- **Skrivende forespørsler** må komme fra plattformens egen opprinnelse (CSRF, FR-18), og all inndata valideres på serveren.
+- **HTTPS er ikke på ennå** (Epic 3, FR-24). Alt går over HTTP, bare på `127.0.0.1`. Backend og frontend er bare på det interne compose-nettverket.
+- **Manage-lenker** finnes ikke ennå. Når de bygges (PRD §4.8), lagres tokenene bare som hash i bookingdataene. Outbox, som er en simulert postkasse, viser lenkene slik de ble sendt, og er bare åpen for Administrator.
 
 ## Mappestruktur
 
 ```
 src/booking_platform/   Python-pakke (backend): api/ → services/ → db/, config.py
-migrations/             Nummererte SQL-migrasjoner (0001_core.sql er skivas opprinnelige skjema)
-content/                Tekst som deles av sider og e-post (bookingvilkår, resepsjonssetningen), JSON
-seeds/                  Seed-data som legges inn ved hver oppstart uten å overskrive (venue.json, bookings.json, admin.json)
+migrations/             Nummererte SQL-migrasjoner; skjemaet endres bare her
+seeds/                  Seed-data: badstuene (venue.json), eksempelbookingene (bookings.json), Administrator (admin.json)
+content/                Tekst som deles av sider og e-post (bookingvilkår, resepsjonssetningen)
 config/                 Eksempel på testbryterfil (den ekte filen committes ikke)
-frontend/               Next.js (App Router, JavaScript): app/ (sider og styles.css), components/, lib/, public/ (fonts/, images/)
-tests/                  API-tester mot ekte backend og PostgreSQL; tests/e2e/ kjører nettleser og axe mot hele stakken
+frontend/               Next.js (App Router, JavaScript): app/, components/, lib/, public/ (fonter og bilder)
+tests/                  API-tester mot ekte backend og PostgreSQL
+tests/e2e/              Nettlesertester med Playwright og axe-core mot hele stakken
+tests/manual/           Sjekklisten og resultatene for de manuelle tilgjengelighetstestene (FR-23)
 Caddyfile               Proxyen: eneste inngang, ruting og svarhoder
 docker-compose.yml      De fire tjenestene (proxy, backend, frontend, db) med helsesjekker
 Dockerfile              Backend-imaget (frontend/Dockerfile er frontend-imaget)
 ASSETS.md               Register over fonter og bilder med kilde og lisens (DR-3)
-.docs/                  Planlegging og research (se under)
+.docs/                  Planlegging: brief, PRD, UX, arkitektur, epics og spesifikasjonene per story
 .logs/<bruker>/         Sesjonslogger: oppgave, plan, resultat og åpne punkter per økt
-_bmad/                  BMad Method-konfigurasjon
-.claude/skills/         BMad-skills og prosjektets egne skills for Claude Code
-pyproject.toml          Prosjektmetadata og avhengigheter
-uv.lock                 Låste versjoner
+_bmad/, .claude/skills/ BMad Method og prosjektets egne skills for Claude Code
+pyproject.toml, uv.lock Avhengigheter (eneste kilde) og låste versjoner
 ```
 
 ## Plan- og prosessdokumentasjon
@@ -173,6 +214,9 @@ uv.lock                 Låste versjoner
 | [Product brief](.docs/planning-artifacts/briefs/brief-booking-platform-2026-09-20/brief.md) og [tilbakemelding](.docs/planning-artifacts/briefs/brief-booking-platform-2026-09-20/tilbakemelding-product-brief.md) | Hva som skal bygges, og lærerens vurdering av briefen |
 | [PRD](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md) og [addendum](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/addendum.md) | Krav (FR-1 …), testbare konsekvenser, leveringskrav (DR-1 …) og åpne spørsmål |
 | [Research](.docs/planning-artifacts/research/) | Samtidighet og plassreservasjon, kapasitetsmodell med 85 eksempler, dørkoder |
+| [UX](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPERIENCE.md) og [design](.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/DESIGN.md) | Hvordan plattformen oppfører seg og ser ut |
+| [Arkitektur](.docs/planning-artifacts/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md) | FastAPI + PostgreSQL, Next.js og Caddy i Docker Compose |
+| [Epics og stories](.docs/planning-artifacts/epics.md) | Arbeidet delt i stories, med akseptansekriterier |
 | [Brainstorm: minste v1](.docs/brainstorming/brainstorm-minste-v1-mvp-2026-10-27/brainstorm-intent.md) | Hva som er kjerne og hva som er «hvis tid» |
 | [Sesjonslogger](.logs/lisa-larsen/) | Hva som ble spurt om, planlagt og besluttet i hver KI-økt |
 | [Åpne punkter](.logs/lisa-larsen/issues.md) | Avklaringer som gjenstår, med lenke til økta de oppstod i |
@@ -180,4 +224,4 @@ uv.lock                 Låste versjoner
 
 ## Prosess
 
-Planleggingen er gjort med BMAD-skills i Claude Code. Hver økt logges i `.logs/` med oppgave, plan og resultat, og beslutninger føres inn i PRD-en med dato. Under implementeringen arbeides det på én gren per story, med pull request som viser hvilke krav (FR-nummer) som er dekket, hvordan KI ble brukt, og hvilke tester og funn kvalitetssikringen ga. Se [PR-malen](.github/pull_request_template.md).
+Planleggingen er gjort med BMAD-skills i Claude Code. Hver økt logges i `.logs/` med oppgave, plan og resultat, og beslutninger føres inn i PRD-en med dato. Under implementeringen arbeides det på én gren per story, med pull request som viser hvilke krav (FR-nummer) som er dekket, hvordan KI ble brukt, og hvilke tester og funn kvalitetssikringen ga. Se [PR-malen](.github/pull_request_template.md). Avhengigheter legges til med `uv` (`pyproject.toml` og `uv.lock`), aldri med pip eller `requirements.txt`.
