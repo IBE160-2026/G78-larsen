@@ -230,3 +230,5 @@
 - [ ] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — sensorveiledningen rad 3 sier fortsatt «536 tester»; oppdater (nå 464 API + 176 e2e)
 - [x] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — manuell gjennomgang av voucher-flyten (`bmad-walkthrough`), og sett Story 4.3 til `done` i `sprint-status.yaml` (løst 2026-11-24: godkjent av Lisa, `done` i `2b12495`)
 - [x] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — merge PR #16 (Story 4.3) (løst 2026-11-24: merget med vanlig merge, `5572528`)
+- [ ] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — implementer Story 4.4 i en ny `bmad-build`-økt (specen er `ready-for-dev`)
+- [ ] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — EXPERIENCE.md: før inn voucher-felttekstene og betalingsradene for 4.4, og lukk Open Item 23
