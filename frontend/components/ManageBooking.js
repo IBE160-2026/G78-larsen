@@ -8,8 +8,7 @@
 // available." (FR-20). Before the Cutoff an active Booking offers its Changes: "Move seats" (Story 4.2) and "Give up
 // seats for a voucher" (Story 4.3). A cancelled Booking (all Seats given up) shows its reference, date, session and
 // the Seats given up, when it was cancelled, and no Changes (Lisa, 2026-11-24, EXPERIENCE.md Open Item 19).
-// The two Changes are links shown as choice buttons: the Seat picker's cell look, filled blue on hover and press
-// (Lisa, 2026-11-24).
+// The two Changes are links shown as primary buttons, side by side (Lisa, 2026-11-24).
 //
 // As on Confirmation, the h1 appears only once the read has answered, so a browser without a grant never sees it
 // before "This page is not available."; FocusMover focuses it after the navigation from `/manage`.
@@ -80,12 +79,12 @@ export default function ManageBooking({ reference }) {
                 {b.status === 'active' && (
                   <ul className="manage-changes">
                     <li>
-                      <Link className="button-choice" href={`/manage/${encodeURIComponent(b.reference)}/move`}>
+                      <Link className="button-primary" href={`/manage/${encodeURIComponent(b.reference)}/move`}>
                         {MANAGE.moveSeats}
                       </Link>
                     </li>
                     <li>
-                      <Link className="button-choice" href={`/manage/${encodeURIComponent(b.reference)}/voucher`}>
+                      <Link className="button-primary" href={`/manage/${encodeURIComponent(b.reference)}/voucher`}>
                         {MANAGE.giveUpSeats}
                       </Link>
                     </li>
