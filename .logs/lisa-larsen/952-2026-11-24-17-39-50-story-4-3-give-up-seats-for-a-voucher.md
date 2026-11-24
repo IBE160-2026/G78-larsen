@@ -70,3 +70,25 @@ Implementere story 4.3 etter specen (`.docs/implementation-artifacts/spec-4-3-gi
 
 ### Åpne punkter
 Ingen nye. (Punktet «implementer story 4.3» er lukket.)
+
+## 2026-11-24 kl. 19:13 — Lisa Larsen
+
+### Oppgave
+Implementere Story 4.3 (Voucher for plasser) i en ny `bmad-build`-økt, fra spec-en som sto `ready-for-dev`.
+
+### Plan
+- Spec: [`spec-4-3-give-up-seats-for-a-voucher.md`](../../.docs/implementation-artifacts/spec-4-3-give-up-seats-for-a-voucher.md) (nå `done`, med `## Review Triage Log`).
+- Plan-endringene committet først (`f2de491`) som baseline; spec og `sprint-status.yaml` satt `in-progress`.
+- Implementering ved en subagent (se seksjonen kl. 18:40), deretter diff-sjekk mot oppgaver og I/O-matrise.
+- Review med tre parallelle lag (Blind Hunter, Edge Case Hunter, Verification Gap), triage, rettinger via samme subagent, full verifisering.
+
+### Resultat
+- Commit `831d576` på ny gren `story/4-3-give-up-seats-for-a-voucher` (ikke pushet, ingen PR). Story 4.3 står `review` i `sprint-status.yaml`.
+- Første testkjøring ble stoppet av Claude Code pga. lite minne; Docker-containerne brukte bare ~380 MB (tømte page cache i Docker-VM-en, liten gevinst). Ny kjøring etter rettingene: 464 API-tester og 176 e2e-tester grønne, `npm --prefix frontend run build` rent.
+- Review: 19 funn — 6 rettet (voucher-siden viser kansellert booking med forklaring; `booking_cancelled` leser bookingen på nytt; ny e2e-test for avvisninger og kansellert tilstand; docstring i `services/voucher.py`, kommentar i migrasjon 0012 og ordlyd i sensorveiledningen), 1 utsatt til `deferred-work.md` (29. feb-regelen i `GiveUpSeats.js` `lastValidDate` er ikke testet), 12 avvist med begrunnelse i spec-ens triage-logg.
+
+### Åpne punkter
+- Kansellert Manage-side sier alltid «You gave up all seats for a voucher …» og «Seats given up»; når kanselleringer fra stedet kommer (FR-42, block/overbooking), må teksten avhenge av `cancel_cause` (som da må med i Manage-lesingen).
+- «Valid until» i voucher-steget regnes i nettleseren (29. feb → 28. feb) og er ikke testet; vurder å hente `last_valid_date` fra API-et (`deferred-work.md`).
+- `.docs/sensorveiledning-kravsporing.md` rad 3 sier fortsatt «536 tester» (2026-11-21); nå 464 API + 176 e2e.
+- Manuell gjennomgang av voucher-flyten i nettleseren (`bmad-walkthrough`) før Story 4.3 settes `done`.
