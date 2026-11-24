@@ -17,7 +17,7 @@ import re
 import pytest
 
 from client import api_client
-from test_fr08_confirmation import expected_body
+from test_fr08_confirmation import expected_body, with_link_masked
 from test_fr16_booking_list import NOT_SIGNED_IN, book_seats, written
 
 KEYS = {"id", "created_at", "recipient", "subject", "body"}
@@ -56,7 +56,8 @@ def test_a_guest_flow_booking_confirmation_is_first_and_as_the_confirmation_show
     first = emails[0]
     assert set(first) == KEYS
     assert first["recipient"] == "guest@example.com"
-    assert first["body"] == paid["emails"][0]["body"] == expected_body(ref, world)
+    assert first["body"] == paid["emails"][0]["body"]
+    assert with_link_masked(first["body"], world) == expected_body(ref, world)  # the Manage link (Story 4.1) aside
     links = re.findall(r"https?://\S+", first["body"])
     assert links and all(link.startswith(world + "/") for link in links)
     # the time is the stored one, in Venue time (Europe/Oslo, +01:00 in December)

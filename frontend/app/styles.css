@@ -1092,6 +1092,22 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* Manage booking (FR-25): until when the Booking can be changed, or why it no longer can, under the summary. The
+   confirming step (first used in Story 4.2) below it. */
+.manage-until,
+.summary + .notice {
+  margin-top: var(--space-5);
+  max-width: var(--measure-text);
+}
+
+.confirming-step {
+  margin-top: var(--space-6);
+}
+
+.confirming-step .button-primary {
+  margin-top: var(--space-5);
+}
+
 /* An Outbox entry (UX-DR32): Email as sent with the subject, time and recipient in label above the body. */
 .outbox-entry .reference-label {
   margin-bottom: var(--space-1);

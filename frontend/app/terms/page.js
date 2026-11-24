@@ -48,7 +48,10 @@ export default function Terms() {
         </section>
         <section className="section">
           <h2 className="heading-md">Changes and refunds</h2>
-          <p>A booking cannot be changed or refunded.</p>
+          <p>
+            Up to 12 hours before the session starts, you can move some or all seats to another session, or give them
+            up for a voucher. Money is not refunded.
+          </p>
         </section>
         <section className="section">
           <h2 className="heading-md">If Saunalöyly cancels</h2>

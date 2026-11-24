@@ -20,7 +20,9 @@ from . import a11y, trust
 from .guest import book_in_browser, free_windows, open_session  # noqa: F401 (also used by other modules)
 
 REFERENCE = re.compile(r"[0-9A-HJKMNP-TV-Z]{8}")
-TERMS = ["A booking for a fixed date cannot be withdrawn.", "A booking cannot be changed or refunded.",
+CHANGE_STATEMENT = ("Up to 12 hours before the session starts, you can move some or all seats to another session, or "
+                    "give them up for a voucher. Money is not refunded.")
+TERMS = ["A booking for a fixed date cannot be withdrawn.", CHANGE_STATEMENT,
          "If Saunalöyly cancels your session, you choose a refund or a voucher."]
 RECEPTION = "Keep your booking reference and give it at reception when you arrive."
 
@@ -124,6 +126,12 @@ def test_keyboard_alone_from_landing_to_confirmation(page: Page, base_url, windo
     assert body.startswith("Booking confirmed\n") and f"Booking reference: {reference}\n" in body
     assert body.rstrip().endswith("Simulated payment: no money moves")
     assert f"{base_url}/#before-you-come" in body
+    assert base_url.startswith("https://")
+    # the Manage link, just before "Before you come" (Story 4.1)
+    link = re.escape(base_url) + r"/manage#t=[A-Za-z0-9_-]{43}"
+    assert re.search(r"(?m)^Manage your booking\n" + link + r"\n\nBefore you come$", body), body
+    assert CHANGE_STATEMENT in body and "cannot be changed or refunded" not in body
+    assert "cannot be changed or refunded" not in page.locator("main").inner_text()
     assert draft(page) == {"reference": reference}
     assert seats_left(base_url, window) == before - 2
 

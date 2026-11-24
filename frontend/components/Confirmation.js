@@ -7,7 +7,7 @@
 // The Booking and the email come from `GET /api/bookings/{reference}/confirmation`, which answers only the paying
 // browser session; any other browser, no browser session and an unknown reference get "This page is not available."
 // (FR-20 RB-4). A reload in the paying session shows the page again. Straight after Pay, Review has read it already,
-// so the h1 is on the page at once (lib/confirmation.js). No Manage link in the Core.
+// so the h1 is on the page at once (lib/confirmation.js). The Manage link (Story 4.1) appears only in the email as sent.
 import { useEffect, useRef, useState } from 'react';
 import BookingSummary from './BookingSummary';
 import EmailAsSent from './EmailAsSent';

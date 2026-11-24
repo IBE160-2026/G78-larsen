@@ -7,11 +7,15 @@ with a script tag is shown as text on Review and Confirmation, never run (FR-18 
 Story 2.4 adds the Administrator pages: an anonymous visit to each Administrator address goes to Sign-in; Sign-in,
 Booking list and Outbox keep every request on the origin, one cookie and one stylesheet of ours; and after a Booking,
 a sign-in and a sign-out the compose logs hold neither the test password, nor a session token, nor the request body
-(AD-19)."""
+(AD-19).
+
+Story 4.1 adds the Manage page: opening a Manage link keeps every request on the origin with one cookie and one
+stylesheet of ours, and the issued Manage token, opened in the browser, never reaches the compose logs (AD-19)."""
 
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import uuid
 
@@ -20,6 +24,9 @@ from playwright.sync_api import Page
 
 from .admin import LOGIN, SIGN_IN, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 from .test_fr05_book_and_pay import book_in_browser, free_windows, open_session, review_draft, set_draft
+from .test_fr25_manage import open_manage_link
+
+MANAGE_TOKEN = re.compile(r"/manage#t=([A-Za-z0-9_-]{43})$", re.M)
 
 SCRIPT_NAME = "<script>window.__pwned = 1</script><b>Bold</b>"
 
@@ -131,6 +138,26 @@ def test_a_name_with_a_script_tag_is_text_on_review_and_confirmation(page: Page,
     assert page.evaluate("() => window.__pwned") is None
 
 
+def test_the_manage_page_stays_on_the_origin_with_one_cookie_and_one_stylesheet(page: Page, base_url):
+    """Story 4.1: the Manage link of a new Booking, opened in the paying browser."""
+    window = free_windows(base_url)[-1]
+    open_session(page, base_url)
+    paid = book_in_browser(page, window, 1)
+    link = re.search(r"(?m)^(https://\S+/manage#t=[A-Za-z0-9_-]{43})$", paid["emails"][0]["body"]).group(1)
+    requests = []
+    page.on("request", lambda r: requests.append(r.url))
+    open_manage_link(page, base_url, link)
+    page.wait_for_load_state("networkidle")
+    page.evaluate("document.fonts.ready")
+    others = [u for u in requests if not (u == base_url or u.startswith(base_url + "/"))]
+    assert not others, f"requests to another origin: {others}"
+    assert [c["name"] for c in page.context.cookies()] == ["bp_session"]
+    sheets = page.evaluate("() => Array.from(document.styleSheets).map(s => s.href)")
+    assert len(sheets) == 1 and sheets[0].startswith(base_url + "/"), sheets
+    assert page.locator("style").count() == 0
+    assert page.locator(".shell [style], .shell[style]").count() == 0
+
+
 # --- The Administrator pages (Story 2.4) ----------------------------------------------------------------------------
 
 ADMIN_PAGES = ["/admin", "/admin/bookings", "/admin/outbox"]
@@ -190,16 +217,23 @@ def test_the_password_tokens_and_request_bodies_never_reach_the_logs(page: Page,
     wrong_password = f"wrong-password-{marker}"
     window = free_windows(base_url)[-1]
     tokens, keys = set(), [str(uuid.uuid4()), str(uuid.uuid4())]
-    post = """async ({body, key}) => (await fetch('/api/bookings', {method: 'POST', credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json', 'Idempotency-Key': key}, body})).status"""
+    post = """async ({body, key}) => {
+                const r = await fetch('/api/bookings', {method: 'POST', credentials: 'same-origin',
+                  headers: {'Content-Type': 'application/json', 'Idempotency-Key': key}, body});
+                return [r.status, await r.json()];
+              }"""
 
     open_session(page, base_url)
     tokens.add(_session_token(page))
     body = json.dumps({"window_id": window["id"], "seats": 1, "name": name, "email": email})
-    assert page.evaluate(post, {"body": body, "key": keys[0]}) == 201
+    status, paid = page.evaluate(post, {"body": body, "key": keys[0]})
+    assert status == 201, paid
     refused = json.dumps({"window_id": window["id"], "seats": 0, "name": f"Refused {marker}",
                           "email": f"refused-{marker}@example.com"})
-    assert page.evaluate(post, {"body": refused, "key": keys[1]}) == 422
+    assert page.evaluate(post, {"body": refused, "key": keys[1]})[0] == 422
+    # the issued Manage token, opened in this browser (Story 4.1)
+    manage_token = MANAGE_TOKEN.search(paid["emails"][0]["body"]).group(1)
+    open_manage_link(page, base_url, f"{base_url}/manage#t={manage_token}")
 
     open_sign_in(page, base_url)
     tokens.add(_session_token(page))
@@ -217,5 +251,6 @@ def test_the_password_tokens_and_request_bodies_never_reach_the_logs(page: Page,
 
     logs = stack.compose("logs", "--no-color").stdout
     assert "POST /api/bookings" in logs and "POST /api/admin/sign-in" in logs  # the access log is on
-    for secret in (LOGIN["password"], wrong_password, *tokens, *keys, marker, body, refused):
+    assert "POST /api/manage/open" in logs and "GET /api/manage/" in logs
+    for secret in (LOGIN["password"], wrong_password, *tokens, *keys, marker, body, refused, manage_token):
         assert secret not in logs, f"{secret!r} is in the compose logs"

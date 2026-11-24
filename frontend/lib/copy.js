@@ -132,6 +132,18 @@ export const CONFIRMATION = Object.freeze({
   loadFailed: 'The booking could not be loaded, please try again.',
 });
 
+// The Manage page (FR-25, Story 4.1). Approved by Lisa 2026-11-24. The dates and times come from the API's `cutoff_at`
+// (Venue time); "12 hours" is fixed copy, as Administrators cannot change the Seat Cutoff in v1.
+export const MANAGE = Object.freeze({
+  heading: 'Manage booking',
+  untilText: (longDate, time) => `You can change this booking until ${longDate} at ${time}.`,
+  // The reason for the refusal `cutoff_passed` (fact `cutoff_at`), and the page's text after the Cutoff.
+  cutoffPassed: (longDate, time) =>
+    `This booking can no longer be changed. Changes are possible until 12 hours before the session starts, and that was ${longDate} at ${time}.`,
+  // EXPERIENCE.md: a failed read shows a Notice with "please try again".
+  loadFailed: 'The booking could not be loaded, please try again.',
+});
+
 // The Administrator pages (UX-DR3, UX-DR30, EXPERIENCE.md). The copy never uses the word "session" for a sign-in.
 export const ADMIN = Object.freeze({
   name: 'Saunalöyly',

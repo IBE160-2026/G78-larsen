@@ -12,7 +12,10 @@ The sample Bookings (`seeds/bookings.json`, Story 1.5) are applied after `window
 Window given as days after the Venue date of the run plus a start time, created through `services.booking.create`
 under one fixed seed session with the entry's fixed idempotency key. An entry whose key is already stored is skipped,
 so a restart, on any day, creates no duplicates. The seed always pays `ok` (the payment switch applies only to HTTP
-requests).
+requests). A sample created this way gets its Manage link in its confirmation email (Story 4.1). A sample Booking that
+already existed without an unrevoked Manage token (made before migration 0010) and whose Window has not ended gets one
+through `services.manage.issue`, with its own Outbox email "Manage your booking: <reference>"; a restart issues
+nothing again (AD-18, AD-28).
 
 The seeded Administrator (`seeds/admin.json`, Story 2.1) is `{"email", "password"}`: the documented local test login.
 `load()` checks it with `services.auth.check_password_rules`, so a password that breaks a rule stops startup with one
@@ -29,15 +32,17 @@ import logging
 import uuid
 from pathlib import Path
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .. import config, db
 from ..db import bookings as bq
+from ..db import manage as mq
 from ..db import sessions as sq
 from ..db import venue as q
 from ..db import windows as wq
-from . import auth, booking
+from . import auth, booking, manage, outbox
 from .errors import Refused
 from .venue import VenueSeed
 
@@ -213,4 +218,45 @@ def apply_bookings(directory: Path | None = None) -> int:
             continue
         created += 1
     log.info("applied seed %s: %d bookings created", BOOKINGS_FILE, created)
+    issued = issue_sample_links([e.key for e in seed.bookings])
+    if issued:
+        log.info("applied seed %s: %d manage links issued", BOOKINGS_FILE, issued)
     return created
+
+
+def manage_email(facts: tuple, link: str) -> tuple[str, str]:
+    """(subject, body) of the email that brings an existing sample Booking its Manage link: the reference, the date,
+    the session, the link and the change statement. No Sauna (FR-4)."""
+    ref, _seats, _wid, date, start, end, *_rest, tz_name = facts
+    tz = ZoneInfo(tz_name)
+    lines = [
+        "Manage your booking",
+        "",
+        f"Booking reference: {ref}",
+        f"Date: {booking.long_date(date)}",
+        f"Session: {start.astimezone(tz):%H:%M}–{end.astimezone(tz):%H:%M}",
+        "",
+        manage.change_statement(),
+        "",
+        link,
+    ]
+    return f"Manage your booking: {ref}", "\n".join(lines)
+
+
+def issue_sample_links(keys: list[uuid.UUID]) -> int:
+    """Give each sample Booking that has no unrevoked Manage token, and whose Window has not ended, a Manage link and
+    an Outbox email with it. Returns the links issued (0 on every start after the first)."""
+    if not keys:
+        return 0
+    issued = 0
+    for booking_id in db.run(lambda c: mq.samples_without_token(c, keys)):
+        def work(c, booking_id=booking_id):
+            token = manage.issue(c, booking_id)
+            facts = mq.booking(c, booking_id)
+            recipient = mq.recipient(c, booking_id)
+            subject, body = manage_email(facts, manage.link(token))
+            outbox.send(c, recipient, subject, body, booking_id=booking_id)
+
+        db.run(work)
+        issued += 1
+    return issued

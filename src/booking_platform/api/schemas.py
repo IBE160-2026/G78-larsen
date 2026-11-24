@@ -7,7 +7,7 @@ import datetime as dt
 import re
 from typing import Annotated
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictStr, ValidationInfo, field_validator
 
 INT4_MAX = 2_147_483_647
 Seats = Annotated[int, Field(ge=1, le=10)]
@@ -60,6 +60,14 @@ class SignInIn(Strict):
 
     email: Annotated[str, Field(max_length=254, pattern=r"^[^\x00]*$")]  # the store refuses U+0000: a shape error
     password: Annotated[str, Field(max_length=1024, pattern=r"^[^\x00]*$")]
+
+
+class ManageOpenIn(Strict):
+    """`POST /api/manage/open` (AD-28): the token from the Manage link's fragment. Any JSON string is accepted here; a
+    token that opens nothing (too long, malformed, unknown, revoked, its Window ended) is `404 not_found`, never a
+    shape error."""
+
+    token: StrictStr
 
 
 class HoldIn(Strict):
