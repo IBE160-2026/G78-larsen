@@ -16,7 +16,8 @@
 //   `invalid_key` the Booking is read again and the step opens fresh with a new key. After `cutoff_passed` the page
 //   shows the Cutoff text.
 // - On success the page shows the result: "Seats moved", the line, the new reference of a split, and every email the
-//   Change sent under "Sent by email:" (ChangeResult). Focus moves to its h1.
+//   Change sent under "Sent by email:" (ChangeResult), then "Back to your booking" to its Manage page (Lisa,
+//   2026-11-24). Focus moves to its h1.
 // No clock is read here: dates and times come from the API (AD-4).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ChangeResult from './ChangeResult';
@@ -220,6 +221,9 @@ export default function MoveSeats({ reference }) {
           <p className="after-heading">{MOVE.resultLine}</p>
           {moved && <p className="move-new-reference">{MOVE.newReference(moved.reference)}</p>}
           <ChangeResult emails={result.emails} />
+          <p className="move-result-back">
+            <TextLink href={`/manage/${encodeURIComponent(reference)}`}>{MOVE.backToBooking}</TextLink>
+          </p>
         </div>
       </GuestShell>
     );

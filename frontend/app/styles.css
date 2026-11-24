@@ -1130,6 +1130,10 @@ a {
   margin-top: var(--space-5);
 }
 
+.move-result-back {
+  margin-top: var(--space-5);
+}
+
 .move-new-reference {
   margin-top: var(--space-3);
 }

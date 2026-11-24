@@ -207,6 +207,29 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | "Loading sessions" | Book seats while reading |
 | "No emails" | Empty Outbox |
 
+**Move seats wording, accepted by Lisa (2026-11-24, Story 4.2, FR-26)**
+
+| Text | Where |
+|---|---|
+| "Move seats" | Link on the Manage page before the Cutoff, and the step's heading |
+| "1. How many seats do you want to move?" | Question 1, left out when the Booking has 1 Seat |
+| "2. Choose a date", "3. Choose a session" | Questions 2 and 3 |
+| "Your current session" | The Booking's own session, a disabled row in the Session list |
+| "What will happen" with rows "Seats moved", "From", "To", "Seats left in this booking" | Confirming step. "Seats left in this booking" only when some Seats move (a split); a full move leaves the row out |
+| "Nothing changes until you confirm." | Under the confirming step |
+| "Move 1 seat", "Move N seats" | Confirm button |
+| "Seats moved" | Result heading |
+| "Your booking has been changed." | Result line |
+| "Your moved seats have a new booking reference: {ref}." | Result, split only |
+| "Back to your booking" | Result, link to the Manage page of the changed Booking |
+| "Only N seats left in this session. Nothing has changed." / "No seat free in this session. Nothing has changed." | `no_seat_free` |
+| "This session can no longer be booked. Nothing has changed." | `outside_horizon`, `deadline_passed` |
+| "This booking was changed in the meantime. Check it and choose again." | `booking_changed`, `invalid_key`; the step opens fresh |
+| "The change could not be completed, please try again." | Any other refusal |
+| The Cutoff text of Manage booking | `cutoff_passed` |
+| Subject "Booking changed: {ref}"; body "Booking changed", the Venue block, reference, date, session, Seats and total of the Booking now; for a split also "Seats moved: N", "New booking reference: {new}", "The moved seats have their own confirmation email."; last "The Manage link in your booking confirmation email still works." | Change email. The split-off Booking gets the normal confirmation email with its own Manage link |
+| "Moved {N seat(s)} on {dd.mm.yyyy HH:MM} from {dd.mm.yyyy HH:MM–HH:MM} to {dd.mm.yyyy HH:MM–HH:MM}", plus " · new booking {ref}" for a split | Booking list, one line per Change under the Booking; a "Status" column shows Active or Cancelled |
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.

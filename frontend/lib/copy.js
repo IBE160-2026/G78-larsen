@@ -163,6 +163,8 @@ export const MOVE = Object.freeze({
   resultHeading: 'Seats moved',
   resultLine: 'Your booking has been changed.',
   newReference: (ref) => `Your moved seats have a new booking reference: ${ref}.`,
+  // Lisa, 2026-11-24: the result page links back to the Manage page of the Booking that was changed.
+  backToBooking: 'Back to your booking',
   seatsLeft: (n) => `Only ${seatsWord(n)} left in this session. Nothing has changed.`,
   noSeatFree: 'No seat free in this session. Nothing has changed.',
   closed: 'This session can no longer be booked. Nothing has changed.',
