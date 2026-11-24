@@ -118,6 +118,8 @@ def test_a_guest_moves_one_of_two_seats_with_the_keyboard_alone(page: Page, brow
     assert confirmation.startswith("Booking confirmed") and f"Booking reference: {new_reference}" in confirmation
     assert LINK.search(confirmation) and LINK.search(confirmation).group(1) != link
     assert page.evaluate(f"() => sessionStorage.getItem('draft:change:{reference}:move')") is None
+    back = page.get_by_role("link", name="Back to your booking")  # Lisa, 2026-11-24
+    assert back.get_attribute("href") == f"/manage/{reference}"
     a11y.check_axe(page)
     a11y.no_horizontal_scroll(page)
 
