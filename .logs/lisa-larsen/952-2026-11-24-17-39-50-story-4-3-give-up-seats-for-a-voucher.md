@@ -48,3 +48,25 @@ Føre inn beslutningen om den kansellerte Manage-siden (Open Item 19) og voucher
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-24 kl. 18:40 — Lisa Larsen
+
+### Oppgave
+Implementere story 4.3 etter specen (`.docs/implementation-artifacts/spec-4-3-give-up-seats-for-a-voucher.md`), som er eneste sannhetskilde. Kjørt som subagent fra en `bmad-build`-økt.
+
+### Plan
+- Migrasjon `0012` (vouchers, kanselleringskolonner og trigger, `voucher_id` i historikk og betalinger, ny `retention_due`).
+- `db/vouchers.py` + `services/voucher.py`, så `services.change.voucher` med felles prolog `_locked` (som `move` også bruker), endepunkt `POST /api/manage/{ref}/seats/voucher`.
+- Manage-lesingen og bookinglisten får kanselleringsfeltene; frontend: `GiveUpSeats.js`, `/manage/[reference]/voucher`, Manage-siden (lenke og kansellert tilstand), bookinglisten.
+- Tester: `test_fr27_voucher_for_seats.py`, e2e `test_fr27_voucher.py`, og bare nødvendige utvidelser i eksisterende tester.
+
+### Resultat
+- Nye filer: `migrations/0012_vouchers_cancellation.sql`, `src/booking_platform/db/vouchers.py`, `src/booking_platform/services/voucher.py`, `frontend/components/GiveUpSeats.js`, `frontend/app/manage/[reference]/voucher/page.js`, `tests/test_fr27_voucher_for_seats.py`, `tests/e2e/test_fr27_voucher.py`.
+- Endret: `db/changes.py`, `db/bookings.py`, `db/manage.py`, `db/booking_list.py`, `services/change.py` (felles `_locked`, `voucher`, Voucher-e-post), `services/history.py` (`voucher_value_ore`), `services/manage.py` (`cancelled_at`), `services/booking_list.py`, `api/manage.py`, `api/schemas.py` (`VoucherIn`), `lib/copy.js`, `ManageBooking.js`, `ManageBookingSummary.js`, `BookingList.js`, `styles.css`, README og sensorveiledningen.
+- Eksisterende tester utvidet bare for nye kolonner: `conftest.clear` (vouchers), `test_dr4_migrations.py` (ny trigger, 0011-testen migrerer bare til 0011, ny 0012-test), `test_fr16_booking_list.py`, `test_fr25_manage_link.py`, `test_fr26_move.py` (direkte kansellering må nå sette kanselleringskolonnene).
+- `uv run pytest tests --ignore=tests/e2e`: 464 passert. `npm --prefix frontend run build`: ok, `/manage/[reference]/voucher` bygges. E2e: 174 passert; den nye e2e-testen feilet først på et Tab-trykk før Manage-siden var lastet (testfeil, rettet med venting), og passerer nå alene (1 passert).
+- Valgt selv: siste gyldige dag vises i steget ut fra API-ets `today` (`GET /api/windows`) + ett år i nettleseren (ingen klokke leses); gamle kansellerte rader i dev-databaser får `cancelled_at = entry_time`, `cancel_cause = 'block'` i 0012; en ekstra CHECK `vouchers_expires_after_issue`.
+- Ikke committet (hører til story-branchen).
+
+### Åpne punkter
+Ingen nye. (Punktet «implementer story 4.3» er lukket.)
