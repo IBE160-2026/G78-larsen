@@ -212,3 +212,4 @@
 - [x] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — kjør hele e2e-suiten på nytt etter review-rettelsene i Story 4.1 (forrige kjøring ble avbrutt pga. lite minne etter ca. 140 beståtte, ingen feil) (løst 2026-11-24: 171 bestått)
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — før inn FR-25 (Story 4.1) i `.docs/sensorveiledning-kravsporing.md`
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — godkjenn eller endre ordlyden i seed-e-posten «Manage your booking: <ref>» (`services/seed.py` `manage_email`)
+- [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — merge PR #13 (Story 4.1)
