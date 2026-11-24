@@ -2,7 +2,7 @@
 title: 'Story 2.4 (part B): Core done — README, fresh clone, manual passes'
 type: 'chore'
 created: '2026-11-21'
-status: 'in-review'
+status: 'done'
 baseline_commit: '9e1598a9d680c26d818233fb6135d03f4e14bac2'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -55,9 +55,9 @@ context:
 **Execution:**
 - [x] `README.md` -- rewrite per Always; security and "Not delivered" sections -- DR-2, DR-5, FR-21, AD-14/18/27
 - [x] fresh clone in a new temp folder -- run the README word for word; fix README/code for each failure; note commands and results for the log -- NFR-1, SM-4
-- [ ] `tests/manual/core-accessibility.md` -- checklist with the four rows; HALT for Lisa's results, then fill them in -- FR-23, DR-1
+- [x] `tests/manual/core-accessibility.md` -- checklist with the four rows; HALT for Lisa's results, then fill them in -- FR-23, DR-1
 - [x] `.docs/sensorveiledning-kravsporing.md` -- rows 3 and 6 -- DR-1, DR-2
-- [ ] session log (sesjonslogg) -- fresh-clone record; "Core is done" or the exact list of what is missing -- §10.1
+- [x] session log (sesjonslogg) -- fresh-clone record; "Core is done" or the exact list of what is missing -- §10.1
 
 **Acceptance Criteria:**
 - Given the fresh clone, when the README is followed, then stack, Landing, a booking, sign-in, Booking list and Outbox work and `uv run pytest` passes.
@@ -113,3 +113,6 @@ context:
 
 **Manual checks (if no CLI):**
 - Every fenced command in the README appears in the fresh-clone record.
+- Manual passes (2026-11-24, Lisa; Edge 158.0.4370.33, NVDA 2026.3): all four rows pass, recorded in `tests/manual/core-accessibility.md`. Three findings were fixed in this story, so part B now changes code (commit `69395c9`): below 1024 px the guest shell is one column and an email in the Booking summary breaks only before "@" (zoom); the Session rows' visible text is `aria-hidden` (NVDA read each row twice in browse mode); Review reads the Confirmation before navigating, so "Booking confirmed" is there at once and takes focus (NVDA read only the Wordmark). Each has a covering e2e test; `uv run pytest -q` 537 passed, `npm --prefix frontend run build` ok.
+- `create-admin` run interactively by Lisa in her own PowerShell window (2026-11-24): `docker compose exec backend booking-platform create-admin` and `uv run booking-platform create-admin` each printed "created", the `$env:BP_DATABASE_URL` line printed "password changed"; all three exited without error. Every command in the README has now been run.
+- Core done is recorded in the session log (`.logs/lisa-larsen/957-…-story-2-4-del-b-spesifikasjon.md`, 2026-11-24).
