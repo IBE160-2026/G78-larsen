@@ -209,6 +209,6 @@
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — EXPERIENCE.md Open Items 21 og 22: før inn Lisas beslutninger (siden etter at økten er slutt, og teksten etter Cutoff)
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — EXPERIENCE.md: før inn tekstene for Manage-siden som Lisa godkjente («Manage booking» og «You can change this booking until {long date} at {HH:MM}.»)
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — EXPERIENCE.md: bytt «A booking cannot be changed or refunded.» med endringsteksten (Fixed copy og eksemplet i reisen)
-- [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — kjør hele e2e-suiten på nytt etter review-rettelsene i Story 4.1 (forrige kjøring ble avbrutt pga. lite minne etter ca. 140 beståtte, ingen feil)
+- [x] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — kjør hele e2e-suiten på nytt etter review-rettelsene i Story 4.1 (forrige kjøring ble avbrutt pga. lite minne etter ca. 140 beståtte, ingen feil) (løst 2026-11-24: 171 bestått)
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — før inn FR-25 (Story 4.1) i `.docs/sensorveiledning-kravsporing.md`
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — godkjenn eller endre ordlyden i seed-e-posten «Manage your booking: <ref>» (`services/seed.py` `manage_email`)
