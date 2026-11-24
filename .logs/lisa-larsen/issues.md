@@ -197,3 +197,4 @@
 - [x] 2026-11-24 [story-2-4-del-b-spesifikasjon](957-2026-11-21-10-55-00-story-2-4-del-b-spesifikasjon.md) — EXPERIENCE.md, «Below 1024 px»: før inn at en enkel stabling er bygget for Core (venstre kolonne over main, på Book seats under øktlisten) (løst 2026-11-24: Zoom-punktet og raden «Below 1024 px» oppdatert, commit `bbf1bd1`)
 - [x] 2026-11-24 [story-2-4-del-b-spesifikasjon](957-2026-11-21-10-55-00-story-2-4-del-b-spesifikasjon.md) — lag PR for `story/2-4-core-done-part-b` til `main` (løst 2026-11-24: PR #11)
 - [x] 2026-11-24 [story-2-4-del-b-spesifikasjon](957-2026-11-21-10-55-00-story-2-4-del-b-spesifikasjon.md) — merge PR #11 (Story 2.4 del B) (løst 2026-11-24: merget som `72c395a`)
+- [ ] 2026-11-24 [story-3-1-https-only](956-2026-11-24-10-01-53-story-3-1-https-only.md) — bygg Story 3.1 fra `spec-3-1-serve-website-api-https-only.md` (`ready-for-dev`) i en ny `bmad-build`-økt på grenen `story/3-1-https-only`
