@@ -213,3 +213,5 @@
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — før inn FR-25 (Story 4.1) i `.docs/sensorveiledning-kravsporing.md`
 - [ ] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — godkjenn eller endre ordlyden i seed-e-posten «Manage your booking: <ref>» (`services/seed.py` `manage_email`)
 - [x] 2026-11-24 [story-4-1-manage-link](955-2026-11-24-11-43-33-story-4-1-manage-link.md) — merge PR #13 (Story 4.1) (løst 2026-11-24: merget med vanlig merge, `c1d3e06`)
+- [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — implementer Story 4.2 etter `.docs/implementation-artifacts/spec-4-2-move-seats.md` (ready-for-dev); ny `bmad-build`-økt på `story/4-2-move-seats`
+- [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — EXPERIENCE.md: før inn tekstene Lisa godkjente for flytting (steget, resultatet, avvisningene, Change-e-posten og «Your current session»)
