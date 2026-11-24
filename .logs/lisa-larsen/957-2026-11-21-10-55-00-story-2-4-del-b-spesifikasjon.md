@@ -147,4 +147,20 @@ Pushe grenen, lage PR som for Story 1.1, og oppdatere EXPERIENCE.md med den enkl
 - Lukket i `issues.md`: EXPERIENCE.md-punktet og PR-punktet.
 
 ### Åpne punkter
-- Merge PR #11.
+- Ingen. (PR #11 ble merget samme dag, se under.)
+
+## 2026-11-24 kl. 09:53 — Lisa Larsen
+
+### Oppgave
+Merge PR #11.
+
+### Plan
+- Sjekke at PR-en kan merges, og merge med vanlig merge-commit som PR #5–#7.
+
+### Resultat
+- PR #11 er merget til `main` som `72c395a` (mergeable, ingen CI-sjekker). Lokal `main` er spolet frem.
+- Story 2.4 og dermed alle storyene i Epic 2 ligger på `main`. Core er ferdig.
+- Lukket i `issues.md`: merge av PR #11.
+
+### Åpne punkter
+Ingen.
