@@ -110,6 +110,24 @@ Kjøre de fire manuelle tilgjengelighetstestene i `tests/manual/core-accessibili
 - Lukket i `issues.md`: punktet om e-posten på Review i 200 % zoom.
 
 ### Åpne punkter
-- Lisa kjører `create-admin` interaktivt i en ekte terminal (compose, `uv run` og PowerShell-linjen) — fortsatt åpent.
-- Etter det: «Core done» i loggen, spesifikasjonen og storyen til `done` i sprint-status, og PR.
 - `EXPERIENCE.md` (Responsive, «Below 1024 px») sier fortsatt bare `[ASSUMPTION]`: før inn at en enkel stabling er bygget for Core (Wordmark og venstre kolonne over main, på Book seats under øktlisten).
+
+## 2026-11-24 kl. 09:47 — Lisa Larsen
+
+### Oppgave
+Lisa kjørte `create-admin` interaktivt, som siste kommando i README-en som ikke var kjørt. Deretter skulle «Core done» logges og Story 2.4 settes til `done`.
+
+### Plan
+- Gi Lisa de tre kommandoene fra README-en, kjørt i hennes eget PowerShell-vindu (en `!`-kommando i agenten har ingen TTY).
+- Sjekke spesifikasjonens krav (storyen til `done` bare når «Core done» er logget; `npm --prefix frontend run build` består), oppdatere spesifikasjonen og sprint-status.
+
+### Resultat
+- `create-admin` interaktivt (Lisa, 2026-11-24): `docker compose exec backend booking-platform create-admin` og `uv run booking-platform create-admin` ga «created»; `$env:BP_DATABASE_URL = "…/booking_dev"; uv run booking-platform create-admin` ga «password changed». Alle tre avsluttet uten feil. Hver kommando i README-en er nå kjørt.
+- `npm --prefix frontend run build`: ok på `69395c9`. `uv run pytest -q`: 537 passed (samme commit).
+- **Core done.** Alle kravene i Story 2.4 er oppfylt: automatiske sjekker (del A), README i storyens rekkefølge, kjøring fra fersk klone, alle fire manuelle tilgjengelighetstester bestått (med tre rettinger i `69395c9`) og interaktiv `create-admin`. Det som bevisst ikke er levert, står under «Ikke levert» i README-en (HTTPS i Epic 3, FR-25 til FR-51, mobiloppsett og WCAG 1.4.10).
+- Spesifikasjonen `spec-2-4-core-done-readme-clean-clone-manual-passes.md` står som `done`, med oppgavene krysset av og notater om de manuelle testene og `create-admin`. Storyen `2-4-…` står som `done` i `sprint-status.yaml`; `epic-2` står som `in-progress`, slik `epic-1` gjør, til en eventuell retrospektiv.
+- Lukket i `issues.md`: Story 2.4 del B og interaktiv `create-admin`.
+
+### Åpne punkter
+- PR for grenen `story/2-4-core-done-part-b` til `main` (ikke laget eller pushet ennå).
+- `EXPERIENCE.md`, «Below 1024 px»: før inn den enkle stablingen (står alt i `issues.md`).
