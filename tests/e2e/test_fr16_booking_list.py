@@ -24,7 +24,7 @@ import httpx
 import psycopg
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 from .admin import BOOKINGS, LOGIN, SIGN_IN, db_url, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 from .guest import book_in_browser, free_windows, open_session
 
@@ -37,7 +37,8 @@ def _norm(text: str) -> str:
 
 
 def today(base_url: str) -> dt.date:
-    return dt.date.fromisoformat(httpx.get(base_url + "/api/windows", timeout=30).json()["today"])
+    return dt.date.fromisoformat(httpx.get(base_url + "/api/windows", timeout=30,
+                                           verify=trust.context()).json()["today"])
 
 
 def dotted(d: dt.date) -> str:
@@ -68,7 +69,7 @@ def group(page: Page, start: str, end: str):
 
 def test_a_guest_flow_booking_is_in_the_right_group(page: Page, base_url, browser):
     window = free_windows(base_url)[1]
-    guest = browser.new_context(base_url=base_url).new_page()
+    guest = browser.new_context(base_url=base_url, ignore_https_errors=True).new_page()
     try:
         open_session(guest, base_url)
         booked = book_in_browser(guest, window, 1, "Marit Solberg")["booking"]
@@ -161,7 +162,8 @@ def test_the_seeded_sessions_match_book_seats_and_the_full_one_is_sold_out(page:
 
 def test_hostile_text_is_shown_as_text(page: Page, base_url, stack):
     day = today(base_url) + dt.timedelta(days=4)
-    ws = httpx.get(base_url + "/api/windows", params={"date": day.isoformat()}, timeout=30).json()["windows"]
+    ws = httpx.get(base_url + "/api/windows", params={"date": day.isoformat()}, timeout=30,
+                   verify=trust.context()).json()["windows"]
     window = ws[0]
     name, email = "<script>alert(1)</script>", "x'); DROP TABLE bookings; --"
     reference = "".join(secrets.choice(CROCKFORD) for _ in range(8))

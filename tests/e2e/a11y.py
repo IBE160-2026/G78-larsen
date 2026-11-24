@@ -158,7 +158,8 @@ def no_horizontal_scroll(page: Page) -> None:
 def zoomed(browser: Browser, width: int, height: int):
     """A page in its own context, laid out as at 200 % browser zoom on a `width` x `height` screen: a viewport of
     half the width and height with `deviceScaleFactor` 2 (WCAG 1.4.4)."""
-    context = browser.new_context(viewport={"width": width // 2, "height": height // 2}, device_scale_factor=2)
+    context = browser.new_context(viewport={"width": width // 2, "height": height // 2}, device_scale_factor=2,
+                                  ignore_https_errors=True)
     try:
         yield context.new_page()
     finally:

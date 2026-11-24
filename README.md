@@ -12,15 +12,14 @@ Saunalöyly er et fiktivt, finsk-inspirert badstuanlegg med fire badstuer. Gjest
 
 Det vanskelige er kapasiteten: plattformen skal aldri selge samme plass to ganger, heller ikke når to gjester trykker «Pay» i samme sekund. Hele kravsettet står i [PRD-en](.docs/planning-artifacts/prds/prd-booking-platform-2026-10-29/prd.md).
 
-## Status (2026-11-21)
+## Status (2026-11-24)
 
-Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Applikasjonen kjører over HTTP; HTTPS er neste epic. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
+Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
 
 ### Ikke levert
 
 Dette er ikke bygget per i dag (DR-2). Senere epics korter ned listen.
 
-- **HTTPS** (FR-24, Epic 3). Plattformen svarer bare på HTTP. Resten av SC9 (validering, passord og roller) er levert; HTTPS-delen mangler.
 - **Suksesskriteriene SC2–SC8**: hel badstue (SC2, SC4), endre plasser eller ta Voucher (SC3), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
 - **FR-25 til FR-51**: Manage-lenker, endringer og Vouchere, hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
 - **Mobildelen av SC10**. Core er laget for laptop.
@@ -44,9 +43,36 @@ cd G78-larsen
 docker compose up --build --wait
 ```
 
-Kommandoen bygger og starter de fire tjenestene (Caddy, FastAPI, Next.js og PostgreSQL) og venter til alle er friske. Første gang tar det noen minutter. Åpne så **`http://localhost:8000`**. Bruk `localhost`, ikke `127.0.0.1`: Caddy svarer bare for `localhost`.
+Kommandoen bygger og starter de fire tjenestene (Caddy, FastAPI, Next.js og PostgreSQL) og venter til alle er friske. Første gang tar det noen minutter. Åpne så **`https://localhost:8443`**. Bruk `localhost`, ikke `127.0.0.1`: Caddy svarer bare for `localhost`.
 
-Caddy er eneste inngang og har den eneste publiserte webporten (`127.0.0.1:8000`). Den sender `/api` og `/api/*` til FastAPI og resten til Next.js. Backend og frontend nås bare på det interne compose-nettverket. Databasen er i tillegg publisert på `127.0.0.1:55432`, for utvikling og API-testene.
+Nettleseren advarer én gang om sertifikatet, fordi det er utstedt av Caddys egen lokale sertifikatutsteder (CA) og ikke av en offentlig. Godta advarselen (i Chrome: «Avansert» og «Fortsett til localhost»), så åpnes landingssiden. Det er ikke nødvendig å gjøre mer.
+
+Vil du slippe advarselen, kan du kopiere Caddys rotsertifikat ut av containeren og importere det i nettleseren eller operativsystemet. Det er valgfritt. Fjern det igjen etter sensuren, for alle som har nøkkelen i `caddy_data`-volumet, kan utstede sertifikater maskinen din da stoler på:
+
+```sh
+docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt .
+```
+
+Rotsertifikatet ligger i volumet `caddy_data` og overlever `docker compose down`. Etter `docker compose down -v` lager Caddy en ny rot, og da må den kopieres og importeres på nytt (og den gamle fjernes).
+
+På Windows (Chrome og Edge bruker Windows' sertifikatlager) importerer og fjerner du den slik, for din egen bruker:
+
+```powershell
+certutil -addstore -user Root root.crt                                        # importer
+certutil -delstore -user Root "Caddy Local Authority - 2026 ECC Root"         # fjern etter sensuren
+```
+
+Navnet er det Caddy gir roten (årstallet er året den ble laget; se `certutil -dump root.crt`). På macOS brukes Nøkkelring (Keychain Access), og Firefox har sin egen sertifikatbehandler (Innstillinger → Personvern og sikkerhet → Vis sertifikater → Autoriteter).
+
+Vanlig HTTP på port 8000 svarer bare med en omdirigering til HTTPS (HT-1). Slik ser du det:
+
+```sh
+curl -i http://localhost:8000/
+```
+
+Svaret er `308 Permanent Redirect` med `Location: https://localhost:8443/` og ingen andre av nettstedets hoder. Ingen forespørsel over HTTP når backend eller frontend, og ingenting i databasen endres. I PowerShell skrives `curl.exe` i stedet for `curl`.
+
+Caddy er eneste inngang og har de eneste publiserte webportene (`127.0.0.1:8443` for HTTPS og `127.0.0.1:8000`, som bare omdirigerer). Den sender `/api` og `/api/*` til FastAPI og resten til Next.js. Backend og frontend nås bare på det interne compose-nettverket. Databasen er i tillegg publisert på `127.0.0.1:55432`, for utvikling og API-testene.
 
 ## Utvikling uten Docker for backend og frontend
 
@@ -80,7 +106,7 @@ uv run pytest
 Docker må kjøre. Testene har to lag:
 
 - **API-testene** (`tests/`) starter `db`-tjenesten, oppretter databasen `booking_test` på nytt og sender ekte HTTP-forespørsler til en egen backend-prosess mot ekte PostgreSQL. Noen skriver også rett til databasen for å vise at reglene holder utenom API-et (FR-10).
-- **E2e-testene** (`tests/e2e/`) starter hele stakken som et eget compose-prosjekt, `booking_e2e`, på ledige porter (så de aldri kolliderer med stakken på 8000), kjører Playwright og axe-core mot den og fjerner den med `down -v` til slutt.
+- **E2e-testene** (`tests/e2e/`) starter hele stakken som et eget compose-prosjekt, `booking_e2e`, på ledige porter (så de aldri kolliderer med stakken på 8000 og 8443), kjører Playwright og axe-core mot den og fjerner den med `down -v` til slutt.
 
 Hele settet (over 500 tester) tar 10–15 minutter, mer første gang imagene bygges. Skjermbildene fra 200 %-zoom-testen havner i `test-results/zoom/` (ikke i git). De manuelle tilgjengelighetstestene, med dato, nettleser, utfall og hvilken automatisk test som dekker hver av dem, står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
 
@@ -94,7 +120,7 @@ Første gang backend starter, legger seeden inn én Administrator (`seeds/admin.
 |---|---|
 | `admin@saunaloyly.example` | `badstue-admin-test-2026` |
 
-Logg inn på `http://localhost:8000/admin/sign-in`. Etter innlogging åpnes **bookinglisten** på `http://localhost:8000/admin/bookings`, med gjestene per økt for valgt dato. Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
+Logg inn på `https://localhost:8443/admin/sign-in`. Etter innlogging åpnes **bookinglisten** på `https://localhost:8443/admin/bookings`, med gjestene per økt for valgt dato. Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
 
 Seeden legger også inn tolv eksempelbookinger (`seeds/bookings.json`), én gang, regnet i dager fra datoen backend startet første gang:
 
@@ -109,7 +135,7 @@ En omstart, også en senere dag, lager ingen kopier.
 
 ## Outbox
 
-E-post sendes ikke ut. Hver e-post plattformen sender, legges i **Outbox**, en simulert postkasse: `http://localhost:8000/admin/outbox` (lenken «Outbox» i Administrator-linjen). Den viser hver e-post slik den ble sendt, også de gjesten aldri ser på en side. Bekreftelsen fra en ny booking dukker opp her og på Confirmation-siden.
+E-post sendes ikke ut. Hver e-post plattformen sender, legges i **Outbox**, en simulert postkasse: `https://localhost:8443/admin/outbox` (lenken «Outbox» i Administrator-linjen). Den viser hver e-post slik den ble sendt, også de gjesten aldri ser på en side. Bekreftelsen fra en ny booking dukker opp her og på Confirmation-siden. Alle lenker i e-postene er absolutte og begynner med `https://localhost:8443` (`BP_BASE_URL`).
 
 ## Drift
 
@@ -145,7 +171,7 @@ Endre `config/test-switches.toml` mellom de to kommandoene. Backend leser filen 
 docker compose ps                    # status og helsesjekker for de fire tjenestene
 docker compose logs backend proxy    # logger fra backend og Caddy
 docker compose down                  # stopper og fjerner containerne; dataene blir liggende
-docker compose down -v               # fjerner også volumene: databasen og Caddys data
+docker compose down -v               # fjerner også volumene: databasen og Caddys data (ny rot)
 ```
 
 Etter `down -v` starter neste `docker compose up --build --wait` med en tom database, ny seed og eksempelbookinger regnet fra den dagen. `down -v` fjerner også `booking_dev` fra utviklingsoppsettet, som ligger i samme `db`-container.
@@ -167,14 +193,16 @@ Docker Compose og frontenden leser i tillegg disse:
 
 | Variabel | Standard | Betydning |
 |---|---|---|
-| `HTTP_PORT` | `8000` | Porten Caddy lytter på og publiserer på `127.0.0.1`; også i `BP_BASE_URL` i compose |
+| `HTTPS_PORT` | `8443` | HTTPS-porten Caddy lytter på og publiserer på `127.0.0.1`; også i `BP_BASE_URL` i compose og i omdirigeringen |
+| `HTTP_PORT` | `8000` | HTTP-porten Caddy lytter på og publiserer på `127.0.0.1`; den svarer bare med omdirigering til HTTPS |
+| `HSTS_MAX_AGE` | `3600` | `max-age` i `Strict-Transport-Security` (sekunder); settes bare når du vil overstyre |
 | `DB_PORT` | `55432` | Databaseporten på `127.0.0.1` (en annen verdi krever en tilsvarende `BP_DATABASE_URL`) |
 | `SWITCHES_DIR` | `./config` | Mappen som monteres skrivebeskyttet som `/app/config` i backend (testbryterne) |
 | `API_INTERNAL_URL` | compose: `http://backend:8000`, ellers `http://127.0.0.1:8001` | Hvor frontendens server kaller backend (`frontend/lib/server-api.js`) |
 
 ## Sikkerhet
 
-Slik beskyttes dataene i denne versjonen (FR-21). Det stemmer med personvernerklæringen på `http://localhost:8000/privacy` ([kilden](frontend/app/privacy/page.js)).
+Slik beskyttes dataene i denne versjonen (FR-21). Det stemmer med personvernerklæringen på `https://localhost:8443/privacy` ([kilden](frontend/app/privacy/page.js)).
 
 - **Passord** lagres bare som Argon2id-hash. Testpassordet over står i klartekst i `seeds/admin.json` fordi det bare gjelder lokalt.
 - **Roller** sjekkes på serveren ved hver forespørsel. Alle Administrator-endepunkter ligger under `/api/admin/`, og uten en innlogget Administrator-økt svarer de `401`; en gjests bookingøkt gir ingen tilgang. Sidene under `/admin` sender en anonym besøkende til innloggingen (`tests/e2e/test_fr15_sign_in.py`).
@@ -182,8 +210,14 @@ Slik beskyttes dataene i denne versjonen (FR-21). Det stemmer med personvernerkl
 - **Ingen tredjepartsforespørsler**: fontene og bildene er selvhostet (se `ASSETS.md`), og API-dokumentasjonen (`/docs`, `/openapi.json`) er slått av (`tests/test_fr20_access.py`).
 - **Ingen hemmeligheter i loggene** (AD-19): loggene har metode, sti, statuskode og feilkode, aldri forespørselskropper, hoder, informasjonskapsler, passord eller tokener. E2e-testene sjekker loggene for testpassordet, økttokenene og forespørselskroppene.
 - **Skrivende forespørsler** må komme fra plattformens egen opprinnelse (CSRF, FR-18), og all inndata valideres på serveren.
-- **HTTPS er ikke på ennå** (Epic 3, FR-24). Alt går over HTTP, bare på `127.0.0.1`. Backend og frontend er bare på det interne compose-nettverket.
+- **HTTPS** (FR-24): alle sider og hele API-et går over HTTPS, og HTTPS ender i Caddy. Backend og frontend nås bare på det interne compose-nettverket, og Caddy publiserer bare på `127.0.0.1`. Vanlig HTTP får bare en omdirigering og returnerer eller endrer aldri data. Hvert HTTPS-svar har `Strict-Transport-Security: max-age=3600` (uten `includeSubDomains` og `preload`), og øktkapselen er `Secure`, `HttpOnly`, `SameSite=Strict` og `Path=/` (`tests/e2e/test_fr24_https.py`). Ingen forespørsel går til en tredjepart. En produksjonsinstallasjon ville brukt et offentlig sertifikat og HSTS i ett år; den korte verdien her hindrer at sensors `localhost` låses til HTTPS lenge.
 - **Manage-lenker** finnes ikke ennå. Når de bygges (PRD §4.8), lagres tokenene bare som hash i bookingdataene. Outbox, som er en simulert postkasse, viser lenkene slik de ble sendt, og er bare åpen for Administrator.
+
+## Kjente begrensninger
+
+- **`Secure`-kapsler til `http://localhost`**: nettlesere regner `localhost` som en sikker opprinnelse og sender derfor også `Secure`-kapsler til `http://localhost:8000`. Der svarer Caddy bare med omdirigeringen, så forespørselen når aldri backend, og økten endres ikke.
+- **HSTS fra `localhost`**: Chrome og Firefox ser bort fra `Strict-Transport-Security` fra `localhost`. Hodet sendes likevel, og omdirigeringen i Caddy er det som sender HTTP over til HTTPS.
+- **Sertifikatadvarselen**: sertifikatet er fra Caddys lokale CA, så nettleseren advarer én gang (se «Kom i gang»).
 
 ## Mappestruktur
 

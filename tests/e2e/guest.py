@@ -8,12 +8,15 @@ import uuid
 import httpx
 from playwright.sync_api import Page
 
+from . import trust
+
 
 def free_windows(base_url: str) -> list[dict]:
     """The eight Windows of a date with no Booking at all (so none of the sample Bookings): the latest date first."""
-    facts = httpx.get(base_url + "/api/windows", timeout=30).json()
+    facts = httpx.get(base_url + "/api/windows", timeout=30, verify=trust.context()).json()
     for d in reversed(facts["dates"][:-3]):  # the last dates are Book seats' no-room fixtures
-        ws = httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30).json()["windows"]
+        ws = httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30,
+                       verify=trust.context()).json()["windows"]
         if len(ws) == 8 and all(w["seats_left"] == 44 for w in ws):
             return [dict(w, date=d) for w in ws]
     raise AssertionError("no date without bookings")

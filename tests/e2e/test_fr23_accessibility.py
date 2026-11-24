@@ -19,7 +19,7 @@ import psycopg
 import pytest
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 from .admin import LOGIN, db_url, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 from .guest import book_in_browser, free_windows, open_session
 from .test_fr05_book_and_pay import review_draft, set_draft
@@ -38,7 +38,8 @@ def db(stack):
 
 
 def today(base_url: str) -> dt.date:
-    return dt.date.fromisoformat(httpx.get(base_url + "/api/windows", timeout=30).json()["today"])
+    return dt.date.fromisoformat(httpx.get(base_url + "/api/windows", timeout=30,
+                                           verify=trust.context()).json()["today"])
 
 
 def dotted(d: dt.date) -> str:

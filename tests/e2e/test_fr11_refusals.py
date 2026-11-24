@@ -259,7 +259,7 @@ def test_a_key_known_from_another_session_removes_pay_and_offers_book_seats(page
                                                                             windows):
     window = windows[6]
     key = str(uuid.uuid4())
-    other = browser.new_context()
+    other = browser.new_context(ignore_https_errors=True)
     try:  # another browser session pays first under the key
         o = other.new_page()
         open_session(o, base_url)

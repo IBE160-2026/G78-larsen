@@ -1,7 +1,7 @@
 # Manual accessibility passes — Core (FR-23)
 
 The manual passes confirm the automated checks; they do not repeat them. Run them on the compose stack
-(`docker compose up --build --wait`, then `http://localhost:8000`). Screen-reader pass: NVDA with Chrome or Edge (both Chromium; the 2026-11-24 pass used Edge).
+(`docker compose up --build --wait`, then `https://localhost:8443`). Screen-reader pass: NVDA with Chrome or Edge (both Chromium; the 2026-11-24 pass used Edge).
 A failure is fixed in the story that finds it, or recorded in `.logs/lisa-larsen/issues.md` with its WCAG criterion.
 
 | # | Check | What to look for | Date | Browser (+ screen reader) | Outcome | Covering automated test |

@@ -64,7 +64,7 @@ def route_outbox(page: Page, status: int, body: dict) -> None:
 
 def test_the_confirmation_of_a_browser_booking_from_the_bar_with_the_keyboard_alone(page: Page, base_url, browser):
     window = free_windows(base_url)[2]
-    guest = browser.new_context(base_url=base_url).new_page()
+    guest = browser.new_context(base_url=base_url, ignore_https_errors=True).new_page()
     try:
         open_session(guest, base_url)
         booked = book_in_browser(guest, window, 2, "Marit Solberg")

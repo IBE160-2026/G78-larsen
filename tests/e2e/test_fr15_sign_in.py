@@ -19,7 +19,7 @@ import psycopg
 import pytest
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 from .admin import BOOKINGS, LOGIN, SIGN_IN, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 
 
@@ -56,7 +56,7 @@ def test_sign_in_and_out_with_the_keyboard_alone(page: Page, base_url):
     assert page.context.cookies() == [] or page.context.cookies()[0]["value"] != admin_token
 
     # the old token grants nothing
-    r = httpx.get(base_url + "/api/admin/me", cookies={"bp_session": admin_token})
+    r = httpx.get(base_url + "/api/admin/me", cookies={"bp_session": admin_token}, verify=trust.context())
     assert r.status_code == 401 and r.json() == {"detail": {"error": "not_signed_in"}}
 
     # Back leads to Sign-in, too

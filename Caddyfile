@@ -1,5 +1,7 @@
 # The proxy (AD-27): the only public entry. `/api` and `/api/*` go to the backend with the path unchanged,
-# everything else to the frontend. The mode (HTTP now, HTTPS from FR-24) lives in docker-compose.yml.
+# everything else to the frontend. The mode (HTTPS since FR-24) lives in docker-compose.yml. Caddy issues the `localhost`
+# certificate from its internal CA and answers plain HTTP on {$HTTP_PORT} with its automatic redirect alone, which
+# carries none of the headers below (HT-1).
 {
 	http_port {$HTTP_PORT:8000}
 	skip_install_trust
@@ -11,6 +13,8 @@
 {$SITE_ADDRESS} {
 	# Caddy alone sets these headers; the backend and the frontend set none of them (AD-27).
 	header Referrer-Policy no-referrer
+	# HT-2: on every HTTPS response, Caddy's own errors (502) included; never includeSubDomains or preload
+	header Strict-Transport-Security "max-age={$HSTS_MAX_AGE:3600}"
 
 	@api path /api /api/*
 	@manage path /manage* /api/manage /api/manage/*

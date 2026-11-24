@@ -16,7 +16,7 @@ import httpx
 import pytest
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 from .guest import book_in_browser, free_windows, open_session  # noqa: F401 (also used by other modules)
 
 REFERENCE = re.compile(r"[0-9A-HJKMNP-TV-Z]{8}")
@@ -30,7 +30,8 @@ def _norm(text: str) -> str:
 
 
 def seats_left(base_url: str, window: dict) -> int:
-    ws = httpx.get(base_url + "/api/windows", params=dict(date=window["date"]), timeout=30).json()["windows"]
+    ws = httpx.get(base_url + "/api/windows", params=dict(date=window["date"]), timeout=30,
+                   verify=trust.context()).json()["windows"]
     return next(w["seats_left"] for w in ws if w["id"] == window["id"])
 
 
@@ -288,7 +289,7 @@ def test_confirmation_in_another_browser_is_not_available(page: Page, browser, b
     reference = book_in_browser(page, window, 1)["booking"]["reference"]
     page.goto(base_url + f"/confirmation/{reference}")
     page.wait_for_selector(".email-body")
-    other = browser.new_context()
+    other = browser.new_context(ignore_https_errors=True)
     try:
         stranger = other.new_page()
         stranger.goto(base_url + f"/confirmation/{reference}")
