@@ -81,3 +81,35 @@ Lisa ba om å bygge del B av Story 2.4 fra spesifikasjonen med `bmad-build`. Det
 - Lisa kjører de fire manuelle tilgjengelighetstestene i `tests/manual/core-accessibility.md` og rapporterer dato, nettleser og utfall. Agenten fører dem inn. Zoom-raden avgjør punktet om e-posten på Review.
 - Lisa kjører `create-admin` interaktivt i en ekte terminal: `docker compose exec backend booking-platform create-admin`, `uv run booking-platform create-admin` og PowerShell-linjen med `$env:BP_DATABASE_URL`. Kravet er at hver kommando i README-en er kjørt.
 - Etter det skal «Core done» (eller hva som mangler) stå i loggen. Deretter settes spesifikasjonen til `done` og storyen til `done` i sprint-status, og PR-en lages.
+
+## 2026-11-24 kl. 09:18 — Lisa Larsen
+
+### Oppgave
+Kjøre de fire manuelle tilgjengelighetstestene i `tests/manual/core-accessibility.md` (Lisa tester, agenten forbereder, retter og fører inn). Lisa ba om at avvikene fra zoom- og NVDA-testen ble rettet med en gang.
+
+### Plan
+- Starte Docker Desktop og stakken (`docker compose up --build --wait`), åpne `localhost:8000` i Edge, sette vindusstørrelser for zoom-testen og installere NVDA (`winget install NVAccess.NVDA`, versjon 2026.3).
+- Føre inn hvert resultat i sjekklisten, rette avvik i samme story med en dekkende automatisk test, og bygge stakken på nytt så Lisa kunne teste igjen.
+- Spesifikasjon: [`spec-2-4-core-done-readme-clean-clone-manual-passes.md`](../../.docs/implementation-artifacts/spec-2-4-core-done-readme-clean-clone-manual-passes.md).
+
+### Resultat
+- **Alle fire testene er bestått** 2026-11-24 i Edge 158.0.4370.33 (test 4 med NVDA 2026.3). Ingen rad står som *Pending*. Sjekklisten sier nå «NVDA with Chrome or Edge».
+  1. Tastatur: Pass. Enter gjør ingenting i datofeltet og Seat picker, men verdien beholdes ved Tab. Det er forventet.
+  2. 200 % zoom: 1366×768 viste venstre kolonne som klemte innholdet, og e-posten på Review brøt midt i ordet. Rettet, deretter Pass i både 1366×768 og 1920×1080 (vinduet satt til ca. 960 × 540 CSS-piksler).
+  3. Tabulatorrekkefølgen på Book seats: Pass.
+  4. NVDA: to avvik rettet, deretter Pass.
+- **Rettinger:**
+  - `frontend/app/styles.css`: under 1024 px er skallet én kolonne. Venstre kolonne tegnes over main; på Book seats under øktlisten (`.shell:has(.rail-book)`). «Find us» stables også. Over 1024 px er ingenting endret. Dette er den enkle stablingen EXPERIENCE.md (Zoom) tillater; det fulle mobiloppsettet er fortsatt FR-51, og WCAG 1.4.10 står fortsatt under «Ikke levert».
+  - `frontend/components/BookingSummary.js`: en e-postadresse kan bare brytes foran `@` (`<wbr>`).
+  - `frontend/components/SessionList.js`: den synlige teksten i øktradene er `aria-hidden`, så NVDA i lesemodus leser hver rad én gang (radioknappens navn har alt). Deaktiverte rader hoppes over med piltastene i fokusmodus, som for alle deaktiverte radioknapper, og leses som «unavailable» med årsak i lesemodus.
+  - `frontend/lib/confirmation.js` (ny), `Review.js`, `Confirmation.js`: etter Pay leste NVDA bare «Saunalöyly», fordi Confirmation ikke hadde h1 mens bookingen ble lest. Review leser nå bekreftelsen før den navigerer, så «Booking confirmed» finnes fra første tegning og får fokus. Feiler lesingen, eller lastes siden på nytt, leser Confirmation selv som før.
+  - `tests/e2e/test_fr23_keyboard_and_zoom.py`: zoom-testen sjekker at Review og Confirmation er én kolonne og at e-posten står på én linje (og tar skjermbilde av Confirmation); øktlistetesten sjekker at bare de åtte radioknappene eksponeres; ny test `test_after_pay_confirmation_has_its_heading_at_once_and_focused`. Den feilet mot den gamle koden og består med rettingen.
+- **Tester:** de berørte e2e-filene består (fr01, fr02, fr05, fr11, fr22, fr23). Hele `uv run pytest -q` ble startet til slutt; resultatet står i sluttoppsummeringen.
+- **Databasen på `localhost:8000`:** de to fyllbookingene for NVDA-testen (30.11 kl. 10:00 og 11:30) og agentens prøvebooking «Probe Guest» er slettet med betalinger, e-poster og nøkler.
+- Ingenting av koden er committet ennå.
+- Lukket i `issues.md`: punktet om e-posten på Review i 200 % zoom.
+
+### Åpne punkter
+- Lisa kjører `create-admin` interaktivt i en ekte terminal (compose, `uv run` og PowerShell-linjen) — fortsatt åpent.
+- Etter det: «Core done» i loggen, spesifikasjonen og storyen til `done` i sprint-status, og PR.
+- `EXPERIENCE.md` (Responsive, «Below 1024 px») sier fortsatt bare `[ASSUMPTION]`: før inn at en enkel stabling er bygget for Core (Wordmark og venstre kolonne over main, på Book seats under øktlisten).
