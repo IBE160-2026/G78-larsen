@@ -11,7 +11,7 @@ import re
 import httpx
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 
 DESCRIPTION = ("Löyly is the steam that rises when water meets the hot stones. At Saunalöyly you come to Finnish "
                "saunas by the sea, where you can swim all year round.")
@@ -190,7 +190,7 @@ def test_opening_before_you_come_directly_shows_and_focuses_it(page: Page, base_
 
 
 def test_venue_facts_through_caddy_need_no_session(base_url):
-    r = httpx.get(base_url + "/api/venue", timeout=10)
+    r = httpx.get(base_url + "/api/venue", timeout=10, verify=trust.context())
     assert r.status_code == 200
     assert "set-cookie" not in r.headers
     body = r.json()
@@ -221,4 +221,4 @@ def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(
     finally:
         stack.compose("start", "backend")
         stack.wait()
-    assert httpx.get(base_url + "/api/health", timeout=10).status_code == 200
+    assert httpx.get(base_url + "/api/health", timeout=10, verify=trust.context()).status_code == 200

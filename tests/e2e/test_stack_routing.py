@@ -8,12 +8,14 @@ import httpx
 import pytest
 from playwright.sync_api import Browser, Page
 
+from . import trust
+
 NOT_FOUND = {"detail": {"error": "not_found"}}
 NOSCRIPT = "This booking page needs JavaScript."
 
 
 def get(base_url: str, path: str) -> httpx.Response:
-    return httpx.get(base_url + path, follow_redirects=False, timeout=10)
+    return httpx.get(base_url + path, follow_redirects=False, timeout=10, verify=trust.context())
 
 
 def test_api_health_answers_through_caddy(base_url):
@@ -49,7 +51,7 @@ def test_unknown_page_shows_not_available_with_a_link_to_landing(page: Page, bas
 def test_noscript_line_is_in_every_page(browser: Browser, base_url):
     for path in ("/", "/terms", "/privacy", "/nope"):
         assert NOSCRIPT in get(base_url, path).text
-    context = browser.new_context(java_script_enabled=False)
+    context = browser.new_context(java_script_enabled=False, ignore_https_errors=True)
     try:
         page = context.new_page()
         page.goto(base_url + "/privacy")

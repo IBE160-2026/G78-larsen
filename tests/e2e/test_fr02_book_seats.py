@@ -20,7 +20,7 @@ import psycopg
 import pytest
 from playwright.sync_api import Page
 
-from . import a11y
+from . import a11y, trust
 
 SLOTS = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00", "20:30"]
 SEAT_STATEMENT = ("A booking gives you seats in the shared saunas open during your session. On site you can move "
@@ -33,7 +33,7 @@ def _norm(text: str) -> str:
 
 @pytest.fixture(scope="module")
 def facts(base_url) -> dict:
-    body = httpx.get(base_url + "/api/windows", timeout=30).json()
+    body = httpx.get(base_url + "/api/windows", timeout=30, verify=trust.context()).json()
     assert body["dates"], body
     return body
 
@@ -42,7 +42,8 @@ def facts(base_url) -> dict:
 def full_day(base_url, facts) -> str:
     """The first bookable date whose eight Sessions are all still listed (tomorrow at the latest)."""
     for d in facts["dates"]:
-        ws = httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30).json()["windows"]
+        ws = httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30,
+                       verify=trust.context()).json()["windows"]
         if len(ws) == 8:
             return d
     raise AssertionError("no date with eight Sessions")
@@ -249,6 +250,7 @@ def test_landing_book_seats_with_the_keyboard_reaches_the_page_with_one_cookie(p
     cookies = page.context.cookies()
     assert [c["name"] for c in cookies] == ["bp_session"]
     assert cookies[0]["httpOnly"] and cookies[0]["sameSite"] == "Strict"
+    assert cookies[0]["secure"]  # HTTPS only since FR-24 (HT-3)
 
 
 # ------------------------------------------------------------------ the no-room paths, set up in the stack's database
@@ -289,7 +291,8 @@ def late_day(base_url, facts) -> tuple[str, str]:
     """Two following bookable dates near the end of the horizon, both with eight Sessions."""
     first, second = facts["dates"][-3], facts["dates"][-2]
     for d in (first, second):
-        assert len(httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30).json()["windows"]) == 8
+        assert len(httpx.get(base_url + "/api/windows", params=dict(date=d), timeout=30,
+                             verify=trust.context()).json()["windows"]) == 8
     return first, second
 
 
@@ -297,7 +300,8 @@ def test_no_room_on_the_date_offers_the_nearest_sessions_and_choosing_one_select
                                                                                     late_day):
     full, after = late_day
     block(db, full, 1)
-    nearest = httpx.get(base_url + "/api/windows", params=dict(date=full, seats=2), timeout=30).json()["nearest"]
+    nearest = httpx.get(base_url + "/api/windows", params=dict(date=full, seats=2), timeout=30,
+                        verify=trust.context()).json()["nearest"]
     assert [n["date"] for n in nearest] == [after] * 3
     open_page(page, base_url)
     choose_by_typing(page, full, 2)
@@ -338,7 +342,8 @@ def test_no_room_anywhere_in_the_horizon_says_so_without_alternatives(page: Page
 
 def test_a_larger_number_clears_a_chosen_session_without_room(page: Page, base_url, db, late_day):
     day = late_day[0]
-    windows = httpx.get(base_url + "/api/windows", params=dict(date=day), timeout=30).json()["windows"]
+    windows = httpx.get(base_url + "/api/windows", params=dict(date=day), timeout=30,
+                        verify=trust.context()).json()["windows"]
     wid = next(w["id"] for w in windows if w["start"][11:16] == "10:00")
     db.execute(RAW_FILL, (wid, 41))  # 3 Seats left
     db.commit()

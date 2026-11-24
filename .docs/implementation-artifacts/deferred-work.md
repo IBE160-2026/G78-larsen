@@ -50,3 +50,9 @@
 - source_spec: `.docs/implementation-artifacts/spec-2-4-core-done-automated-checks.md`
   summary: Make the other keyboard flows that change the Seat number and then Tab to a Session (`test_fr02_book_seats.py:139`, `test_fr05_book_and_pay.py:57`) wait on the `/api/windows?…seats=N` response instead of `networkidle`.
   evidence: Unverified (maybe-false, medium if true): the same pattern failed 1 in 5 runs in the new zoom test (focus lost when the rows were replaced after Tab reached them); the older tests have not been seen failing.
+- source_spec: `.docs/implementation-artifacts/spec-3-1-serve-website-api-https-only.md`
+  summary: `tests/test_fr15_sign_in.py::test_five_failures_lock_the_email_for_15_minutes_even_with_the_right_password` is flaky under load.
+  evidence: Failed twice on 2026-11-24 (once beside a parallel e2e run, once just after it), then passed 6 of 6 alone; likely the `14:59 < locked_until - now` window, since `now` is read after five Argon2 sign-ins. Story 3.1 touches no backend or API-layer test file.
+- source_spec: `.docs/implementation-artifacts/spec-3-1-serve-website-api-https-only.md`
+  summary: `tests/e2e/test_fr17_outbox.py::test_a_401_on_the_read_goes_to_sign_in` timed out once (30 s, still on `/admin/bookings`) in a full e2e run.
+  evidence: 161 of 162 passed in that run; the file re-run with `test_fr24_https.py` gave 12 passed. A second full e2e run is needed to tell flakiness from an HTTPS-related cause.
