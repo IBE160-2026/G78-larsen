@@ -104,9 +104,9 @@ Kjøre de fire manuelle tilgjengelighetstestene i `tests/manual/core-accessibili
   - `frontend/components/SessionList.js`: den synlige teksten i øktradene er `aria-hidden`, så NVDA i lesemodus leser hver rad én gang (radioknappens navn har alt). Deaktiverte rader hoppes over med piltastene i fokusmodus, som for alle deaktiverte radioknapper, og leses som «unavailable» med årsak i lesemodus.
   - `frontend/lib/confirmation.js` (ny), `Review.js`, `Confirmation.js`: etter Pay leste NVDA bare «Saunalöyly», fordi Confirmation ikke hadde h1 mens bookingen ble lest. Review leser nå bekreftelsen før den navigerer, så «Booking confirmed» finnes fra første tegning og får fokus. Feiler lesingen, eller lastes siden på nytt, leser Confirmation selv som før.
   - `tests/e2e/test_fr23_keyboard_and_zoom.py`: zoom-testen sjekker at Review og Confirmation er én kolonne og at e-posten står på én linje (og tar skjermbilde av Confirmation); øktlistetesten sjekker at bare de åtte radioknappene eksponeres; ny test `test_after_pay_confirmation_has_its_heading_at_once_and_focused`. Den feilet mot den gamle koden og består med rettingen.
-- **Tester:** de berørte e2e-filene består (fr01, fr02, fr05, fr11, fr22, fr23). Hele `uv run pytest -q` ble startet til slutt; resultatet står i sluttoppsummeringen.
+- **Tester:** de berørte e2e-filene består (fr01, fr02, fr05, fr11, fr22, fr23). Hele `uv run pytest -q`: 537 passed.
 - **Databasen på `localhost:8000`:** de to fyllbookingene for NVDA-testen (30.11 kl. 10:00 og 11:30) og agentens prøvebooking «Probe Guest» er slettet med betalinger, e-poster og nøkler.
-- Ingenting av koden er committet ennå.
+- Committet som `69395c9` (ikke pushet). Hele testpakken: 537 passed på 13 min 49 s.
 - Lukket i `issues.md`: punktet om e-posten på Review i 200 % zoom.
 
 ### Åpne punkter
