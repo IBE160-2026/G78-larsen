@@ -1,5 +1,5 @@
-"""SQL for the Administrator's Booking list (FR-16, FR-21, AD-4, AD-5): every Window of a Venue date and its active
-Bookings. Reads only: no lock, no write. The figures come only from `window_open_capacity()`,
+"""SQL for the Administrator's Booking list (FR-16, FR-21, AD-4, AD-5): every Window of a Venue date and its Bookings
+(active and cancelled). Reads only: no lock, no write. The figures come only from `window_open_capacity()`,
 `window_booked_seats()` and `seats_left()`; a Booking due for retention (`retention_due()`) reads with the anonymised
 name and email, masked in the SELECT, never by writing. Every function takes the connection of the caller's
 transaction (`db.run`)."""
@@ -22,14 +22,15 @@ def windows_on(c: psycopg.Connection, date: dt.date) -> list[tuple]:
 
 
 def bookings_on(c: psycopg.Connection, date: dt.date) -> list[tuple]:
-    """(window_id, reference, name, email, seats, total_ore, created_at) of every active Booking in a Window of a
-    Venue date, oldest first (`created_at`, then `id`). Name and email are masked when the Booking is due."""
+    """(id, window_id, reference, name, email, seats, total_ore, created_at, status) of every Booking in a Window of a
+    Venue date, active and cancelled, oldest first (`created_at`, then `id`). A cancelled Booking takes no Seats; the
+    figures come from the store functions alone. Name and email are masked when the Booking is due."""
     return c.execute(
-        "SELECT b.window_id, b.reference, "
+        "SELECT b.id, b.window_id, b.reference, "
         "       CASE WHEN retention_due(b.id) THEN %(name)s ELSE b.name END, "
         "       CASE WHEN retention_due(b.id) THEN %(email)s ELSE b.email END, "
-        "       b.seats, b.total_ore, b.created_at "
+        "       b.seats, b.total_ore, b.created_at, b.status "
         "FROM bookings b JOIN windows w ON w.id = b.window_id "
-        "WHERE venue_date(w.id) = %(date)s AND b.status = 'active' "
+        "WHERE venue_date(w.id) = %(date)s "
         "ORDER BY b.created_at, b.id",
         {"date": date, "name": ANONYMISED_NAME, "email": ANONYMISED_EMAIL}).fetchall()

@@ -1108,6 +1108,32 @@ a {
   margin-top: var(--space-5);
 }
 
+/* Move seats (Story 4.2): the link on the Manage page, and the step's parts. */
+.manage-changes {
+  margin-top: var(--space-4);
+}
+
+.move-notice,
+.move-note {
+  max-width: var(--measure-text);
+}
+
+.move-notice {
+  margin-top: var(--space-5);
+}
+
+.move-note {
+  margin-top: var(--space-4);
+}
+
+.move-seats {
+  margin-top: var(--space-5);
+}
+
+.move-new-reference {
+  margin-top: var(--space-3);
+}
+
 /* An Outbox entry (UX-DR32): Email as sent with the subject, time and recipient in label above the body. */
 .outbox-entry .reference-label {
   margin-bottom: var(--space-1);
@@ -1328,6 +1354,16 @@ a {
 
 .booking-table .col-time {
   width: 180px;
+}
+
+.booking-table .col-status {
+  width: 104px;
+}
+
+/* A Booking's Change history (Story 4.2): one line per entry under its row, without a rule between them. */
+.booking-table .booking-history td {
+  padding-left: var(--space-5);
+  border-top: 0;
 }
 
 /* ------------------------------------------------------------------ simple stacked layout below 1024 px (WCAG 1.4.4) */

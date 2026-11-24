@@ -2,7 +2,8 @@
 
 - It answers `{"today", "date", "windows"}`; without a date, `date` is the API's `today`. Every Window of the Venue
   date is listed in time order (bookable or not), with `seat_capacity`, `seats_booked` and `seats_left` from the store
-  functions, and its active Bookings oldest first with reference, name, email, Seats, `total_ore` and `created_at`.
+  functions, and its Bookings (active and cancelled) oldest first with reference, name, email, Seats, `total_ore`,
+  `created_at`, `status` and `history` (Story 4.2; the history itself is tested in `test_fr26_move.py`).
 - Windows without Bookings have `bookings: []`; a date with no Windows (after the horizon) has `windows: []`.
 - Seats left equals the Guest listing (`GET /api/windows`) after Guest-flow Bookings make one Window 42 of 44 and
   another full; a Booking made between two reads is on the second.
@@ -82,8 +83,9 @@ def test_a_day_with_bookings_lists_every_window_in_order_and_bookings_oldest_fir
     assert (w2["seat_capacity"], w2["seats_booked"], w2["seats_left"]) == (44, 6, 38)
     assert [b["reference"] for b in w2["bookings"]] == [first, raw, second]
     b = w2["bookings"][0]
-    assert set(b) == {"reference", "name", "email", "seats", "total_ore", "created_at"}
+    assert set(b) == {"reference", "name", "email", "seats", "total_ore", "created_at", "status", "history"}
     assert (b["name"], b["email"], b["seats"], b["total_ore"]) == ("Test Guest", "guest@example.com", 3, 75000)
+    assert (b["status"], b["history"]) == ("active", [])  # Story 4.2: status and Change history (FR-16)
     created = dt.datetime.fromisoformat(b["created_at"])
     assert created.utcoffset() == dt.timedelta(hours=1)  # Venue time
     assert ws[0]["bookings"] == [] and ws[2]["bookings"] == []
@@ -99,12 +101,15 @@ def test_the_figures_come_from_the_store_functions(admin, api, pg):
     assert (w["seat_capacity"], w["seats_booked"], w["seats_left"]) == (cap, booked, left) == (44, 4, 35)
 
 
-def test_cancelled_bookings_are_left_out(admin, api, pg):
+def test_cancelled_bookings_are_listed_with_their_status_outside_the_seats_booked(admin, api, pg):
+    """Story 4.2 (Lisa, 2026-11-24): a cancelled Booking stays in the list with its status; it takes no Seats."""
     ref = book_seats(api, 1, 2)[0]
+    other = book_seats(api, 1, 3)[0]
     pg.execute("UPDATE bookings SET status = 'cancelled' WHERE reference = %s", (ref,))
     pg.commit()
     w = booking_list(admin, date=DAY)["windows"][0]
-    assert w["bookings"] == [] and w["seats_booked"] == 0
+    assert [(b["reference"], b["status"]) for b in w["bookings"]] == [(ref, "cancelled"), (other, "active")]
+    assert (w["seats_booked"], w["seats_left"]) == (3, 41)
 
 
 def test_an_empty_day_lists_every_window_with_no_bookings(admin):

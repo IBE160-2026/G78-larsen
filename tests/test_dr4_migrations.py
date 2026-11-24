@@ -150,3 +150,30 @@ def test_0006_backfills_legacy_bookings_and_counts_only_active_ones(tmp_path, sc
         assert triggers == [("a_lock_bookings",), ("t_bookings",)]
         with pytest.raises(psycopg.errors.CheckViolation):
             c.execute("UPDATE bookings SET status = 'gone' WHERE id = 1")
+
+
+def test_0011_keeps_existing_keys_and_emails_and_adds_the_change_columns(tmp_path, scratch_db):
+    """AD-9 / AD-12 / AD-29 (Story 4.2): a key and an email written before 0011 keep their Booking, with no Change;
+    afterwards a key points at exactly one of a Booking and a Change. No trigger on `bookings` is added."""
+    before = tmp_path / "before"
+    before.mkdir()
+    for name in files():
+        if name < "0011":
+            shutil.copy(config.paths.MIGRATIONS / name, before / name)
+    migrations.migrate(scratch_db, before)
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+                  "VALUES (1, 2, 'AAAAAAAA', 'Ada', 'ada@example.com', 25000, 50000)")
+        c.execute("INSERT INTO idempotency_keys (key, endpoint, request_hash, booking_id) "
+                  "VALUES (gen_random_uuid(), 'POST /api/bookings', %s, 1)", (b"h" * 32,))
+        c.execute("INSERT INTO outbox_emails (recipient, subject, body, booking_id) VALUES ('a', 's', 'b', 1)")
+    assert migrations.migrate(scratch_db) == ["0011_booking_changes.sql"]
+    with psycopg.connect(scratch_db) as c:
+        assert c.execute("SELECT booking_id, change_id FROM idempotency_keys").fetchall() == [(1, None)]
+        assert c.execute("SELECT booking_id, change_id FROM outbox_emails").fetchall() == [(1, None)]
+        assert c.execute("SELECT count(*) FROM booking_changes").fetchone()[0] == 0
+        triggers = c.execute("SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass "
+                             "AND NOT tgisinternal ORDER BY tgname").fetchall()
+        assert triggers == [("a_lock_bookings",), ("t_bookings",)]

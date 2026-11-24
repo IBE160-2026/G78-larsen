@@ -29,6 +29,9 @@ STATUS: dict[str, int] = {
     # that starts after it, on a booking, Hold or Whole-sauna booking (FR-18 IV-2, AD-4)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
     "cutoff_passed": 409,  # a Change after the Booking's Cutoff (AD-4, AD-16); fact `cutoff_at`
+    "booking_cancelled": 409,  # a Change of a cancelled Booking (AD-29)
+    "booking_changed": 409,  # a Change sent with another `version` than the Booking's (AD-29); fact `booking`
+    "change_invalid": 409,  # a Change that cannot apply (AD-29); fact `reason`: `seats_exceed` or `same_target`
     "invalid_key": 409,  # an Idempotency-Key already used by another session or for another request (AD-9)
     "payment_pending": 409,  # the payment is held (test switch `payment = "hold"`, AD-14); nothing written
     "payment_failed": 409,  # the payment failed (test switch `payment = "fail"`, FR-7); nothing written

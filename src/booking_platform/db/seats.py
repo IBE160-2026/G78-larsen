@@ -3,6 +3,8 @@ the connection of the caller's transaction (`db.run`)."""
 
 from __future__ import annotations
 
+import datetime as dt
+
 import psycopg
 
 _WINDOW = "SELECT id, lower(during), upper(during), seats_left(id) FROM windows"
@@ -53,17 +55,17 @@ def insert_hold(c: psycopg.Connection, session_id: int, window_id: int, seats: i
 
 
 def insert_booking(c: psycopg.Connection, reference: str, window_id: int, seats: int, name: str, email: str,
-                   price_per_seat_ore: int, session_id: int) -> int | None:
+                   price_per_seat_ore: int, session_id: int, cutoff: dt.timedelta | None = None) -> int | None:
     """Insert a Seat booking under `reference`, its total `seats × price_per_seat_ore` (AD-13). None when the reference
     is taken: `ON CONFLICT (reference) DO NOTHING`, so a clash neither raises nor aborts the transaction (AD-20). The
     time of booking and the entry time are one `app_now()` (AD-7). The Booking keeps its own copy of the Seat Cutoff
-    (`settings.cutoff_seats`, AD-4)."""
+    (`settings.cutoff_seats`, AD-4), or the `cutoff` given (a split keeps the original's, AD-29)."""
     row = c.execute(
         "INSERT INTO bookings (reference, window_id, seats, name, email, price_per_seat_ore, total_ore, session_id, "
         "created_at, entry_time, cutoff) "
-        "SELECT %s, %s, %s, %s, %s, %s, %s, %s, n, n, (SELECT cutoff_seats FROM settings) "
+        "SELECT %s, %s, %s, %s, %s, %s, %s, %s, n, n, COALESCE(%s::interval, (SELECT cutoff_seats FROM settings)) "
         "FROM (SELECT app_now() AS n) x "
         "ON CONFLICT (reference) DO NOTHING RETURNING id",
         (reference, window_id, seats, name, email, price_per_seat_ore, seats * price_per_seat_ore,
-         session_id)).fetchone()
+         session_id, cutoff)).fetchone()
     return None if row is None else row[0]

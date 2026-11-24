@@ -6,11 +6,12 @@
 // aria-hidden, so a screen reader in browse mode reads each row once (manual NVDA pass, 2026-11-24). A row with too few
 // Seats is a disabled radio that says why; a started Window says "Already started". No price, no Sauna and no
 // urgency cue (FR-3, FR-4, NFR-9). The Notices of question 3 (cleared choice, no room, read failed) sit above the
-// rows.
+// rows. The move step (Story 4.2) passes `currentWindowId`: the Booking's own session is a disabled row that says
+// "Your current session" (Lisa, 2026-11-24).
 import FieldError from './FieldError';
 import NearestSessions from './NearestSessions';
 import Notice from './Notice';
-import { BOOK } from '@/lib/copy';
+import { BOOK, MOVE } from '@/lib/copy';
 import { clockTime, horizonPhrase, weekdayName } from '@/lib/dates';
 
 /** The row's Seats-left text and whether it can be chosen for `seats` (any number when none is chosen yet). */
@@ -20,11 +21,12 @@ export function availability(w, seats) {
   return { text: BOOK.seatsLeft(w.seats_left), open: true };
 }
 
-function Rows({ windows, seats, windowId, onChoose }) {
+function Rows({ windows, seats, windowId, onChoose, currentWindowId }) {
   return (
     <div className="session-rows">
       {windows.map((w) => {
-        const { text, open } = availability(w, seats);
+        const { text, open } = w.id === currentWindowId ? { text: MOVE.currentSession, open: false }
+          : availability(w, seats);
         const start = clockTime(w.start);
         const end = clockTime(w.end);
         const started = w.already_started ? `, ${BOOK.alreadyStarted}` : '';
@@ -63,6 +65,7 @@ function Rows({ windows, seats, windowId, onChoose }) {
 
 export default function SessionList({
   date, seats, status, windows, nearest, horizonDays, windowId, onChoose, onChooseNearest, clearedNotice, error,
+  currentWindowId = null,
 }) {
   let body = null;
   if (date && status === 'loading') {
@@ -82,7 +85,13 @@ export default function SessionList({
         {nearest && nearest.length === 0 && (
           <Notice>{BOOK.noRoomInHorizon(seats, horizonPhrase(horizonDays))}</Notice>
         )}
-        <Rows windows={windows} seats={seats} windowId={windowId} onChoose={onChoose} />
+        <Rows
+          windows={windows}
+          seats={seats}
+          windowId={windowId}
+          onChoose={onChoose}
+          currentWindowId={currentWindowId}
+        />
       </>
     );
   }

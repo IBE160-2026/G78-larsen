@@ -28,6 +28,14 @@ _pool: ConnectionPool | None = None
 _TEMPORARY = (errors.SerializationFailure, errors.DeadlockDetected)
 
 
+class Retry(Exception):
+    """Raised by a unit of work to run it again from the start, like a temporary conflict: a row it read unlocked
+    changed before it could lock it (AD-29: a Booking's `window_id` moved between the unlocked read and the locked
+    re-read). Counts against the same bounded number of attempts."""
+
+    sqlstate = "retry"
+
+
 def _configure(c: psycopg.Connection) -> None:
     c.isolation_level = psycopg.IsolationLevel.READ_COMMITTED  # AD-3: set explicitly on the pool
 
@@ -66,7 +74,7 @@ def _force_conflict(c: psycopg.Connection) -> None:
 
 def run(work: Callable[[psycopg.Connection], T]) -> T:
     """Run one unit of work in one READ COMMITTED transaction, retrying temporary conflicts a bounded number of
-    times. Anything the work wrote is rolled back on every failed attempt (FR-14). Store refusals, at any
+    times (`Retry` counts as one). Anything the work wrote is rolled back on every failed attempt (FR-14). Store refusals, at any
     statement or at COMMIT, are translated by constraint name. Retries used up is `Refused('try_again')`."""
     assert _pool is not None, "pool is not open"
     last: str | None = None
@@ -76,7 +84,7 @@ def run(work: Callable[[psycopg.Connection], T]) -> T:
                 result = work(c)
                 _force_conflict(c)
                 return result
-        except _TEMPORARY as e:
+        except (*_TEMPORARY, Retry) as e:
             last = e.sqlstate
             time.sleep(0.005 * (attempt + 1))
         except psycopg.Error as e:

@@ -142,7 +142,62 @@ export const MANAGE = Object.freeze({
     `This booking can no longer be changed. Changes are possible until 12 hours before the session starts, and that was ${longDate} at ${time}.`,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   loadFailed: 'The booking could not be loaded, please try again.',
+  // Story 4.2 (Lisa, 2026-11-24): the Manage page's link to the move step.
+  moveSeats: 'Move seats',
 });
+
+// Move seats (FR-26, Story 4.2): the confirming step and its result. Verbatim from Lisa's decisions of 2026-11-24.
+export const MOVE = Object.freeze({
+  heading: 'Move seats',
+  back: 'Back',
+  seatsQuestion: '1. How many seats do you want to move?',
+  dateQuestion: '2. Choose a date',
+  currentSession: 'Your current session',
+  summaryHeading: 'What will happen',
+  seatsMoved: 'Seats moved',
+  from: 'From',
+  to: 'To',
+  seatsLeftInBooking: 'Seats left in this booking',
+  nothingYet: 'Nothing changes until you confirm.',
+  confirm: (n) => `Move ${seatsWord(n)}`,
+  resultHeading: 'Seats moved',
+  resultLine: 'Your booking has been changed.',
+  newReference: (ref) => `Your moved seats have a new booking reference: ${ref}.`,
+  seatsLeft: (n) => `Only ${seatsWord(n)} left in this session. Nothing has changed.`,
+  noSeatFree: 'No seat free in this session. Nothing has changed.',
+  closed: 'This session can no longer be booked. Nothing has changed.',
+  changed: 'This booking was changed in the meantime. Check it and choose again.',
+  tryAgain: 'The change could not be completed, please try again.',
+});
+
+/**
+ * The move step's one code -> message mapping (AD-16). Every code here is in `api/errors.py` and `lib/api.js` STATUS.
+ * - `stay`: the step stays with the Guest's choices (`no_seat_free`, `outside_horizon`, `deadline_passed`, and
+ *   anything else with "please try again")
+ * - `reload`: the Booking is read again and the step opens fresh with a new key (`booking_changed`, `invalid_key`)
+ * - `cutoff`: the page shows the Cutoff state of Story 4.1 (`cutoff_passed`, fact `cutoff_at`)
+ * @param {string} code the envelope's `error`
+ * @param {object} facts the envelope's facts (`seats_left` for `no_seat_free`)
+ * @returns {{kind: 'stay'|'reload'|'cutoff', text: string|null}}
+ */
+export function moveRefusal(code, facts = {}) {
+  switch (code) {
+    case 'no_seat_free': {
+      const n = facts.seats_left;
+      return { kind: 'stay', text: Number.isInteger(n) && n >= 1 ? MOVE.seatsLeft(n) : MOVE.noSeatFree };
+    }
+    case 'outside_horizon':
+    case 'deadline_passed':
+      return { kind: 'stay', text: MOVE.closed };
+    case 'booking_changed':
+    case 'invalid_key':
+      return { kind: 'reload', text: MOVE.changed };
+    case 'cutoff_passed':
+      return { kind: 'cutoff', text: null };
+    default:
+      return { kind: 'stay', text: MOVE.tryAgain };
+  }
+}
 
 // The Administrator pages (UX-DR3, UX-DR30, EXPERIENCE.md). The copy never uses the word "session" for a sign-in.
 export const ADMIN = Object.freeze({
@@ -176,7 +231,12 @@ export const BOOKING_LIST = Object.freeze({
     seats: 'Seats',
     total: 'Total',
     time: 'Time of booking',
+    status: 'Status',
   }),
+  // Story 4.2 (Lisa, 2026-11-24): each Booking's status, and one line per history entry under it.
+  status: Object.freeze({ active: 'Active', cancelled: 'Cancelled' }),
+  moved: (seats, at, from, to) => `Moved ${seatsWord(seats)} on ${at} from ${from} to ${to}`,
+  newBooking: (ref) => ` · new booking ${ref}`,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   failed: 'The booking list could not be loaded, please try again.',
 });

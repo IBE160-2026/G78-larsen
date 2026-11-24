@@ -10,10 +10,13 @@
 // - Each group: the time in session-time-selected (named "Session 10:00 to 11:30") and the figures on one line in
 //   tabular figures, with "No bookings" on that same line when the session is empty; otherwise the Booking table. A session with no Seats left has the unavailable header with
 //   "Seats left 0" and "Sold out" in weight 600, so the state is said in words.
+// - Each Booking shows its status (Active or Cancelled; a cancelled one takes no Seats) and, under its row, one line
+//   per entry of its Change history: "Moved 1 seat on 24.11.2026 14:05 from 01.12.2026 10:00–11:30 to
+//   01.12.2026 11:30–13:00 · new booking ABCD1234" (Story 4.2, Lisa 2026-11-24).
 // - Stored text (name, email) is rendered as React text, never as HTML (IV-5).
 // - A 401 goes to Sign-in; any other failure shows the "please try again" Notice.
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { SIGN_IN_PATH } from './AdminBar';
 import FieldError from './FieldError';
 import Notice from './Notice';
@@ -28,6 +31,17 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const C = BOOKING_LIST.columns;
 
 const dayHref = (iso) => `${BOOKINGS_PATH}?date=${iso}`;
+const COLUMNS = 7;
+
+/** "01.12.2026 10:00–11:30" of a Window `{start, end}` in Venue time. */
+const sessionText = (w) => `${dottedTime(w.start)}–${clockTime(w.end)}`;
+
+/** One history line of a Booking (only `move` exists in Story 4.2). */
+function historyLine(entry) {
+  const line = BOOKING_LIST.moved(entry.seats, dottedTime(entry.at), sessionText(entry.from_window),
+    sessionText(entry.to_window));
+  return entry.new_reference ? line + BOOKING_LIST.newBooking(entry.new_reference) : line;
+}
 
 function SessionGroup({ session }) {
   const start = clockTime(session.start);
@@ -66,6 +80,7 @@ function SessionGroup({ session }) {
             <col className="col-seats" />
             <col className="col-total" />
             <col className="col-time" />
+            <col className="col-status" />
           </colgroup>
           <thead>
             <tr>
@@ -81,18 +96,29 @@ function SessionGroup({ session }) {
               <th scope="col" className="num">
                 {C.time}
               </th>
+              <th scope="col">{C.status}</th>
             </tr>
           </thead>
           <tbody>
             {session.bookings.map((b) => (
-              <tr key={b.reference}>
-                <td className="tabular">{b.reference}</td>
-                <td>{b.name}</td>
-                <td>{b.email}</td>
-                <td className="num">{b.seats}</td>
-                <td className="num">{nok(b.total_ore)}</td>
-                <td className="num">{dottedTime(b.created_at)}</td>
-              </tr>
+              <Fragment key={b.reference}>
+                <tr className="booking-row">
+                  <td className="tabular">{b.reference}</td>
+                  <td>{b.name}</td>
+                  <td>{b.email}</td>
+                  <td className="num">{b.seats}</td>
+                  <td className="num">{nok(b.total_ore)}</td>
+                  <td className="num">{dottedTime(b.created_at)}</td>
+                  <td>{BOOKING_LIST.status[b.status] ?? b.status}</td>
+                </tr>
+                {(b.history || []).map((entry, i) => (
+                  <tr className="booking-history" key={i}>
+                    <td colSpan={COLUMNS} className="tabular">
+                      {historyLine(entry)}
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
             ))}
           </tbody>
         </table>

@@ -143,7 +143,8 @@ def test_the_request_hash_covers_the_window_and_seats_and_never_the_name_or_emai
     canonical = json.dumps({"endpoint": "POST /api/bookings", "seats": 2, "window_id": 1}, sort_keys=True,
                            separators=(",", ":"))
     assert bytes(stored) == hashlib.sha256(canonical.encode()).digest()
-    assert sorted(columns) == ["booking_id", "created_at", "endpoint", "id", "key", "request_hash", "session_id"]
+    assert sorted(columns) == ["booking_id", "change_id", "created_at", "endpoint", "id", "key", "request_hash",
+                               "session_id"]  # change_id: Story 4.2 (AD-9)
 
 
 def test_the_stored_price_is_what_the_booking_keeps(api, pg):

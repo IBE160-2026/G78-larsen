@@ -5,16 +5,20 @@
   created one. It passes the same-origin check like every POST (the app's RequestGuard).
 - `router`: every route reached through a grant lives under `/api/manage/{reference}`, behind the one dependency
   `require_grant`. No grant, no session, another Booking and an unknown reference are all `404 not_found`; a Manage
-  route never answers `401`.
+  route never answers `401`. `POST …/seats/move` is the Seat move (FR-26, AD-29); it needs an `Idempotency-Key`
+  (AD-9).
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response
+import uuid
+from typing import Annotated
 
-from ..services import manage, sessions
+from fastapi import APIRouter, Depends, Header, Request, Response
+
+from ..services import change, manage, sessions
 from .deps import COOKIE, current_session, set_session_cookie
-from .schemas import ManageOpenIn
+from .schemas import ManageOpenIn, MoveIn
 
 open_router = APIRouter(prefix="/api/manage", redirect_slashes=False)
 
@@ -40,3 +44,12 @@ router = APIRouter(prefix="/api/manage/{reference}", dependencies=[Depends(requi
 def read(booking_id: int = Depends(require_grant)):
     """The Booking as the Manage page shows it. Writes nothing apart from the grant and session touch."""
     return manage.read(booking_id)
+
+
+@router.post("/seats/move")
+def move_seats(reference: str, body: MoveIn, idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
+               booking_id: int = Depends(require_grant), s: sessions.Session | None = Depends(current_session)):
+    """Move all or some Seats to another Window (FR-26). The grant was checked by the router's dependency (so the
+    session exists) and is checked again inside the transaction. A repeat with the same key from the same session
+    returns the first outcome."""
+    return change.move(s.id, booking_id, reference, body.window_id, body.seats, body.version, idempotency_key)

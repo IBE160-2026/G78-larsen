@@ -12,10 +12,11 @@ import psycopg
 # ------------------------------------------------------------------ one-time keys (AD-9)
 
 
-def key(c: psycopg.Connection, key: uuid.UUID) -> tuple[int, str, bytes, int] | None:
-    """(session_id, endpoint, request_hash, booking_id) of a known key, or None."""
-    return c.execute("SELECT session_id, endpoint, request_hash, booking_id FROM idempotency_keys WHERE key = %s",
-                     (key,)).fetchone()
+def key(c: psycopg.Connection, key: uuid.UUID) -> tuple[int, str, bytes, int | None, int | None] | None:
+    """(session_id, endpoint, request_hash, booking_id, change_id) of a known key, or None. Exactly one of the last
+    two is set: a Booking's key points at the Booking, a Change's at the Change (AD-9)."""
+    return c.execute("SELECT session_id, endpoint, request_hash, booking_id, change_id FROM idempotency_keys "
+                     "WHERE key = %s", (key,)).fetchone()
 
 
 def key_exists(c: psycopg.Connection, key: uuid.UUID) -> bool:
@@ -39,15 +40,26 @@ def insert_payment(c: psycopg.Connection, booking_id: int, direction: str, metho
 # ------------------------------------------------------------------ the Outbox (AD-12)
 
 
-def insert_email(c: psycopg.Connection, recipient: str, subject: str, body: str, booking_id: int | None) -> int:
-    return c.execute("INSERT INTO outbox_emails (recipient, subject, body, booking_id) VALUES (%s, %s, %s, %s) "
-                     "RETURNING id", (recipient, subject, body, booking_id)).fetchone()[0]
+def insert_email(c: psycopg.Connection, recipient: str, subject: str, body: str, booking_id: int | None,
+                 change_id: int | None = None) -> int:
+    return c.execute("INSERT INTO outbox_emails (recipient, subject, body, booking_id, change_id) "
+                     "VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                     (recipient, subject, body, booking_id, change_id)).fetchone()[0]
 
 
 def emails_of_booking(c: psycopg.Connection, booking_id: int) -> list[tuple[str, str]]:
-    """(subject, body) of the emails sent with a Booking, oldest first."""
-    return c.execute("SELECT subject, body FROM outbox_emails WHERE booking_id = %s ORDER BY id",
-                     (booking_id,)).fetchall()
+    """(subject, body) of the emails sent with a Booking when it was created, oldest first: by the payment (no
+    `change_id`) or by the split that created it. A later Change's emails are the Change's, not the Booking's."""
+    return c.execute(
+        "SELECT subject, body FROM outbox_emails o WHERE o.booking_id = %(b)s AND (o.change_id IS NULL OR "
+        "o.change_id IN (SELECT h.id FROM booking_changes h WHERE h.new_booking_id = %(b)s)) ORDER BY o.id",
+        {"b": booking_id}).fetchall()
+
+
+def emails_by_change(c: psycopg.Connection, change_id: int) -> list[tuple[int, str, str]]:
+    """(id, subject, body) of the emails a Change sent, oldest first."""
+    return c.execute("SELECT id, subject, body FROM outbox_emails WHERE change_id = %s ORDER BY id",
+                     (change_id,)).fetchall()
 
 
 # ------------------------------------------------------------------ Booking facts

@@ -5,7 +5,7 @@
 // reference, date, session, Seats and total paid, then, before the Cutoff, until when the Booking can be changed, and
 // after it the approved reason. Times come from the API in Venue time (`cutoff_at`); the browser clock decides
 // nothing (AD-4). No grant, an idle or expired grant and an unknown reference are all a 404: "This page is not
-// available." (FR-20). Story 4.1 offers no Change yet.
+// available." (FR-20). Before the Cutoff an active Booking offers its Changes: "Move seats" (Story 4.2).
 //
 // As on Confirmation, the h1 appears only once the read has answered, so a browser without a grant never sees it
 // before "This page is not available."; FocusMover focuses it after the navigation from `/manage`.
@@ -14,6 +14,7 @@ import GuestShell from './GuestShell';
 import ManageBookingSummary from './ManageBookingSummary';
 import NotAvailable from './NotAvailable';
 import Notice from './Notice';
+import TextLink from './TextLink';
 import Wordmark from './Wordmark';
 import { ApiError, api } from '@/lib/api';
 import { MANAGE } from '@/lib/copy';
@@ -60,7 +61,14 @@ export default function ManageBooking({ reference }) {
           <>
             <ManageBookingSummary booking={b} />
             {b.change_allowed ? (
-              <p className="manage-until">{MANAGE.untilText(cutoffDate, cutoffTime)}</p>
+              <>
+                <p className="manage-until">{MANAGE.untilText(cutoffDate, cutoffTime)}</p>
+                {b.status === 'active' && (
+                  <p className="manage-changes">
+                    <TextLink href={`/manage/${encodeURIComponent(b.reference)}/move`}>{MANAGE.moveSeats}</TextLink>
+                  </p>
+                )}
+              </>
             ) : (
               <Notice>{MANAGE.cutoffPassed(cutoffDate, cutoffTime)}</Notice>
             )}
