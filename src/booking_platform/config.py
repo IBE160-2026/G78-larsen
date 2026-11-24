@@ -37,6 +37,7 @@ class links:  # noqa: N801 - a namespace, read as config.links.before_you_come
     never built from a request (AD-10)."""
 
     before_you_come = "/#before-you-come"
+    manage = "/manage"  # the Manage link; `services.manage.link` appends the token as the fragment `#t=` (AD-28)
 
 
 def _flag(name: str, value: str) -> bool:

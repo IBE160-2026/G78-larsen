@@ -56,3 +56,9 @@
 - source_spec: `.docs/implementation-artifacts/spec-3-1-serve-website-api-https-only.md`
   summary: `tests/e2e/test_fr17_outbox.py::test_a_401_on_the_read_goes_to_sign_in` timed out once (30 s, still on `/admin/bookings`) in a full e2e run.
   evidence: 161 of 162 passed in that run; the file re-run with `test_fr24_https.py` gave 12 passed. A second full e2e run is needed to tell flakiness from an HTTPS-related cause.
+- source_spec: `.docs/implementation-artifacts/spec-4-1-manage-link-opens-booking.md`
+  summary: `change_allowed` and `manage_token_valid` (migration 0010) ignore `bookings.status`, so a cancelled Booking with a live token would open and show "You can change this booking until …".
+  evidence: Unverified (medium if true): no code sets `status = 'cancelled'` yet (only the CHECK in 0006). Settle it when the first cancellation path is built (Epic 5): either revoke the token on cancel or add `status = 'active'` to the predicates, and give the Manage page a cancelled state.
+- source_spec: `.docs/implementation-artifacts/spec-4-1-manage-link-opens-booking.md`
+  summary: `db.manage.samples_without_token` re-issues a token and a "Manage your booking" email on every restart for any sample whose token was revoked without a replacement.
+  evidence: Unverified (medium if true): today only `manage.issue` revokes, and it inserts a replacement in the same transaction. Settle it when Story 4.2 or Epic 5 adds a revoke without replacement: limit the query to Bookings that never had a token.

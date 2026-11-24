@@ -5,7 +5,8 @@ read (AD-12).
 (AD-9), then the Window rules (`ensure_open_for_booking`: `outside_horizon`, then `deadline_passed`), the session's
 Hold on the Window is released (so its Seats are not counted twice), Seats left is read and a request for more is
 `409 no_seat_free` with the fact `seats_left` (FR-12, AD-16), the Booking is inserted through `services.reference`
-(AD-20), the `payments` row is written, the confirmation goes through `outbox.send` (AD-12), and last the key row. Only
+(AD-20) with its own copy of the Seat Cutoff (AD-4), the `payments` row is written, the Booking gets its Manage link
+(`services.manage.issue`, AD-28), the confirmation goes through `outbox.send` (AD-12), and last the key row. Only
 a success stores a key; a refusal raises, so `db.run` rolls back everything, the deleted Hold included. The store's
 `booked_within_capacity` stays the backstop for capacity (FR-10).
 
@@ -27,7 +28,7 @@ from .. import config, db
 from ..db import bookings as q
 from ..db import seats as sq
 from ..db import venue as vq
-from . import content, outbox, payment, reference
+from . import content, manage, outbox, payment, reference
 from .errors import Refused
 from .windows import ensure_open_for_booking
 
@@ -76,10 +77,10 @@ def long_date(date: dt.date) -> str:
     return f"{_WEEKDAYS[date.weekday()]} {date.day} {_MONTHS[date.month - 1]} {date.year}"
 
 
-def confirmation_email(booking: dict, venue: tuple) -> tuple[str, str]:
+def confirmation_email(booking: dict, venue: tuple, manage_link: str) -> tuple[str, str]:
     """(subject, body) in the line layout of `mockups/key-confirmation.html`. Built from the stored Booking facts and
-    the Venue facts; the booking terms and the reception sentence come from `content/`. No Manage link (Core) and no
-    Sauna (FR-4)."""
+    the Venue facts; the booking terms (with the change statement) and the reception sentence come from `content/`.
+    The Manage link (`services.manage.link`, AD-28) stands just before "Before you come". No Sauna (FR-4)."""
     venue_name, address_lines, phone, venue_email = venue[0], venue[1], venue[2], venue[3]
     start, end = booking["start"][11:16], booking["end"][11:16]
     lines = [
@@ -101,6 +102,9 @@ def confirmation_email(booking: dict, venue: tuple) -> tuple[str, str]:
         "",
         "Booking terms",
         *content.paragraphs(content.TERMS_SEATS),
+        "",
+        "Manage your booking",
+        manage_link,
         "",
         "Before you come",
         outbox.link(config.links.before_you_come),
@@ -139,7 +143,8 @@ def create(session_id: int, window_id: int, seats: int, name: str, email: str, k
             lambda ref: sq.insert_booking(c, ref, window_id, seats, name, email, price, session_id))
         booking = _facts(c, booking_id)
         payment.record(c, decided, booking_id, booking["total_ore"])
-        subject, body = confirmation_email(booking, venue)
+        token = manage.issue(c, booking_id)  # after the insert, in the same transaction (AD-28)
+        subject, body = confirmation_email(booking, venue, manage.link(token))
         outbox.send(c, booking["email"], subject, body, booking_id=booking_id)
         q.insert_key(c, key, session_id, ENDPOINT, h, booking_id)
         return {"booking": booking, "emails": outbox.of_booking(c, booking_id)}

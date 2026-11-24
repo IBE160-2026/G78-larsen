@@ -16,6 +16,7 @@ export const STATUS = Object.freeze({
   deadline_passed: 409,
   outside_horizon: 409,
   release_after_deadline: 409,
+  cutoff_passed: 409,
   invalid_key: 409,
   payment_pending: 409,
   payment_failed: 409,

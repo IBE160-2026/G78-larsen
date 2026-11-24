@@ -14,14 +14,14 @@ Det vanskelige er kapasiteten: plattformen skal aldri selge samme plass to gange
 
 ## Status (2026-11-24)
 
-Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
+Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Epic 4 er påbegynt: hver Seat-booking får en Manage-lenke i bekreftelses-e-posten, og lenken åpner bookingen uten konto (Story 4.1). Selve endringene (flytte plasser, Voucher) er ikke bygget ennå. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
 
 ### Ikke levert
 
 Dette er ikke bygget per i dag (DR-2). Senere epics korter ned listen.
 
 - **Suksesskriteriene SC2–SC8**: hel badstue (SC2, SC4), endre plasser eller ta Voucher (SC3), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
-- **FR-25 til FR-51**: Manage-lenker, endringer og Vouchere, hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
+- **FR-26 til FR-51**: endringer og Vouchere (Manage-lenken, FR-25, åpner bookingen, men tilbyr ingen endring ennå), hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
 - **Mobildelen av SC10**. Core er laget for laptop.
 - **WCAG 1.4.10 Reflow** (innhold i 320 CSS-piksler bredde uten rulling i to retninger) er ikke oppfylt før mobiloppsettet (FR-51) finnes. Det er det eneste avviket fra WCAG 2.2 AA som de automatiske testene kjenner, og tilgjengelighetsrapporten fra e2e-testene oppgir det. De manuelle testene og funnene deres står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
 
@@ -137,6 +137,8 @@ En omstart, også en senere dag, lager ingen kopier.
 
 E-post sendes ikke ut. Hver e-post plattformen sender, legges i **Outbox**, en simulert postkasse: `https://localhost:8443/admin/outbox` (lenken «Outbox» i Administrator-linjen). Den viser hver e-post slik den ble sendt, også de gjesten aldri ser på en side. Bekreftelsen fra en ny booking dukker opp her og på Confirmation-siden. Alle lenker i e-postene er absolutte og begynner med `https://localhost:8443` (`BP_BASE_URL`).
 
+**Eksempel på Manage-lenke:** hver eksempelbooking har en lenke i sin bekreftelses-e-post i Outbox (emne «Booking confirmed: …»), på linjen under «Manage your booking». Den ser slik ut: `https://localhost:8443/manage#t=…`. Åpne den i nettleseren, så vises bookingen på `/manage/<referanse>`, og tokenet er borte fra adresselinjen. En eksempelbooking som fantes før Manage-lenkene ble bygget, får i stedet sin egen e-post med emnet «Manage your booking: <referanse>». Lenken virker til bookingens badstueøkt er slutt (DR-2); etter det, og for en gjettet referanse, viser siden «This page is not available.». Tilgangen i nettleseren varer 30 minutter etter siste bruk; å åpne lenken på nytt gir den tilbake.
+
 ## Drift
 
 ### Ny Administrator eller nytt passord
@@ -206,12 +208,12 @@ Slik beskyttes dataene i denne versjonen (FR-21). Det stemmer med personvernerkl
 
 - **Passord** lagres bare som Argon2id-hash. Testpassordet over står i klartekst i `seeds/admin.json` fordi det bare gjelder lokalt.
 - **Roller** sjekkes på serveren ved hver forespørsel. Alle Administrator-endepunkter ligger under `/api/admin/`, og uten en innlogget Administrator-økt svarer de `401`; en gjests bookingøkt gir ingen tilgang. Sidene under `/admin` sender en anonym besøkende til innloggingen (`tests/e2e/test_fr15_sign_in.py`).
-- **Økter** er rader på serveren. Nettleseren får én informasjonskapsel med et tilfeldig token, og databasen lagrer bare en hash av det. Gjesten får kapselen på Book seats; ved Administrator-innlogging får den samme kapselen et nytt token.
+- **Økter** er rader på serveren. Nettleseren får én informasjonskapsel med et tilfeldig token, og databasen lagrer bare en hash av det. Gjesten får kapselen på Book seats eller når en Manage-lenke åpnes; ved Administrator-innlogging får den samme kapselen et nytt token.
 - **Ingen tredjepartsforespørsler**: fontene og bildene er selvhostet (se `ASSETS.md`), og API-dokumentasjonen (`/docs`, `/openapi.json`) er slått av (`tests/test_fr20_access.py`).
 - **Ingen hemmeligheter i loggene** (AD-19): loggene har metode, sti, statuskode og feilkode, aldri forespørselskropper, hoder, informasjonskapsler, passord eller tokener. E2e-testene sjekker loggene for testpassordet, økttokenene og forespørselskroppene.
 - **Skrivende forespørsler** må komme fra plattformens egen opprinnelse (CSRF, FR-18), og all inndata valideres på serveren.
 - **HTTPS** (FR-24): alle sider og hele API-et går over HTTPS, og HTTPS ender i Caddy. Backend og frontend nås bare på det interne compose-nettverket, og Caddy publiserer bare på `127.0.0.1`. Vanlig HTTP får bare en omdirigering og returnerer eller endrer aldri data. Hvert HTTPS-svar har `Strict-Transport-Security: max-age=3600` (uten `includeSubDomains` og `preload`), og øktkapselen er `Secure`, `HttpOnly`, `SameSite=Strict` og `Path=/` (`tests/e2e/test_fr24_https.py`). Ingen forespørsel går til en tredjepart. En produksjonsinstallasjon ville brukt et offentlig sertifikat og HSTS i ett år; den korte verdien her hindrer at sensors `localhost` låses til HTTPS lenge.
-- **Manage-lenker** finnes ikke ennå. Når de bygges (PRD §4.8), lagres tokenene bare som hash i bookingdataene. Outbox, som er en simulert postkasse, viser lenkene slik de ble sendt, og er bare åpen for Administrator.
+- **Manage-lenker** (PRD §4.8, FR-25): tokenet har 256 tilfeldige biter og ligger bare i lenkens fragment (`#t=`), så det havner aldri i en sti, en spørring, en logg eller en referrer. Databasen lagrer bare en SHA-256-hash av det. Siden fjerner fragmentet fra adresselinjen og bytter tokenet mot en tilgang knyttet til nettleserens økt; tilgangen gjelder bare den ene bookingen, varer 30 minutter etter siste bruk og forsvinner ved utlogging. Ukjente, ugyldige, utløpte og andres lenker og referanser får det samme svaret, «This page is not available.» (`404`). Caddy legger `X-Robots-Tag: noindex` og `Referrer-Policy: no-referrer` på Manage-sidene og -API-et. Outbox, som er en simulert postkasse, viser lenkene slik de ble sendt, og er bare åpen for Administrator (`tests/test_fr25_manage_link.py`, `tests/e2e/test_fr25_manage.py`).
 
 ## Kjente begrensninger
 

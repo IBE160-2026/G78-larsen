@@ -56,11 +56,13 @@ def insert_booking(c: psycopg.Connection, reference: str, window_id: int, seats:
                    price_per_seat_ore: int, session_id: int) -> int | None:
     """Insert a Seat booking under `reference`, its total `seats × price_per_seat_ore` (AD-13). None when the reference
     is taken: `ON CONFLICT (reference) DO NOTHING`, so a clash neither raises nor aborts the transaction (AD-20). The
-    time of booking and the entry time are one `app_now()` (AD-7)."""
+    time of booking and the entry time are one `app_now()` (AD-7). The Booking keeps its own copy of the Seat Cutoff
+    (`settings.cutoff_seats`, AD-4)."""
     row = c.execute(
         "INSERT INTO bookings (reference, window_id, seats, name, email, price_per_seat_ore, total_ore, session_id, "
-        "created_at, entry_time) "
-        "SELECT %s, %s, %s, %s, %s, %s, %s, %s, n, n FROM (SELECT app_now() AS n) x "
+        "created_at, entry_time, cutoff) "
+        "SELECT %s, %s, %s, %s, %s, %s, %s, %s, n, n, (SELECT cutoff_seats FROM settings) "
+        "FROM (SELECT app_now() AS n) x "
         "ON CONFLICT (reference) DO NOTHING RETURNING id",
         (reference, window_id, seats, name, email, price_per_seat_ore, seats * price_per_seat_ore,
          session_id)).fetchone()

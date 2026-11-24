@@ -3,7 +3,7 @@
 Startup: read the configuration (AD-14, AD-22), create `booking_dev` when the default URL is used, apply the
 migrations (AD-15), open the pool, apply the seed (AD-18), generate the Windows up to the Booking horizon (FR-13),
 create the sample Bookings that do not exist yet (AD-18), run the retention catch-up (FR-21: anonymise the Bookings
-due for retention and clear their Outbox emails) and purge expired sessions (AD-8). The seed file is also checked
+due for retention and clear their Outbox emails), purge expired sessions (AD-8) and the stale Manage grants (AD-28). The seed file is also checked
 before uvicorn starts (`booking_platform.main`), so an invalid seed stops startup with one line.
 """
 
@@ -16,10 +16,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from . import config, db
-from .api import admin, errors, public
+from .api import admin, errors, manage as manage_api, public
 from .api.deps import UNSAFE_METHODS, same_origin
 from .db import migrate
-from .services import catchup, seed, sessions, windows
+from .services import catchup, manage, seed, sessions, windows
 
 log = logging.getLogger("booking_platform")
 
@@ -39,6 +39,7 @@ async def lifespan(_: FastAPI):
                  caught_up["bookings_anonymised"], caught_up["emails_cleared"])
         purged = sessions.purge_expired()
         log.info("purged %d expired sessions", purged)
+        log.info("purged %d stale manage grants", manage.purge())
         yield
     finally:
         db.close_pool()
@@ -103,6 +104,8 @@ def create_app() -> FastAPI:
     app.include_router(public.router)
     app.include_router(admin.sign_in_router)
     app.include_router(admin.router)
+    app.include_router(manage_api.open_router)
+    app.include_router(manage_api.router)
     app.add_middleware(RequestGuard)
     return app
 
