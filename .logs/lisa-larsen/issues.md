@@ -217,6 +217,6 @@
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — EXPERIENCE.md: før inn tekstene Lisa godkjente for flytting (steget, resultatet, avvisningene, Change-e-posten og «Your current session»)
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — manuell gjennomgang av flyttingen i nettleseren (`bmad-walkthrough`), og sett Story 4.2 til `done` i `sprint-status.yaml` (løst 2026-11-24: testet og godkjent av Lisa, `done` i `bf2d7b8`)
 - [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — lag PR for `story/4-2-move-seats` til `main` (løst 2026-11-24: PR #14)
-- [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — merge PR #14 (Story 4.2)
+- [x] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — merge PR #14 (Story 4.2) (løst 2026-11-24: merget med vanlig merge, `3f7a4ac`)
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — avgjør om resultatsiden etter flytting skal ha en lenke videre (og teksten)
 - [ ] 2026-11-24 [story-4-2-move-seats](954-2026-11-24-13-57-55-story-4-2-move-seats.md) — før inn FR-26 (Story 4.2) i `.docs/sensorveiledning-kravsporing.md`
