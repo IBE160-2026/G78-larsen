@@ -38,3 +38,22 @@
 ### Åpne punkter
 - Implementer Story 4.4 i en ny `bmad-build`-økt. Specen er `ready-for-dev`.
 - EXPERIENCE.md: før inn Lisas voucher-felttekster og betalingsrader, og merk Open Item 23 som lukket.
+
+## 2026-11-24 kl. 19:49 — Lisa Larsen
+
+### Oppgave
+Føre inn 4.4-tekstene i EXPERIENCE.md og lukke Open Item 23.
+
+### Plan
+- Ny tabell «Pay with a voucher wording» under «Give up seats wording» i Voice and Tone, i samme form som tabellene for 4.2 og 4.3.
+- Oppdatere Voucher field i Component Patterns og If-time Plug-in Points, og lukke Open Item 23.
+- Oppdatere epic-4-konteksten, slik at den er nyere enn planleggingsdokumentene når neste build starter.
+
+### Resultat
+- `EXPERIENCE.md` har fått tabellen «Pay with a voucher wording, accepted by Lisa (2026-11-24, Story 4.4, FR-28)». Den har feltet, lenken, de to feilmeldingene, radene på Review, Pay («Pay NOK {card}» / «Book with voucher»), betalingsnotatet og radene på Confirmation og i e-posten.
+- `[ASSUMPTION]` er fjernet fra plasseringen av voucher-feltet, og Open Item 23 er merket «Closed by Lisa 2026-11-24».
+- `epic-4-context.md`: linjen «Still for Lisa to decide» er erstattet med 4.4-beslutningene.
+- Ikke committet. Endringene hører til story-grenen sammen med specen.
+
+### Åpne punkter
+Ingen nye.
