@@ -4,10 +4,13 @@
 - Book seats' tab order puts the date field, the calendar, the Seat picker and the Session list before the rail's
   "Continue booking" (WCAG 2.4.3, EXPERIENCE.md Open Item 14).
 - The Session list's accessibility tree names every row with its Seats left text, and unavailable rows are disabled
-  with theirs ("1 seat left, not enough for 2", "Sold out") (UX-DR19, UX-DR35).
+  with theirs ("1 seat left, not enough for 2", "Sold out") (UX-DR19, UX-DR35). Nothing else in the list is exposed,
+  so a screen reader in browse mode reads each row once.
 - At 200 % zoom on 1366 x 768 and 1920 x 1080 screens, Book seats, Details and Review are completed with the keyboard
-  alone, "Continue booking" and Pay are pressed, and Confirmation is reached. A full-page screenshot of each of the
-  three pages is saved under `test-results/zoom/` (git-ignored) for Lisa's manual look (WCAG 1.4.4).
+  alone, "Continue booking" and Pay are pressed, and Confirmation is reached. Review and Confirmation are one column
+  (the rail above main) and the email in the Booking summary stays on one line. A full-page screenshot of Book
+  seats, Details, Review and Confirmation is saved under `test-results/zoom/` (git-ignored) for Lisa's manual look
+  (WCAG 1.4.4).
 
 The keyboard flows from Landing to Confirmation and through Sign-in, Booking list, Outbox and Sign out are in
 `test_fr05_book_and_pay.py`, `test_fr15_sign_in.py`, `test_fr16_booking_list.py` and `test_fr17_outbox.py`.
@@ -111,10 +114,33 @@ def test_the_session_list_names_each_row_with_its_seats_left(page: Page, base_ur
     snapshot = page.locator(".session-rows").aria_snapshot()
     radios = [line.strip() for line in snapshot.splitlines() if line.strip().startswith("- radio")]
     assert len(radios) == 8, snapshot
+    # the visible row text is aria-hidden: browse mode reads each row once, by its radio (manual NVDA pass 2026-11-24)
+    assert not [line for line in snapshot.splitlines() if not line.strip().startswith("- radio")], snapshot
     assert radios[0] == '- radio "10:00 to 11:30, 1 seat left, not enough for 2" [disabled]', snapshot
     assert radios[1] == '- radio "11:30 to 13:00, Sold out" [disabled]', snapshot
     for line in radios[2:]:
         assert re.fullmatch(r'- radio "\d\d:\d\d to \d\d:\d\d, 44 seats left"', line), snapshot
+
+
+_EMAIL_LINES = """() => {
+  const row = [...document.querySelectorAll('.summary-row')].find(r => r.querySelector('dt').textContent === 'Email');
+  const range = document.createRange();
+  range.selectNodeContents(row.querySelector('dd'));
+  return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
+}"""
+
+
+def email_lines(page: Page) -> int:
+    """How many lines the Guest's email takes in the Booking summary."""
+    return page.evaluate(_EMAIL_LINES)
+
+
+def assert_stacked(page: Page) -> None:
+    """Below 1024 px the shell is one column: the rail is drawn above main, both at the full width (manual zoom
+    pass 2026-11-24, EXPERIENCE.md Zoom)."""
+    rail, main = page.locator(".rail").bounding_box(), page.locator("#main").bounding_box()
+    assert rail["y"] + rail["height"] <= main["y"] + 1, (rail, main)
+    assert main["width"] >= page.viewport_size["width"] - 1, (main, page.viewport_size)
 
 
 @pytest.mark.parametrize("screen", [(1366, 768), (1920, 1080)], ids=["1366x768", "1920x1080"])
@@ -122,7 +148,7 @@ def test_the_booking_flow_at_200_percent_zoom_with_the_keyboard_alone(browser: B
     ZOOM_DIR.mkdir(parents=True, exist_ok=True)
     name = f"{screen[0]}x{screen[1]}"
     window = free_windows(base_url)[0]
-    for which in ("book-seats", "details", "review"):
+    for which in ("book-seats", "details", "review", "confirmation"):
         (ZOOM_DIR / f"{which}-{name}.png").unlink(missing_ok=True)  # only this run's screenshots count
     with a11y.zoomed(browser, *screen) as page:
         open_session(page, base_url)
@@ -148,10 +174,48 @@ def test_the_booking_flow_at_200_percent_zoom_with_the_keyboard_alone(browser: B
         a11y.press(page, "Space")
         assert page.locator("#terms").is_checked()
         page.screenshot(path=ZOOM_DIR / f"review-{name}.png", full_page=True)
+        assert_stacked(page)
+        assert email_lines(page) == 1  # the email is not split mid-word
         a11y.tab_to(page, pay)
         a11y.press(page, "Enter")
 
         page.wait_for_url(REFERENCE)
         page.wait_for_selector(".reference")
-    for which in ("book-seats", "details", "review"):
+        page.wait_for_selector(".summary")
+        page.screenshot(path=ZOOM_DIR / f"confirmation-{name}.png", full_page=True)
+        assert_stacked(page)
+        assert email_lines(page) == 1
+    for which in ("book-seats", "details", "review", "confirmation"):
         assert (ZOOM_DIR / f"{which}-{name}.png").stat().st_size > 0
+
+
+# Records whether a Confirmation address was ever drawn without its h1 in main (the h1 must be there at once).
+_WATCH_CONFIRMATION = """() => {
+  window.__confirmationWithoutH1 = false;
+  new MutationObserver(() => {
+    const main = document.querySelector('#main');
+    if (location.pathname.startsWith('/confirmation/') && main && !main.querySelector('h1'))
+      window.__confirmationWithoutH1 = true;
+  }).observe(document.documentElement, {childList: true, subtree: true});
+}"""
+
+
+def test_after_pay_confirmation_has_its_heading_at_once_and_focused(page: Page, base_url):
+    """Straight after Pay, Confirmation is never drawn without "Booking confirmed": a page with only the rail's
+    Wordmark was read by NVDA, which then missed the focus moving to the h1 (manual NVDA pass 2026-11-24)."""
+    window = free_windows(base_url)[5]
+    open_session(page, base_url)
+    page.evaluate("d => sessionStorage.setItem('draft:seats', JSON.stringify(d))",
+                  {"date": window["date"], "seats": 2, "window_id": window["id"], "name": "Focus Guest",
+                   "email": "focus@example.com"})
+    page.goto(base_url + "/book-seats/review")
+    pay = page.get_by_role("button", name="Pay NOK 500")
+    pay.wait_for()
+    page.locator("label.terms-check").click()
+    page.evaluate(_WATCH_CONFIRMATION)
+    pay.click()
+    page.wait_for_url(REFERENCE)
+    page.wait_for_selector(".email-body")
+    assert page.evaluate("window.__confirmationWithoutH1") is False
+    assert page.evaluate("document.activeElement.tagName + ' ' + document.activeElement.textContent") == \
+        "H1 Booking confirmed"

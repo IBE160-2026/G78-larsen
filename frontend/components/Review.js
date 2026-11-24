@@ -36,6 +36,7 @@ import TextLink from './TextLink';
 import Wordmark from './Wordmark';
 import terms from '@/content/terms-seats.json';
 import { ApiError, api } from '@/lib/api';
+import { holdConfirmation } from '@/lib/confirmation';
 import { REVIEW, SIMULATED_PAYMENT, SUMMARY, reviewRefusal, seatsWord } from '@/lib/copy';
 import { clockTime, longDate } from '@/lib/dates';
 import { newKey, paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
@@ -155,6 +156,11 @@ export default function Review({ venue }) {
       });
       const reference = body.booking.reference;
       replaceDraft({ reference }); // Back can never reach a page that pays again
+      // Read the Confirmation before navigating, so its h1 is there at once and takes focus (lib/confirmation.js).
+      // If the read fails, Confirmation reads it itself, as on a reload.
+      await api(`/api/bookings/${encodeURIComponent(reference)}/confirmation`)
+        .then((conf) => holdConfirmation(reference, conf))
+        .catch(() => {});
       router.replace(`/confirmation/${reference}`);
       return;
     } catch (err) {

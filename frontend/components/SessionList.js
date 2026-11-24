@@ -2,7 +2,8 @@
 
 // Session list (FR-3, UX-DR19, UX-DR35): a fieldset with every Window of the chosen date in time order, unavailable
 // ones included, so the schedule is visible. Each row is a label around its radio, so the whole row is the target.
-// The radio's accessible name carries the Seats left text ("13:00 to 14:30, 12 seats left"). A row with too few
+// The radio's accessible name carries the Seats left text ("13:00 to 14:30, 12 seats left"); the visible text is
+// aria-hidden, so a screen reader in browse mode reads each row once (manual NVDA pass, 2026-11-24). A row with too few
 // Seats is a disabled radio that says why; a started Window says "Already started". No price, no Sauna and no
 // urgency cue (FR-3, FR-4, NFR-9). The Notices of question 3 (cleared choice, no room, read failed) sit above the
 // rows.
@@ -41,11 +42,18 @@ function Rows({ windows, seats, windowId, onChoose }) {
               aria-label={`${start} to ${end}, ${text}${started}`}
               onChange={() => onChoose(w.id)}
             />
-            <span className="session-time">
+            {/* The radio's name says all of this; hidden from assistive technology so browse mode reads it once. */}
+            <span className="session-time" aria-hidden="true">
               {start}–{end}
             </span>
-            <span className="session-left">{text}</span>
-            {w.already_started && <span className="session-started">{BOOK.alreadyStarted}</span>}
+            <span className="session-left" aria-hidden="true">
+              {text}
+            </span>
+            {w.already_started && (
+              <span className="session-started" aria-hidden="true">
+                {BOOK.alreadyStarted}
+              </span>
+            )}
           </label>
         );
       })}

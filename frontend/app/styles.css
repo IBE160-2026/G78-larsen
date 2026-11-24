@@ -1313,3 +1313,62 @@ a {
 .booking-table .col-time {
   width: 180px;
 }
+
+/* ------------------------------------------------------------------ simple stacked layout below 1024 px (WCAG 1.4.4) */
+
+/* At 200 % zoom a 1366 px screen is 683 CSS px wide, and the 320 px rail left the main column narrow enough to
+   break an email mid-word (manual zoom pass, 2026-11-24). Below 1024 px the shell is one column: the rail is drawn
+   above main, as it is drawn left of main on laptop, and stays last in tab order. On Book seats it goes below the
+   Session list instead, so the total and "Continue booking" come after the questions they sum up. This is the
+   simple stack EXPERIENCE.md (Zoom) allows for Core; the full narrow layout (fixed action bar, 320 px) is FR-51.
+   Kept last in the file so it wins over the page rules above with the same specificity. */
+@media (max-width: 1023px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .main {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .shell:has(.rail-book) .rail {
+    grid-row: 2;
+  }
+
+  .shell:has(.rail-book) .main {
+    grid-row: 1;
+  }
+
+  .rail-inner {
+    position: static;
+    padding: var(--space-5) var(--space-5) 0;
+  }
+
+  .shell:has(.rail-book) .rail-inner {
+    padding: 0 var(--space-5) var(--space-8);
+  }
+
+  .main,
+  .main.book {
+    padding: var(--space-5) var(--space-5) var(--space-8);
+  }
+
+  .main.landing {
+    padding: 0;
+  }
+
+  /* Find us stacks too (EXPERIENCE.md, Narrow layout), so the venue email is not split mid-word. */
+  .find-us {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .find-us > :last-child {
+    grid-column: 1;
+  }
+}
