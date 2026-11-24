@@ -12,7 +12,7 @@ Lisa ba om å kjøre backcasten på nytt ved sjekkpunktet 24.11 med den faktiske
 - Skriv resultatet som en ny seksjon i backcasting-dokumentet.
 
 ### Resultat
-- Ny seksjon «Checkpoint Tue 24 November» nederst i `.docs/planning-artifacts/backcasting-2026-11-01.md` (ikke committet).
+- Ny seksjon «Checkpoint Tue 24 November» nederst i `.docs/planning-artifacts/backcasting-2026-11-01.md` (committet i `c8e9790`).
 - Farten: 12 stories på 3 arbeidsdager (20., 21. og 24.11). Core-en var 10 stories og ble ferdig 24.11, en uke før målet 1.12. HTTPS (3.1) er også ferdig.
 - Sjekkpunktene: 8.11 bestått (Core-skiven `3bcd940` og `7d991d9` 3.11), 24.11 bestått, og 27.11 allerede bestått.
 - Det gjenstår 7 stories (4.3, 4.4 og 5.1–5.5), omtrent like store som de ferdige. De tar ca. 2 arbeidsdager i målt fart, og 7 dager med 1 story per dag. Det er 10 kalenderdager fra 25.11 til 4.12. **Epic 5 er innen rekkevidde**, og planlagt v1 (Core + hvis-tid 1–3) kan leveres med SC2–SC4.
