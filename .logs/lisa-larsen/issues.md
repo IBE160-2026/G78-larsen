@@ -229,4 +229,4 @@
 - [ ] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — «Valid until» i voucher-steget (29. feb → 28. feb) er ikke testet; vurder `last_valid_date` fra API-et (`deferred-work.md`)
 - [ ] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — sensorveiledningen rad 3 sier fortsatt «536 tester»; oppdater (nå 464 API + 176 e2e)
 - [x] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — manuell gjennomgang av voucher-flyten (`bmad-walkthrough`), og sett Story 4.3 til `done` i `sprint-status.yaml` (løst 2026-11-24: godkjent av Lisa, `done` i `2b12495`)
-- [ ] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — merge PR #16 (Story 4.3)
+- [x] 2026-11-24 [story-4-3-give-up-seats-for-a-voucher](952-2026-11-24-17-39-50-story-4-3-give-up-seats-for-a-voucher.md) — merge PR #16 (Story 4.3) (løst 2026-11-24: merget med vanlig merge, `5572528`)
