@@ -85,6 +85,7 @@ Implementere Story 4.3 (Voucher for plasser) i en ny `bmad-build`-økt, fra spec
 ### Resultat
 - Commit `831d576` på ny gren `story/4-3-give-up-seats-for-a-voucher` (ikke pushet, ingen PR). Story 4.3 står `review` i `sprint-status.yaml`.
 - Første testkjøring ble stoppet av Claude Code pga. lite minne; Docker-containerne brukte bare ~380 MB (tømte page cache i Docker-VM-en, liten gevinst). Ny kjøring etter rettingene: 464 API-tester og 176 e2e-tester grønne, `npm --prefix frontend run build` rent.
+- Walkthrough (`bmad-walkthrough`): compose-stakken bygget på nytt med 4.3 (migrasjon 0012 kjørt), Lisa prøvde voucher-flyten på eksempelbookingen G6VPY356. Etter ønske fra Lisa er «Move seats» og «Give up seats for a voucher» nå valgknapper side om side (plassvelgerens utseende, blå ved hover/trykk), commit `076208c`; e2e `test_fr25_manage.py`, `test_fr26_move.py`, `test_fr27_voucher.py` 12 passed.
 - Review: 19 funn — 6 rettet (voucher-siden viser kansellert booking med forklaring; `booking_cancelled` leser bookingen på nytt; ny e2e-test for avvisninger og kansellert tilstand; docstring i `services/voucher.py`, kommentar i migrasjon 0012 og ordlyd i sensorveiledningen), 1 utsatt til `deferred-work.md` (29. feb-regelen i `GiveUpSeats.js` `lastValidDate` er ikke testet), 12 avvist med begrunnelse i spec-ens triage-logg.
 
 ### Åpne punkter
