@@ -144,6 +144,10 @@ export const MANAGE = Object.freeze({
   loadFailed: 'The booking could not be loaded, please try again.',
   // Story 4.2 (Lisa, 2026-11-24): the Manage page's link to the move step.
   moveSeats: 'Move seats',
+  // Story 4.3 (Lisa, 2026-11-24): the link to the voucher step, and the page of a cancelled Booking (Open Item 19).
+  giveUpSeats: 'Give up seats for a voucher',
+  cancelled: (longDate, time) =>
+    `This booking was cancelled on ${longDate} at ${time}. You gave up all seats for a voucher, which was sent by email.`,
 });
 
 // Move seats (FR-26, Story 4.2): the confirming step and its result. Verbatim from Lisa's decisions of 2026-11-24.
@@ -172,8 +176,30 @@ export const MOVE = Object.freeze({
   tryAgain: 'The change could not be completed, please try again.',
 });
 
+// Give up seats for a voucher (FR-27, Story 4.3): the confirming step and its result. Verbatim from Lisa's decisions of
+// 2026-11-24. Refusals reuse the move texts (`moveRefusal`).
+export const VOUCHER = Object.freeze({
+  heading: 'Give up seats',
+  back: 'Back',
+  seatsQuestion: 'How many seats do you want to give up?',
+  summaryHeading: 'What will happen',
+  seatsGivenUp: 'Seats given up',
+  seatsLeftInBooking: 'Seats left in this booking',
+  value: 'Voucher value',
+  validUntil: 'Valid until',
+  noMoney: 'No money is paid back. The voucher can pay for a new booking until it expires.',
+  nothingYet: 'Nothing changes until you confirm.',
+  confirm: (n) => `Give up ${seatsWord(n)}`,
+  resultHeading: 'Seats given up',
+  resultChanged: 'Your booking has been changed.',
+  resultCancelled: 'Your booking has been cancelled.',
+  codeInEmail: 'Your voucher code is in the email below.',
+  backToBooking: 'Back to your booking',
+});
+
 /**
- * The move step's one code -> message mapping (AD-16). Every code here is in `api/errors.py` and `lib/api.js` STATUS.
+ * The move step's one code -> message mapping (AD-16). The voucher step (Story 4.3) uses it too: it never gets the
+ * move-only codes (`no_seat_free`, `outside_horizon`, `deadline_passed`). Every code here is in `api/errors.py` and `lib/api.js` STATUS.
  * - `stay`: the step stays with the Guest's choices (`no_seat_free`, `outside_horizon`, `deadline_passed`, and
  *   anything else with "please try again")
  * - `reload`: the Booking is read again and the step opens fresh with a new key (`booking_changed`, `invalid_key`)
@@ -239,6 +265,12 @@ export const BOOKING_LIST = Object.freeze({
   status: Object.freeze({ active: 'Active', cancelled: 'Cancelled' }),
   moved: (seats, at, from, to) => `Moved ${seatsWord(seats)} on ${at} from ${from} to ${to}`,
   newBooking: (ref) => ` · new booking ${ref}`,
+  // Story 4.3 (Lisa, 2026-11-24): a Voucher Change (the value issued, never the code), and a cancelled Booking's Status
+  // cell (time, cause, remedy).
+  gaveUp: (seats, at, value) => `Gave up ${seatsWord(seats)} on ${at} for a voucher of ${value}`,
+  cancelledAt: (at, cause, remedy) => [`Cancelled ${at}`, cause, remedy].filter(Boolean).join(' · '),
+  cause: Object.freeze({ guest: 'Guest', block: 'Block', overbooking: 'Overbooking' }),
+  remedy: Object.freeze({ voucher: 'Voucher', refund: 'Refund' }),
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   failed: 'The booking list could not be loaded, please try again.',
 });

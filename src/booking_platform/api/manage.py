@@ -5,8 +5,8 @@
   created one. It passes the same-origin check like every POST (the app's RequestGuard).
 - `router`: every route reached through a grant lives under `/api/manage/{reference}`, behind the one dependency
   `require_grant`. No grant, no session, another Booking and an unknown reference are all `404 not_found`; a Manage
-  route never answers `401`. `POST …/seats/move` is the Seat move (FR-26, AD-29); it needs an `Idempotency-Key`
-  (AD-9).
+  route never answers `401`. `POST …/seats/move` is the Seat move (FR-26, AD-29) and `POST …/seats/voucher` the
+  Voucher instead of Seats (FR-27, AD-29, AD-30); both need an `Idempotency-Key` (AD-9).
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Header, Request, Response
 
 from ..services import change, manage, sessions
 from .deps import COOKIE, current_session, set_session_cookie
-from .schemas import ManageOpenIn, MoveIn
+from .schemas import ManageOpenIn, MoveIn, VoucherIn
 
 open_router = APIRouter(prefix="/api/manage", redirect_slashes=False)
 
@@ -53,3 +53,12 @@ def move_seats(reference: str, body: MoveIn, idempotency_key: Annotated[uuid.UUI
     session exists) and is checked again inside the transaction. A repeat with the same key from the same session
     returns the first outcome."""
     return change.move(s.id, booking_id, reference, body.window_id, body.seats, body.version, idempotency_key)
+
+
+@router.post("/seats/voucher")
+def give_up_seats(reference: str, body: VoucherIn,
+                  idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
+                  booking_id: int = Depends(require_grant), s: sessions.Session | None = Depends(current_session)):
+    """Give up some or all Seats for a Voucher (FR-27); all Seats cancel the Booking. The grant is checked again inside
+    the transaction. A repeat with the same key from the same session returns the first outcome (no second Voucher)."""
+    return change.voucher(s.id, booking_id, reference, body.seats, body.version, idempotency_key)

@@ -1,7 +1,7 @@
 """The Change history of Bookings (AD-29). `record` is the only writer of `booking_changes`; no trigger writes it.
 `of_bookings` is the one read, shared by the Manage read and the Administrator's Booking list. An entry never holds a
-name, an email, a token or a Sauna (FR-4): only what moved, when, between which Windows, and the new reference of a
-split."""
+name, an email, a token, a Voucher code or a Sauna (FR-4, AD-30): only what moved or was given up, when, between
+which Windows, the new reference of a split and the value of a Voucher issued."""
 
 from __future__ import annotations
 
@@ -29,13 +29,13 @@ def _window(wid, start, end, tz: ZoneInfo) -> dict | None:
 
 def of_bookings(c: psycopg.Connection, booking_ids: list[int], tz: ZoneInfo) -> dict[int, list[dict]]:
     """Booking id -> its history entries, oldest first: `{action, at, seats, from_window, to_window,
-    new_reference}`. Times are ISO strings in Venue time; `new_reference` is null unless the move split the
-    Booking."""
+    new_reference, voucher_value_ore}`. Times are ISO strings in Venue time; `new_reference` is null unless the move
+    split the Booking; `voucher_value_ore` is null for a move (`action` `voucher`: the Voucher's value)."""
     out: dict[int, list[dict]] = {bid: [] for bid in booking_ids}
     if not booking_ids:
         return out
     for (_cid, bid, action, at, seats, fw, fw_start, fw_end, tw, tw_start, tw_end,
-         new_reference) in q.history_of(c, booking_ids):
+         new_reference, voucher_value) in q.history_of(c, booking_ids):
         out[bid].append({
             "action": action,
             "at": at.astimezone(tz).isoformat(),
@@ -43,6 +43,7 @@ def of_bookings(c: psycopg.Connection, booking_ids: list[int], tz: ZoneInfo) -> 
             "from_window": _window(fw, fw_start, fw_end, tz),
             "to_window": _window(tw, tw_start, tw_end, tz),
             "new_reference": new_reference,
+            "voucher_value_ore": voucher_value,
         })
     return out
 

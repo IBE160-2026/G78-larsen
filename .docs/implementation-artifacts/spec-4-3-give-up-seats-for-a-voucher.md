@@ -2,7 +2,8 @@
 title: 'Story 4.3: Give up Seats for a Voucher'
 type: 'feature'
 created: '2026-11-24'
-status: 'ready-for-dev'
+status: 'done'
+baseline_commit: 'f2de4910a07a5d250d136c25c6627358a3f61ce2'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -75,16 +76,16 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `migrations/0012_vouchers_cancellation.sql` -- store of Always -- AD-29/30/31.
-- [ ] `db/vouchers.py`, `services/voucher.py` -- issue and code -- AD-30.
-- [ ] `db/changes.py`, `db/bookings.py`, `services/history.py`, `services/change.py`, `services/manage.py`, `db/manage.py` -- the Change, ledger row, email, repeat, read.
-- [ ] `api/manage.py`, `api/schemas.py` -- the route.
-- [ ] `db/booking_list.py`, `services/booking_list.py`, `components/BookingList.js` -- history and cancellation -- FR-16.
-- [ ] `lib/copy.js`, `ManageBooking.js`, `GiveUpSeats.js`, `app/manage/[reference]/voucher/page.js` -- step, result, cancelled Manage page.
-- [ ] `tests/test_fr27_voucher_for_seats.py` -- every I/O row, refusal order, value, code format (regex `^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$` in the email) and that `code_hash = sha256(code)` and no column holds the code, expiry (incl. a 29 Feb clock), response shape without code, history, Seats left, cancellation columns and every store CHECK/trigger (fail under `BP_TEST_MUTATE=nocheck` where that switch applies), ledger, `retention_due` with a later-expiring Voucher.
-- [ ] `tests/test_dr4_migrations.py`, `test_fr16_booking_list.py`, `test_fr21_retention.py`, `test_fr26_move.py` -- extend only as new columns require.
-- [ ] `tests/e2e/test_fr27_voucher.py` -- keyboard-only give-up of 1 of 2 Seats, code in the email on the result page, Booking list line, all-Seats give-up and the cancelled Manage page, axe on step/result/cancelled page, widths 1024/1366/1920, no Voucher code in any container log.
-- [ ] `README.md`, `.docs/sensorveiledning-kravsporing.md` -- Status, "Ikke levert" (FR-27 delivered), how to try it.
+- [x] `migrations/0012_vouchers_cancellation.sql` -- store of Always -- AD-29/30/31.
+- [x] `db/vouchers.py`, `services/voucher.py` -- issue and code -- AD-30.
+- [x] `db/changes.py`, `db/bookings.py`, `services/history.py`, `services/change.py`, `services/manage.py`, `db/manage.py` -- the Change, ledger row, email, repeat, read.
+- [x] `api/manage.py`, `api/schemas.py` -- the route.
+- [x] `db/booking_list.py`, `services/booking_list.py`, `components/BookingList.js` -- history and cancellation -- FR-16.
+- [x] `lib/copy.js`, `ManageBooking.js`, `GiveUpSeats.js`, `app/manage/[reference]/voucher/page.js` -- step, result, cancelled Manage page.
+- [x] `tests/test_fr27_voucher_for_seats.py` -- every I/O row, refusal order, value, code format (regex `^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$` in the email) and that `code_hash = sha256(code)` and no column holds the code, expiry (incl. a 29 Feb clock), response shape without code, history, Seats left, cancellation columns and every store CHECK/trigger (fail under `BP_TEST_MUTATE=nocheck` where that switch applies), ledger, `retention_due` with a later-expiring Voucher.
+- [x] `tests/test_dr4_migrations.py`, `test_fr16_booking_list.py`, `test_fr21_retention.py`, `test_fr26_move.py` -- extend only as new columns require.
+- [x] `tests/e2e/test_fr27_voucher.py` -- keyboard-only give-up of 1 of 2 Seats, code in the email on the result page, Booking list line, all-Seats give-up and the cancelled Manage page, axe on step/result/cancelled page, widths 1024/1366/1920, no Voucher code in any container log.
+- [x] `README.md`, `.docs/sensorveiledning-kravsporing.md` -- Status, "Ikke levert" (FR-27 delivered), how to try it.
 
 **Acceptance Criteria:**
 - Given the change, when `uv run pytest` (API + e2e) runs, then everything is green including `test_fr27_voucher_for_seats.py`, `test_fr26_move.py` and `test_dr4_migrations.py`.
@@ -101,3 +102,27 @@ A shared prologue keeps the two Changes in one order: `_locked(c, session_id, bo
 - `uv run pytest tests --ignore=tests/e2e` -- expected: all pass.
 - `uv run pytest tests/e2e` -- expected: all pass.
 - `npm --prefix frontend run build` -- expected: no errors; `/manage/[reference]/voucher` builds.
+
+## Review Triage Log
+
+| # | Layer | Location | Claim | Verdict | Evidence | Route |
+|---|-------|----------|-------|---------|----------|-------|
+| 1 | edge | services/change.py `voucher` | Price 0 gives a 500 from `vouchers_balance_within_value` | low | Real, but Design Notes accept it and no v1 path sets price 0; a guard adds a new refusal code. | reject |
+| 2 | edge | GiveUpSeats.js refusal path | `booking_cancelled` falls to "try again" and the step stays open, every retry fails | medium | `moveRefusal` default is `stay`; reachable with two tabs. Re-read the Booking on that code. | patch |
+| 3 | edge, blind, gap | GiveUpSeats.js | A cancelled Booking (direct load, or reload of the result page after all Seats) shows only h1 and Back | medium | `open` false and `shownCutoff` null when status is cancelled; the result page shares the URL. | patch |
+| 4 | edge, blind | ManageBooking.js, ManageBookingSummary.js | Cancelled page always says the Guest gave up all Seats for a Voucher, also for `block` cancellations | low | Only guest/voucher cancellations exist in v1; `block` rows come only from the dev-DB backfill. Fix needs cause in the Manage read plus branches; revisit when FR-42 adds Venue cancellations. | reject |
+| 5 | edge, blind | GiveUpSeats.js `lastValidDate` | "Valid until" can differ by a day if the step stays open past Venue midnight | low | Real but rare; the email (server date) is authoritative and shown on the result page; fix adds a re-read. | reject |
+| 6 | edge | services/voucher.py `issue` | Hash collision gives a 500 | low | 80-bit codes; negligible. | reject |
+| 7 | blind | services/voucher.py docstring | Docstring says the code is never in a response or table, but the Outbox row and the response's email body hold it | low | The email is the intended carrier (Decisions); the docstring is inaccurate. | patch |
+| 8 | blind | 0012 trigger | Trigger leaves `cancel_*`, `total_ore`, `version` editable on a cancelled row | false | The trigger is exactly the Always bullet (cancelled→active, `window_id`, `seats`); the migration comment says only that. | reject |
+| 9 | blind | ManageBookingSummary.js | "Seats given up" shows only the last give-up's Seats | low | Matches the cancellation email's "Seats given up: N"; earlier give-ups are in the history. | reject |
+| 10 | blind | GiveUpSeats.js value | Float division `total_ore / seats` may be wrong | false | `bookings_total_is_seats_times_price` (0006) makes the division exact. | reject |
+| 11 | blind | tests | No race tests for the Voucher Change | low | The prologue `_locked` is shared with `move`, whose races run 4 × 100; the Voucher path locks a subset. | reject |
+| 12 | blind | spec tasks | `BP_TEST_MUTATE=nocheck` and `test_fr21_retention.py` not in the diff | false | No mutation switch covers the 0012 constraints (conftest `MUTATIONS`), so it does not apply; retention is tested in `test_fr27`. | reject |
+| 13 | blind | sprint-status.yaml | Status disagrees with the spec | false | Sprint status is synced in step 5. | reject |
+| 14 | blind | sensorveiledning | "databasen hindrer pengerefusjon" overstates the store rule | low | Only `seat_guest_refund_forbidden` exists; direct text correction. | patch |
+| 15 | blind | step and email copy | Voucher cannot be spent until Story 4.4 | false | Copy is verbatim from Lisa's decisions; 4.4 is the next story. | reject |
+| 16 | blind | 0012 backfill comment | Comment says Administrator cancellation while cause is `block` | low | Comment and code disagree; dev-DB only; comment fix. | patch |
+| 17 | blind | several files | Lines over 120 chars, broken docstring wrap, duplicated test helpers | false | No linter or line limit configured (`ruff` absent, no `[tool.ruff]`); cosmetic. | reject |
+| 18 | gap | tests/e2e/test_fr27_voucher.py | Voucher step's refusal and cancelled handling untested in the browser | medium | Pre-verified; move has the equivalent test at `test_fr26_move.py:213`. | patch |
+| 19 | gap | GiveUpSeats.js `lastValidDate` | 29 Feb → 28 Feb rule untested in the browser | medium (unverified) | No frontend unit runner; the e2e runs at the real clock. | defer |

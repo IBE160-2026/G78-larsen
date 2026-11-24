@@ -1,5 +1,5 @@
 """SQL for Changes of a Booking (FR-26, AD-9, AD-29): the unlocked and the locked read of the Booking, the grant re-check,
-the two UPDATEs of a Seat move, the history (`booking_changes`) and the one-time key of a Change. Only
+the two UPDATEs of a Seat move, the two UPDATEs of a Voucher Change, the history (`booking_changes`) and the one-time key of a Change. Only
 `services.history` calls the functions that write or read `booking_changes`. Every function takes the connection of
 the caller's transaction (`db.run`)."""
 
@@ -74,6 +74,23 @@ def give_up_seats(c: psycopg.Connection, booking_id: int, seats: int) -> None:
               "version = version + 1 WHERE id = %(b)s", {"n": seats, "b": booking_id})
 
 
+# ------------------------------------------------------------------ the Voucher instead of Seats (FR-27, AD-29)
+
+
+def give_up_for_voucher(c: psycopg.Connection, booking_id: int, seats: int) -> None:
+    """Give up some of the Booking's Seats for a Voucher: the same UPDATE as a split's (`total_ore` follows the
+    stored price per Seat, `version + 1`)."""
+    give_up_seats(c, booking_id, seats)
+
+
+def cancel_for_voucher(c: psycopg.Connection, booking_id: int) -> None:
+    """Give up all the Booking's Seats for a Voucher: one UPDATE cancels it (`guest`, `voucher`) at app_now(), with
+    `version + 1`; Seats and total stay on the row. Only `status` is in the AD-7 trigger column list, so the Window is
+    recomputed and the Seats count in Seats left at once."""
+    c.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', "
+              "cancel_remedy = 'voucher', version = version + 1 WHERE id = %s", (booking_id,))
+
+
 # ------------------------------------------------------------------ history (only services.history calls these)
 
 
@@ -86,25 +103,27 @@ def insert_change(c: psycopg.Connection, booking_id: int, action: str, cols: dic
 
 
 HISTORY_COLUMNS = frozenset({"seats", "from_window_id", "to_window_id", "from_sauna_id", "to_sauna_id",
-                             "new_booking_id"})
+                             "new_booking_id", "voucher_id"})
 
 _HISTORY = (
     "SELECT h.id, h.booking_id, h.action, h.at, h.seats, h.from_window_id, lower(fw.during), upper(fw.during), "
-    "h.to_window_id, lower(tw.during), upper(tw.during), nb.reference "
+    "h.to_window_id, lower(tw.during), upper(tw.during), nb.reference, v.value_ore "
     "FROM booking_changes h "
+    "LEFT JOIN vouchers v ON v.id = h.voucher_id "
     "LEFT JOIN windows fw ON fw.id = h.from_window_id LEFT JOIN windows tw ON tw.id = h.to_window_id "
     "LEFT JOIN bookings nb ON nb.id = h.new_booking_id ")
 
 
 def history_of(c: psycopg.Connection, booking_ids: list[int]) -> list[tuple]:
     """(id, booking_id, action, at, seats, from window id, from start, from end, to window id, to start, to end,
-    new Booking's reference) of every Change of these Bookings, oldest first."""
+    new Booking's reference, Voucher value) of every Change of these Bookings, oldest first."""
     return c.execute(_HISTORY + "WHERE h.booking_id = ANY(%s) ORDER BY h.at, h.id", (booking_ids,)).fetchall()
 
 
-def change(c: psycopg.Connection, change_id: int) -> tuple[int, int | None] | None:
-    """(booking_id, new_booking_id) of a Change, or None."""
-    return c.execute("SELECT booking_id, new_booking_id FROM booking_changes WHERE id = %s", (change_id,)).fetchone()
+def change(c: psycopg.Connection, change_id: int) -> tuple[int, int | None, int | None] | None:
+    """(booking_id, new_booking_id, voucher_id) of a Change, or None."""
+    return c.execute("SELECT booking_id, new_booking_id, voucher_id FROM booking_changes WHERE id = %s",
+                     (change_id,)).fetchone()
 
 
 # ------------------------------------------------------------------ the one-time key of a Change (AD-9)

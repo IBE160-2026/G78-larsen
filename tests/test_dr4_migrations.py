@@ -143,11 +143,12 @@ def test_0006_backfills_legacy_bookings_and_counts_only_active_ones(tmp_path, sc
         assert c.execute("SELECT count(*) FROM information_schema.columns "
                          "WHERE table_name = 'bookings' AND column_name = 'guest'").fetchone()[0] == 0
         assert c.execute("SELECT seats_left(1)").fetchone()[0] == 1
-        c.execute("UPDATE bookings SET status = 'cancelled' WHERE id = 2")  # the trigger fires on status
+        c.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', cancel_remedy = 'voucher' "
+                  "WHERE id = 2")  # the trigger fires on status (0012: a cancellation records when, why and the remedy)
         assert c.execute("SELECT booked, seats_left(1) FROM windows WHERE id = 1").fetchone() == (3, 41)
         triggers = c.execute("SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass "
                              "AND NOT tgisinternal ORDER BY tgname").fetchall()
-        assert triggers == [("a_lock_bookings",), ("t_bookings",)]
+        assert triggers == [("a_lock_bookings",), ("b_cancelled_frozen",), ("t_bookings",)]  # 0012 adds the second
         with pytest.raises(psycopg.errors.CheckViolation):
             c.execute("UPDATE bookings SET status = 'gone' WHERE id = 1")
 
@@ -169,7 +170,10 @@ def test_0011_keeps_existing_keys_and_emails_and_adds_the_change_columns(tmp_pat
         c.execute("INSERT INTO idempotency_keys (key, endpoint, request_hash, booking_id) "
                   "VALUES (gen_random_uuid(), 'POST /api/bookings', %s, 1)", (b"h" * 32,))
         c.execute("INSERT INTO outbox_emails (recipient, subject, body, booking_id) VALUES ('a', 's', 'b', 1)")
-    assert migrations.migrate(scratch_db) == ["0011_booking_changes.sql"]
+    upto = tmp_path / "upto-0011"  # 0012 adds a trigger of its own (tested in test_0012_...)
+    shutil.copytree(before, upto)
+    shutil.copy(config.paths.MIGRATIONS / "0011_booking_changes.sql", upto / "0011_booking_changes.sql")
+    assert migrations.migrate(scratch_db, upto) == ["0011_booking_changes.sql"]
     with psycopg.connect(scratch_db) as c:
         assert c.execute("SELECT booking_id, change_id FROM idempotency_keys").fetchall() == [(1, None)]
         assert c.execute("SELECT booking_id, change_id FROM outbox_emails").fetchall() == [(1, None)]
@@ -177,3 +181,35 @@ def test_0011_keeps_existing_keys_and_emails_and_adds_the_change_columns(tmp_pat
         triggers = c.execute("SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass "
                              "AND NOT tgisinternal ORDER BY tgname").fetchall()
         assert triggers == [("a_lock_bookings",), ("t_bookings",)]
+
+
+def test_0012_records_legacy_cancellations_and_adds_the_voucher_columns(tmp_path, scratch_db):
+    """AD-29 / AD-30 / AD-31 (Story 4.3): a Booking cancelled by hand before 0012 (dev databases only) gets its entry
+    time as `cancelled_at` and the cause `block` with no remedy, so the new CHECKs hold; an active Booking and a card
+    charge are untouched. Afterwards a cancelled row is frozen and `retention_due` keeps its answer without Vouchers."""
+    before = tmp_path / "before"
+    before.mkdir()
+    for name in files():
+        if name < "0012":
+            shutil.copy(config.paths.MIGRATIONS / name, before / name)
+    migrations.migrate(scratch_db, before)
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+                  "VALUES (1, 2, 'AAAAAAAA', 'Ada', 'ada@example.com', 25000, 50000), "
+                  "(1, 1, 'BBBBBBBB', 'Bo', 'bo@example.com', 25000, 25000)")
+        c.execute("UPDATE bookings SET status = 'cancelled' WHERE id = 2")
+        c.execute("INSERT INTO payments (booking_id, direction, method, amount_ore) VALUES (1, 'charge', 'card', 50000)")
+        due_before = c.execute("SELECT retention_due(1), retention_due(2)").fetchone()
+    assert migrations.migrate(scratch_db) == ["0012_vouchers_cancellation.sql"]
+    with psycopg.connect(scratch_db) as c:
+        got = c.execute("SELECT id, status, cancelled_at = entry_time, cancel_cause, cancel_remedy FROM bookings "
+                        "ORDER BY id").fetchall()
+        assert got == [(1, "active", None, None, None), (2, "cancelled", True, "block", None)]
+        assert c.execute("SELECT voucher_id FROM payments").fetchall() == [(None,)]
+        assert c.execute("SELECT count(*) FROM vouchers").fetchone()[0] == 0
+        assert c.execute("SELECT retention_due(1), retention_due(2)").fetchone() == due_before
+        with pytest.raises(psycopg.errors.CheckViolation) as e:
+            c.execute("UPDATE bookings SET status = 'active', cancelled_at = NULL, cancel_cause = NULL WHERE id = 2")
+        assert e.value.diag.constraint_name == "booking_cancelled_frozen"

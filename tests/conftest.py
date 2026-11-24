@@ -241,9 +241,10 @@ def admin(world, pg):
 
 
 def clear(pg: psycopg.Connection) -> None:
-    """Remove all Bookings (with their keys, payments, emails, Change history, Manage tokens and grants), Holds, Whole-sauna bookings,
-    Blocks and marks (row deletes, so the triggers run)."""
-    for t in ("holds", "idempotency_keys", "payments", "outbox_emails", "booking_changes", "access_tokens", "bookings",
+    """Remove all Bookings (with their keys, payments, emails, Change history, Vouchers, Manage tokens and grants), Holds,
+    Whole-sauna bookings, Blocks and marks (row deletes, so the triggers run)."""
+    for t in ("holds", "idempotency_keys", "payments", "outbox_emails", "booking_changes", "vouchers", "access_tokens",
+              "bookings",
               "whole_bookings", "blocks", "marks"):
         pg.execute(f"DELETE FROM {t}")
     pg.commit()
