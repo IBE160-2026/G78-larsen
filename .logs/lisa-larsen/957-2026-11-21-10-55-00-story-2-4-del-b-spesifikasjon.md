@@ -131,3 +131,20 @@ Lisa kjørte `create-admin` interaktivt, som siste kommando i README-en som ikke
 ### Åpne punkter
 - PR for grenen `story/2-4-core-done-part-b` til `main` (ikke laget eller pushet ennå).
 - `EXPERIENCE.md`, «Below 1024 px»: før inn den enkle stablingen (står alt i `issues.md`).
+
+## 2026-11-24 kl. 09:50 — Lisa Larsen
+
+### Oppgave
+Pushe grenen, lage PR som for Story 1.1, og oppdatere EXPERIENCE.md med den enkle stablingen under 1024 px.
+
+### Plan
+- Oppdatere Zoom-punktet og raden «Below 1024 px» i `EXPERIENCE.md`.
+- Pushe `story/2-4-core-done-part-b` og lage PR mot `main` i samme form som PR #1 (innledning, FRs, What changed, Tests, Review, Spec).
+
+### Resultat
+- `EXPERIENCE.md`: Zoom-punktet sier at den manuelle testen 2026-11-24 førte til en enkel stabling for Core. Raden «Below 1024 px» beskriver det som er bygget (én kolonne, venstre kolonne over main, på Book seats under øktlisten, Find us stablet, e-post brytes foran «@»), og at det fulle mobiloppsettet fortsatt er FR-51. Commit `bbf1bd1`.
+- Grenen er pushet, og PR #11 er laget: https://github.com/IBE160-2026/G78-larsen/pull/11. Den sier at de tre tilgjengelighetsrettingene ikke gikk gjennom review-linsene, bare Lisas manuelle test og de dekkende testene.
+- Lukket i `issues.md`: EXPERIENCE.md-punktet og PR-punktet.
+
+### Åpne punkter
+- Merge PR #11.
