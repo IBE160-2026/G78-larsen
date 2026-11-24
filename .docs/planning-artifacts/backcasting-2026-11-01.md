@@ -110,3 +110,54 @@ Decided by Lisa on 2026-11-01:
 1. **Freeze:** cutoff 11 Dec, freeze 12–15 Dec. In PRD §8.2 and Q17.
 2. **Building** may run to 4 Dec.
 3. **Scope:** the Core plus HTTPS is accepted as the likely v1, because the Administrator sign-in, booking list and Outbox are in the Core. SC2 to SC4 are reported as not delivered (DR-2) if If-time 2 is not reached. The order of items 3 to 6 is decided when If-time 2 is merged. PRD Q6 is closed.
+
+## Checkpoint Tue 24 November (re-run with real velocity)
+
+Re-run on 2026-11-24 from `sprint-status.yaml`, the git history and the session logs.
+
+### Velocity
+
+| Working day | Stories done |
+|---|---|
+| Fri 20 Nov | 1.1, 1.2, 1.3, 1.4, 1.5, and 1.6 (finished 00:19 on 21 Nov) |
+| Sat 21 Nov | 2.1, 2.2, 2.3, 2.4 part A |
+| Mon 24 Nov | 2.4 part B (manual passes), 3.1, 4.1, 4.2 |
+
+12 stories in 3 working days, all merged with a pull request and checked in the browser. No commits on 22–23 Nov. The Core was 10 stories (Epics 1–2), not about 12, and it was done on 24 Nov, a week before the 1 Dec target.
+
+### The checkpoints so far
+
+| Checkpoint | Test | Result |
+|---|---|---|
+| Sun 8 Nov | Skeleton merged, race test runs | Passed: the thin Core slice and its FR-10 tests against the real stack were committed on 3 Nov (`3bcd940`, `7d991d9`) |
+| Tue 24 Nov | Backend Core complete | **Passed.** The whole Core is done (Story 2.4, 24 Nov), and HTTPS is too (Story 3.1) |
+| Fri 27 Nov | Core done, so that If-time 2 can fit | **Already passed.** If-time 2 is half done (4.1, 4.2) |
+
+### What is left
+
+7 stories: 4.3 and 4.4 (the rest of If-time 2, SC3) and 5.1 to 5.5 (If-time 3, SC2 and SC4). Their story texts are about the same size as the finished ones (3,100 to 6,700 characters, against 2,500 to 8,500). There are 10 calendar days from 25 Nov to 4 Dec.
+
+- At the measured pace (about 4 a day), the 7 stories take about 2 working days.
+- At a quarter of that pace (1 a day), they take 7 days and are done by about 1–3 Dec.
+
+**Epic 5 is within reach.** The planned v1 (the Core plus If-time 1 to 3, PRD §10.1) can be delivered, and DR-2 would not need to list SC2 to SC4 as not delivered.
+
+### Risks that the pace does not show
+
+1. **Epic 5 touches the capacity invariant.** Private saunas change how capacity is counted (AD-6, derived placement). This is the first change to FR-10/FR-11 since Story 1.1, so a regression would hit the Core.
+2. **Story 5.5 is the heaviest test story** (any sequence and any race, FR-31). It is like the harness in Story 1.1, not like a page story.
+3. **Hours per day are still unknown.** 24 Nov ran from about 09:30 to 21:00. The pace is not a promise for the days before the 8 Dec exam.
+4. **Debt in `issues.md`:** possibly flaky tests (`test_fr15_sign_in.py` lock window, Tab after changing seats in e2e) and the README points. They do not block stories, but they must be fixed before the freeze.
+
+### New checkpoints
+
+| Date | Test | If it fails |
+|---|---|---|
+| Fri 27 Nov | Epic 4 merged (4.3, 4.4): SC3 delivered | Epic 5 starts later. Keep the order 5.1 → 5.3, then 5.5, and drop 5.4 first if time runs out |
+| Wed 2 Dec | 5.1 to 5.3 merged: SC2 and SC4 work | Finish 5.5 by 4 Dec. Whatever is not merged goes in DR-2 |
+| Fri 4 Dec | Epic 5 done, `main` green, race test 100 runs | Unmerged stories are listed as not delivered. 9–11 Dec stays a buffer with no committed stories (unchanged) |
+| Fri 11 Dec | Cutoff: `main` green | Unchanged |
+
+### Beyond Epic 5
+
+If-time 4 to 7 have no epics or stories. They are not planned now. When Epic 5 is merged, decide PRD §12 Q6 (the order of items 4 to 6). Then choose between `bmad-correct-course` for one small item ("My booking" resend, §4.10, which builds on the Manage link) and spending the spare days on the debt above and on early freeze work. The second keeps the freeze safe.
