@@ -30,3 +30,21 @@
 ### Åpne punkter
 - Implementer story 4.3 i en ny `bmad-build`-sesjon. Specen er `ready-for-dev`.
 - EXPERIENCE.md Open Item 19: før inn Lisas beslutning (Manage-siden viser en kansellert booking med teksten, uten endringslenker), og før inn voucher-tekstene for gjesten.
+
+## 2026-11-24 kl. 17:43 — Lisa Larsen
+
+### Oppgave
+Føre inn beslutningen om den kansellerte Manage-siden (Open Item 19) og voucher-tekstene i EXPERIENCE.md.
+
+### Plan
+- Ny tabell «Give up seats wording» under «Move seats wording» i Voice and Tone, i samme form som tabellen for 4.2.
+- Merke Open Item 19 som lukket.
+- Føre beslutningen inn i epic-4-konteksten også, så den fortsatt er gyldig (nyere enn planleggingsdokumentene) når neste build starter.
+
+### Resultat
+- `EXPERIENCE.md`: ny tabell «Give up seats wording, accepted by Lisa (2026-11-24, Story 4.3, FR-27)». Den har regelen for voucherverdien og alle tekstene: lenke, steg, oppsummering, knapp, resultat, refusals, den kansellerte Manage-siden, e-posten, historikklinjen og statuscellen i bookinglisten. Open Item 19 er merket «Closed by Lisa 2026-11-24».
+- `epic-4-context.md`: linjen om det som gjenstår å avgjøre har fått inn 4.3-beslutningen. Konteksten er nyere enn alle planleggingsdokumentene igjen.
+- Ikke committet. Endringene hører til story-branchen sammen med specen.
+
+### Åpne punkter
+Ingen nye.
