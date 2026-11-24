@@ -203,3 +203,4 @@
 - [ ] 2026-11-24 [story-3-1-https-only](956-2026-11-24-10-01-53-story-3-1-https-only.md) — ustabil `tests/test_fr15_sign_in.py::test_five_failures_lock…` når maskinen er belastet (vinduet `14:59 < locked_until - now`)
 - [ ] 2026-11-24 [story-3-1-https-only](956-2026-11-24-10-01-53-story-3-1-https-only.md) — én timeout i `tests/e2e/test_fr17_outbox.py::test_a_401_on_the_read_goes_to_sign_in`; uklart om testen er ustabil eller om feilen henger sammen med HTTPS (2026-11-24: besto i hele e2e-kjøringen etter reviewen; timeouten kom ikke igjen)
 - [ ] 2026-11-24 [story-3-1-https-only](956-2026-11-24-10-01-53-story-3-1-https-only.md) — fjern Caddy-roten fra Windows etter sensuren: `certutil -delstore -user Root "Caddy Local Authority - 2026 ECC Root"` (ny rot etter `down -v`)
+- [ ] 2026-11-24 [story-3-1-https-only](956-2026-11-24-10-01-53-story-3-1-https-only.md) — merge PR #12 (Story 3.1)
