@@ -345,3 +345,21 @@ Committe endringene i PRD-en og på Private sauna-siden.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:14 — Lisa Larsen
+
+### Oppgave
+Legge til utsikt over sjøen i beskrivelsene av Kajo og Lumo. Lisa viste også til «inspirasjon bilde 1».
+
+### Plan
+- Utvide de to beskrivelsene, og fortsatt holde dem på én eller to setninger (FR-1.5).
+
+### Resultat
+- Kajo: «Kajo means a soft glow. Warm light, a view of the sea, and a bucket and ladle for throwing water on the stones.»
+- Lumo: «Our largest sauna, with long benches lit softly from behind and a view of the sea. Room for a big group.»
+- Endret i `sauna-copy.js`, `EXPERIENCE.md` og `test_fr30_private_sauna.py`. Testene ga 5 passed.
+- Fant ikke noe bilde som heter «inspirasjon» i prosjektet eller i Nedlastinger, Bilder og Skrivebord.
+- Ikke committet.
+
+### Åpne punkter
+- Lisa må si hvor «inspirasjon bilde 1» ligger, eller lime det inn.
