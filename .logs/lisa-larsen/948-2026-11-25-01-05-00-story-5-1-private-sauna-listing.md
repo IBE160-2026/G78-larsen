@@ -238,3 +238,27 @@ Lisa valgte forslag H (brede bannere med øktknapper) for «Show by sauna». Hun
 
 ### Åpne punkter
 - Lisa må velge et forslag for «Show by session». Deretter bygges H og det valgte forslaget inn, og beskrivelsene må godkjennes.
+
+## 2026-11-25 kl. 09:55 — Lisa Larsen
+
+### Oppgave
+Lisa valgte forslag K for «Show by session». Forslag H skulle bygges for «Show by sauna» og K for «Show by session» på Private sauna-siden.
+
+### Plan
+- Skrive om `PrivateSauna.js` med badstukort (bilde, navn, størrelse, pris og beskrivelse) og øktknapper. Deretter rette tekster, CSS, tester og dokumenter.
+
+### Resultat
+- `frontend/components/PrivateSauna.js` har to nye deler:
+  - `SaunaCards` (H): alle øktknappene ligger i én radiogruppe (`name=pair`), så ett klikk velger både badstu og økt. Steg 3 er borte.
+  - `SessionThenSauna` (K): økter med «x saunas free», og så de ledige badstuene som valgbare kort.
+- Bildene er dekorative på denne siden (`alt=""`). Beskrivelsen er kortets `aria-describedby`.
+- `frontend/lib/copy.js`: `bySaunaQuestion`, `bySessionQuestion`, `sessionLegend`, `saunaLegend` og `saunasFree` er nye. `saunaQuestion`, `sessionQuestion` og `freeSessions` er fjernet fra `PRIVATE`.
+- `frontend/lib/sauna-copy.js`: hver badstu har fått `description` (utkast).
+- `frontend/app/styles.css`: `.private-card`, `.private-pick`, `.slot-grid`, `.cell.slot` og `.q-sub` er nye. De gamle `.sauna-option`-reglene er fjernet.
+- `test_fr30_private_sauna.py` er skrevet om for H og K. `EXPERIENCE.md`, `DESIGN.md`, `epics.md` (UX-DR41 og akseptkriteriet), `epic-5-context.md` og spec-5-1 er oppdatert.
+- Tester: `test_fr30` og `test_fr01` ga 19 passed. `test_fr02_book_seats` ga 18 passed.
+- Ikke committet.
+
+### Åpne punkter
+- Beskrivelsene av badstuene i `sauna-copy.js` er utkast og må godkjennes av Lisa.
+- Story 5.2 må bygge Continue og Review på det nye valget, der ett klikk gir badstu og økt i «Show by sauna».
