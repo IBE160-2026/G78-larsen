@@ -380,3 +380,18 @@ Ta bort lys og belysning fra beskrivelsene, fordi det avhenger av tid på døgne
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:23 — Lisa Larsen
+
+### Oppgave
+Endre Kajo-beskrivelsen til Lisas egen ordlyd: «A view of the open sea, and a bucket and ladle for throwing water on the stones, as for all saunas.»
+
+### Plan
+- Sette inn teksten ordrett i `sauna-copy.js`, `EXPERIENCE.md` og testen.
+
+### Resultat
+- Kajo: «Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones, as for all saunas.»
+- Testene ga 5 passed etter at frontend ble bygget på nytt. Ikke committet.
+
+### Åpne punkter
+Ingen nye.
