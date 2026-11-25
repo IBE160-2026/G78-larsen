@@ -395,3 +395,18 @@ Endre Kajo-beskrivelsen til Lisas egen ordlyd: «A view of the open sea, and a b
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:24 — Lisa Larsen
+
+### Oppgave
+Bruke «as in all our saunas» i stedet for «as for all saunas» i Kajo-beskrivelsen.
+
+### Plan
+- Bytte ordlyden i `sauna-copy.js`, `EXPERIENCE.md` og testen.
+
+### Resultat
+- Kajo: «Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones, as in all our saunas.»
+- Testene for Private sauna er kjørt (se resultat i økten). Ikke committet.
+
+### Åpne punkter
+Ingen nye.
