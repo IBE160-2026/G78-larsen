@@ -126,3 +126,19 @@ Lisa syntes knappene på landingssiden fikk for lang tekst. De skulle bare si «
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:09 — Lisa Larsen
+
+### Oppgave
+Midtstille teksten i Booking choice-knappene på landingssiden.
+
+### Plan
+- Midtstille teksten i `.booking-choice` og rette beskrivelsen i dokumentene.
+
+### Resultat
+- `.booking-choice` har nå `justify-content: center` og `text-align: center`, som primærknappen. Kommentaren i `BookingChoice.js`, `DESIGN.md`, `epics.md` og spec-5-1 er rettet.
+- Tester: `test_fr01_landing` ga 14 passed etter at frontend ble bygget på nytt.
+- Kodeendringene er ikke committet.
+
+### Åpne punkter
+Ingen.
