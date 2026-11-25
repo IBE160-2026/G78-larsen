@@ -262,3 +262,22 @@ Lisa valgte forslag K for «Show by session». Forslag H skulle bygges for «Sho
 ### Åpne punkter
 - Beskrivelsene av badstuene i `sauna-copy.js` er utkast og må godkjennes av Lisa.
 - Story 5.2 må bygge Continue og Review på det nye valget, der ett klikk gir badstu og økt i «Show by sauna».
+
+## 2026-11-25 kl. 10:01 — Lisa Larsen
+
+### Oppgave
+Sjekke endringene mot product brief og PRD. Deretter skulle PRD §4.1 rettes, fordi beskrivelsen fortsatt sa «one main action», mens landingssiden nå har to like knapper.
+
+### Plan
+- Sammenligne endringene med brief, brief-addendumet, PRD FR-1, FR-30, UJ-5, §6, §7 og FR-22/23.
+- Rette bare §4.1, som Lisa ba om.
+
+### Resultat
+- Sjekken: H og K samsvarer med FR-30, UJ-5 og §7 («Window → Sauna, or Sauna → Window»). De to like knappene samsvarer med brief («The guest first chooses Individual seats or Private sauna»). Fire avvik ble funnet: §4.1 «one main action», FR-1.5 «one image and one line», «löyly» uten engelsk forklaring i Kajo-beskrivelsen, og stockfoto-bildene, som nå er mer synlige.
+- `prd.md` §4.1 sier nå at landingssiden tilbyr Book seats, og at Book private sauna står rett under som et likt valg når §4.9 er bygget, som i brief. FR-1.2 er uendret.
+- Beslutningen er ført i addendum M.3 og i `.memlog.md`.
+- Ikke committet.
+
+### Åpne punkter
+- FR-1.5 «one image and one line» mot de lengre beskrivelsene på Private sauna-siden: Lisa har ikke avgjort om beskrivelsene skal kortes ned eller om PRD-en skal utvides.
+- Kajo-beskrivelsen bruker «löyly» uten engelsk forklaring (§6 Copy), og «A big stove gives soft, even heat» er ikke bekreftet.
