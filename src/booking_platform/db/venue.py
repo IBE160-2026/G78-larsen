@@ -16,8 +16,10 @@ def venue_facts(c: psycopg.Connection) -> tuple | None:
 
 
 def saunas(c: psycopg.Connection) -> list[tuple]:
-    """(id, name, capacity) of every Sauna, in Fill order."""
-    return c.execute("SELECT id, name, capacity FROM saunas ORDER BY fill_order").fetchall()
+    """(id, name, capacity, whole_price_ore) of every Sauna, in Fill order. The price is NULL for a Sauna that is not
+    bookable whole, since it is never offered whole (AD-23)."""
+    return c.execute("SELECT id, name, capacity, CASE WHEN bookable_whole THEN whole_price_ore END FROM saunas "
+                     "ORDER BY fill_order").fetchall()
 
 
 def seed_settings(c: psycopg.Connection, values: tuple) -> None:
@@ -33,8 +35,16 @@ def seed_settings(c: psycopg.Connection, values: tuple) -> None:
     c.execute(f"UPDATE settings SET {fill} WHERE {any_null}", values)
 
 
-def seed_sauna(c: psycopg.Connection, sauna_id: int, name: str, capacity: int, fill_order: int) -> bool:
+def seed_sauna(c: psycopg.Connection, sauna_id: int, name: str, capacity: int, fill_order: int,
+               whole_price_ore: int | None = None) -> bool:
     """Insert a Sauna that is absent; one that exists is left as the store has it, and so is a store Sauna that
-    already holds the seeded Fill order (no conflict target). True when it was inserted."""
-    return c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (%s, %s, %s, %s) "
-                     "ON CONFLICT DO NOTHING", (sauna_id, name, capacity, fill_order)).rowcount == 1
+    already holds the seeded Fill order (no conflict target). An existing Sauna whose `whole_price_ore` is NULL gets
+    the seed's price, when the seed has one (AD-18): a price in the store is never overwritten. True when the Sauna
+    was inserted."""
+    inserted = c.execute("INSERT INTO saunas (id, name, capacity, fill_order, whole_price_ore) "
+                         "VALUES (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                         (sauna_id, name, capacity, fill_order, whole_price_ore)).rowcount == 1
+    if not inserted and whole_price_ore is not None:
+        c.execute("UPDATE saunas SET whole_price_ore = %s WHERE id = %s AND whole_price_ore IS NULL",
+                  (whole_price_ore, sauna_id))
+    return inserted

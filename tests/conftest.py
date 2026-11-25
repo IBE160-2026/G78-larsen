@@ -37,6 +37,9 @@ client.DATABASE_URL = TEST_URL
 # Window k starts at WIN0 + k * 90 minutes (UTC); the Venue is Europe/Oslo (UTC+1 in December).
 WIN0 = dt.datetime(2026, 12, 1, 9, 0, tzinfo=dt.timezone.utc)
 SAUNAS = [(1, "Rauha", 7), (2, "Loyly", 10), (3, "Kajo", 12), (4, "Lumo", 15)]  # 44 Seats in Fill order 1..4
+# Every test Sauna has a Whole-sauna price, the seed's (Lisa, 2026-11-25), so the FR-29 catalogue tests judge all four;
+# a test that needs a Sauna without a price sets it to NULL itself.
+WHOLE_PRICES = {1: 185000, 2: 260000, 3: 315000, 4: 395000}
 EARLY = dt.datetime(2026, 12, 1, 3, 0, tzinfo=dt.timezone.utc)  # before the 06:00 Oslo (05:00Z) Release time
 
 
@@ -67,6 +70,16 @@ MUTATIONS = {
     "nofresh": "CREATE OR REPLACE FUNCTION window_held_seats(wid int) RETURNS int LANGUAGE sql VOLATILE AS "
                "$$ SELECT COALESCE(SUM(seats), 0)::int FROM holds WHERE window_id = wid $$",
     "notriggers": "DROP TRIGGER t_bookings ON bookings",
+    # Story 5.1 (AD-2, AD-23, AD-24): each switches off one store rule of 0013; tests/test_fr29_whole_store.py bites.
+    "no_whole_check": "DROP TRIGGER t_00_check_whole ON whole_bookings; "
+                      "CREATE TRIGGER t_00_check_whole AFTER UPDATE OF window_id, sauna_id ON whole_bookings "
+                      "FOR EACH ROW EXECUTE FUNCTION trg_check_whole()",
+    "no_whole_check_update": "DROP TRIGGER t_00_check_whole ON whole_bookings; "
+                             "CREATE TRIGGER t_00_check_whole AFTER INSERT ON whole_bookings "
+                             "FOR EACH ROW EXECUTE FUNCTION trg_check_whole()",
+    "no_pairing_bookings": "DROP TRIGGER t_pair_bookings ON bookings",
+    "no_pairing_whole": "DROP TRIGGER t_pair_whole ON whole_bookings",
+    "no_kind_fixed": "DROP TRIGGER b_kind_fixed ON bookings",
 }
 
 
@@ -207,7 +220,7 @@ def pg(database):
 
 @pytest.fixture
 def world(pg, server):
-    """Fresh data: four Saunas (44 Seats), three back-to-back Windows, default Settings, the clock at EARLY, no
+    """Fresh data: four Saunas (44 Seats, each with a Whole-sauna price), three back-to-back Windows, default Settings, the clock at EARLY, no
     session and no sign-in throttle row. The accounts stay: the seed creates them when the backend starts.
 
     The three Windows sit on the seed schedule's 10:00, 11:30 and 13:00 Oslo slots of 2026-12-01. No Window has been
@@ -218,7 +231,8 @@ def world(pg, server):
     pg.execute("UPDATE settings SET release_on = true, release_time = '06:00', booking_deadline_minutes = 5, "
                "booking_horizon_days = 28, windows_generated_through = NULL")
     for i, n, cap in SAUNAS:
-        pg.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (%s, %s, %s, %s)", (i, n, cap, i))
+        pg.execute("INSERT INTO saunas (id, name, capacity, fill_order, whole_price_ore) VALUES (%s, %s, %s, %s, %s)",
+                   (i, n, cap, i, WHOLE_PRICES[i]))
     for k in range(3):
         pg.execute("INSERT INTO windows (during) VALUES (tstzrange(%s, %s, '[)'))", (win_start(k), win_start(k + 1)))
     pg.commit()
@@ -244,23 +258,47 @@ def clear(pg: psycopg.Connection) -> None:
     """Remove all Bookings (with their keys, payments, emails, Change history, Vouchers, Manage tokens and grants), Holds,
     Whole-sauna bookings, Blocks and marks (row deletes, so the triggers run)."""
     for t in ("holds", "idempotency_keys", "payments", "outbox_emails", "booking_changes", "vouchers", "access_tokens",
-              "bookings",
-              "whole_bookings", "blocks", "marks"):
+              "whole_bookings", "bookings", "blocks", "marks"):
         pg.execute(f"DELETE FROM {t}")
     pg.commit()
 
 
-# A Seat booking written straight to the store, around the API (AD-21), with every NOT NULL column of Story 1.5. `{w}`
-# and `{s}` are SQL expressions or placeholders for the Window and the Seats; the reference is 8 random hex
-# characters (hex is a subset of Crockford base32).
+# Seat bookings written straight to the store, around the API (AD-21), with every NOT NULL column of Story 1.5. `{w}`
+# and `{s}` are SQL expressions or placeholders for the Window and the Seats. A Seat booking holds 1 to 10 Seats
+# (`bookings_kind_shape`, 0013), so N Seats are written as ceil(N / 10) rows of at most 10, in one statement: the
+# store judges them together, as it judged the one row of N before. Each reference is 8 random hex characters (hex is
+# a subset of Crockford base32).
 RAW_BOOKING = ("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
-               "SELECT v.w, v.s, upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8)), 'Raw Guest', "
-               "'raw@example.com', 25000, v.s * 25000 FROM (VALUES ({w}, {s})) AS v(w, s)")
+               "SELECT v.w, LEAST(10, v.s - 10 * g.i), "
+               "upper(substr(md5(random()::text || clock_timestamp()::text || g.i::text), 1, 8)), 'Raw Guest', "
+               "'raw@example.com', 25000, LEAST(10, v.s - 10 * g.i) * 25000 "
+               "FROM (VALUES ({w}, {s})) AS v(w, s) CROSS JOIN LATERAL generate_series(0, (v.s - 1) / 10) AS g(i)")
 
 
 def raw_booking(window: object = "%s", seats: object = "%s") -> str:
-    """The SQL of one raw Seat booking (see RAW_BOOKING)."""
+    """The SQL of N raw Seats in one statement (see RAW_BOOKING)."""
     return RAW_BOOKING.format(w=window, s=seats)
+
+
+def raw_whole(pg: psycopg.Connection, wid: int, sid: int) -> int:
+    """A Whole-sauna booking written straight to the store, around the API (AD-21, AD-23): the `kind = 'whole'`
+    Booking (reference, name, email, `total_ore` = the Sauna's price, the Whole-sauna Cutoff) and then its capacity
+    row, committed in one transaction. Returns the Booking id. On any refusal the transaction is rolled back and the
+    store's exception is raised (`CheckViolation` with `diag.constraint_name`, a `UniqueViolation`, ...). A Sauna
+    without a price gets `total_ore` 0, so only the capacity row's `whole_bookable` can refuse it."""
+    try:
+        bid = pg.execute(
+            "INSERT INTO bookings (window_id, kind, sauna_id, reference, name, email, total_ore, cutoff) "
+            "VALUES (%s, 'whole', %s, upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8)), "
+            "'Raw Group', 'raw@example.com', COALESCE((SELECT whole_price_ore FROM saunas WHERE id = %s), 0), "
+            "(SELECT cutoff_whole FROM settings)) RETURNING id", (wid, sid, sid)).fetchone()[0]
+        pg.execute("INSERT INTO whole_bookings (window_id, sauna_id, booking_id) VALUES (%s, %s, %s)",
+                   (wid, sid, bid))
+        pg.commit()
+    except BaseException:
+        pg.rollback()
+        raise
+    return bid
 
 
 def state(pg: psycopg.Connection, wid: int = 1) -> dict:

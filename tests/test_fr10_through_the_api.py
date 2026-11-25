@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 import psycopg
 
 from client import admin_client, api_client
-from conftest import EARLY, clear, set_clock, state, win_start
+from conftest import EARLY, clear, raw_whole, set_clock, state, win_start
 
 
 def parallel(fns):
@@ -131,6 +131,26 @@ def test_a_hold_expires_without_any_cleanup(api, world, pg):
     fill(api, 44)  # 44 Seats in Bookings of at most 10, each a 201 (AD-21)
 
 
+class _Raw:
+    """The status of a write that went around the API, in the place of a response."""
+
+    def __init__(self, status_code: int):
+        self.status_code = status_code
+
+
+def _raw_whole_status(dsn: str, wid: int, sid: int) -> int:
+    """`raw_whole` on a connection of its own: 201 when the store took it, 409 when the store refused it (FR-29's
+    `whole_bookable`, the capacity CHECK or the `(window_id, sauna_id)` key), and 409 too when the store gave it up
+    in a deadlock or serialization failure with a concurrent raw write (no retry here, unlike `db.run`)."""
+    with psycopg.connect(dsn) as c:
+        try:
+            raw_whole(c, wid, sid)
+            return 201
+        except (psycopg.errors.CheckViolation, psycopg.errors.UniqueViolation, psycopg.errors.DeadlockDetected,
+                psycopg.errors.SerializationFailure):
+            return 409
+
+
 def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
     """A random mix of Seat bookings, Holds, Whole-sauna bookings, Blocks, marks and a moving clock, sent in
     parallel over HTTP. No 5xx, and after every round the store's numbers equal the numbers derived from the rows.
@@ -179,7 +199,9 @@ def test_mixed_load_keeps_every_window_consistent(api, world, pg, database):
             elif kind == "cancel":
                 x = c.delete("/api/holds", params=dict(window_id=w))
             elif kind == "whole":
-                x = a.post("/api/admin/whole-bookings", json=dict(window_id=w, sauna_id=r.randint(1, 4)))
+                # the slice's endpoint is gone (Story 5.1): a paired raw Whole-sauna booking on this thread's own
+                # connection (AD-21, AD-23); a store refusal counts as the 409 the endpoint answered
+                x = _Raw(_raw_whole_status(dsn, w, r.randint(1, 4)))
             elif kind == "block":
                 st = win_start(r.randint(0, 2))
                 x = a.post("/api/admin/blocks", json=dict(sauna_id=r.randint(1, 4), start=st.isoformat(),

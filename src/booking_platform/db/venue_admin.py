@@ -1,15 +1,10 @@
-"""SQL for the Administrator's slice actions: Whole-sauna bookings, Blocks, Whole-booking-only marks and Settings."""
+"""SQL for the Administrator's slice actions: Blocks, Whole-booking-only marks and Settings."""
 
 from __future__ import annotations
 
 import datetime as dt
 
 import psycopg
-
-
-def insert_whole_booking(c: psycopg.Connection, window_id: int, sauna_id: int) -> int:
-    return c.execute("INSERT INTO whole_bookings (window_id, sauna_id) VALUES (%s, %s) RETURNING id",
-                     (window_id, sauna_id)).fetchone()[0]
 
 
 def insert_block(c: psycopg.Connection, sauna_id: int, start: dt.datetime, end: dt.datetime) -> int:

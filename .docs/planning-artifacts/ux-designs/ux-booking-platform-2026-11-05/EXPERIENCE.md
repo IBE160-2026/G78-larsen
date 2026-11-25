@@ -279,6 +279,26 @@ Expired, used-up, unknown and mistyped codes get one identical message, which ne
 
 Editing or emptying the field removes the applied Voucher; there is no separate remove control. After a refusal (`no_seat_free`, `deadline_passed`, `try_again`) the Voucher has not been spent, and choosing a nearest session keeps the code and quotes it again.
 
+**Private sauna wording (Epic 5; Lisa 2026-11-24 for prices and Saunas, the rest decided in Story 5.1 on Lisa's instruction to settle Epic 5's open wording without asking)**
+
+Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every Sauna is open both for Seats and for Private sauna booking unless it is marked otherwise (`bookable_whole = false`, or no `whole_price_ore`). Prices follow the Oslo average and the size: the Oslo comparables in PRD addendum E and J (KOK NOK 1,360 for up to 8, Badstuvogna NOK 1,250 for 6, the top of the range NOK 2,900 for 6–8) average NOK 1,837 for about 7 places, NOK 262 per place. Capacity × 262, rounded to the nearest 50: Rauha (7) **NOK 1,850**, Löyly (10) **NOK 2,600**, Kajo (12) **NOK 3,150**, Lumo (15) **NOK 3,950**. Each is close to the same number of Seats at NOK 250 (1,750, 2,500, 3,000, 3,750), so a Private sauna does not cost the Venue Seat income.
+
+| Text | Where |
+|---|---|
+| "Book seats", "Book private sauna" | Landing rail, two equal Booking choices of the same size, Book private sauna directly under Book seats, with no other text in them (Lisa 2026-11-25; replaces the Text link "Private sauna") |
+| "Private sauna" | The Private sauna page title is "Private sauna – Saunalöyly" and its `h1` is "Private sauna" |
+| "Private sauna: NOK 1850" | Sauna card on Landing, under the size line, only for a Sauna offered whole |
+| "A group that wants to stay together should book a private sauna." | After the Seat statement in "The saunas" on Landing, and in the Book seats rail |
+| "Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it." | Private sauna page, under the `h1` |
+| "1. Choose a date" | Private sauna page, above the Date calendar |
+| "Show by sauna", "Show by session" | Private sauna page, a radio group named "View" that regroups the one listing; "Show by sauna" is chosen first |
+| "2. Choose a sauna and a session" (by sauna) / "2. Choose a session and a sauna", with "Session" and "Sauna" (by session) | Lisa 2026-11-25. By sauna (proposal H): one Sauna card per Sauna with its free sessions as buttons, one radio group for the whole listing, so one click chooses both and there is no third question. By session (proposal K): the sessions as buttons ("Session"), then the Saunas free in the chosen one as Sauna cards to choose ("Sauna") |
+| Photo, name, "Holds 7", "NOK 1850" and the Sauna's description | Sauna card on the Private sauna page (Lisa 2026-11-25). The descriptions are in `lib/sauna-copy.js` and were approved by Lisa 2026-11-25: Rauha "Our smallest sauna. Rauha means peace: a quiet room for a small group.", Löyly "Löyly is the steam that rises when water meets the hot stones. A sauna for a mid-sized group.", Kajo "Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones, as in all our saunas.", Lumo "Our largest sauna, with long benches and a view of the open sea. Room for a big group." The photo is decorative there (its alt text is on Landing) |
+| "13:00–14:30" and, by session, "{N} saunas free" (or "1 sauna free") | Session button on the Private sauna page; spoken "13:00 to 14:30" (by sauna "Kajo, 13:00 to 14:30") |
+| "No sauna can be booked whole on {long date}." | Private sauna page, empty result (no urgency cue, NFR-9) |
+| "This sauna can no longer be booked for this session. You have not been charged." with the Text link "Choose another sauna or session" (to the Private sauna page for the same date) | Notice on Review after `sauna_unavailable` (Story 5.2); Pay, the payment note and the Terms checkbox are removed and the Notice takes focus |
+| Table "Saunas" in each Session group, columns "Sauna" and "Seats counted"; cells "7 of 7", "Booked whole · {ref}", "Blocked", "Private sauna only" | Booking list, Placement (Story 5.4), Saunas in Fill order, tabular figures, never colour alone |
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.
@@ -355,7 +375,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 | Private sauna entry | Landing rail | See If-time Plug-in Points. Absent until §4.9 is built |
 | Voucher field | Review | See If-time Plug-in Points and the Pay with a voucher wording in Voice and Tone (Story 4.4) |
 | Sign-in choice | Between Book seats and Details | See If-time Plug-in Points. Absent until §4.12 is built |
-| Sauna option | Private sauna page | One per Sauna that FR-29 allows, with Capacity, price and free Sessions (FR-30). The Guest always picks the Sauna |
+| Sauna card | Private sauna page | One per Sauna that FR-29 allows, with a wide photo, Capacity, price and description, and by sauna its free Sessions as buttons (FR-30; Lisa 2026-11-25, proposals H and K). The Guest always picks the Sauna |
 
 ## State Patterns
 
@@ -534,7 +554,7 @@ Core pages leave room for these and show none of them until built. None of them 
 
 | Feature | Where it plugs in | Behaviour |
 |---|---|---|
-| Private sauna entry (§4.9) | [ASSUMPTION] Landing rail, directly under Book seats, as a Text link, because the page keeps one main action (§4.1). On narrow screens it is in the page flow, not in the Fixed action bar | Opens the Private sauna page. Landing also gains the price per Sauna: [ASSUMPTION] on each Sauna card, under the size line |
+| Private sauna entry (§4.9) | Landing rail, directly under Book seats, as an equal Booking choice (Lisa 2026-11-25: the two ways to book look alike; this replaces the Text link and the one-main-action reasoning of §4.1 for Landing). On narrow screens it is in the page flow, not in the Fixed action bar | Opens the Private sauna page. Landing also gains the price per Sauna: [ASSUMPTION] on each Sauna card, under the size line |
 | Seat statement (§4.9) | Landing "The saunas" intro and Book seats rail | Gains the group sentence (FR-4) |
 | Voucher field (§4.8) | Review, between the Booking summary and the terms, always visible, because PRD §7 says "at payment" and the total must be settled before accepting (confirmed by Story 4.4) | Reduces the amount and updates the Pay label (FR-28). Expired, used-up and unknown codes get one identical refusal as a Field error. Rest paid by Simulated payment |
 | Sign-in choice (§4.12) | After Continue, before Details. Space reserved in the flow by keeping Details as its own page | Continuing without an account is the default and most prominent option, as the Primary button. Sign-in is a Text link (FR-37). A signed-in Guest books with the account's email |
@@ -667,7 +687,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 ### Other If-time gaps
 
-27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them.
+27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them. Closed by Lisa 2026-11-24 (Story 5.1), changed 2026-11-25: all four Saunas are offered whole, Rauha NOK 1850, Löyly NOK 2600, Kajo NOK 3150, Lumo NOK 3950, unless marked otherwise. See the Private sauna wording in Voice and Tone.
 28. Hold resize: FR-35 says the Guest is told when extra Seats are not free, while no page may mention a Hold. Wording is needed that does both.
 29. How a Guest reaches their own Bookings once signed in, and where sign-in lives apart from the Sign-in choice.
 30. Which emails a Guest sees for Gift cards and account links (Step 2 and §4.12). FR-17 names no page.

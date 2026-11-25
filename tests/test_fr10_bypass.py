@@ -12,7 +12,7 @@ import pytest
 from psycopg import errors
 
 from client import api_client
-from conftest import EARLY, clear, raw_booking, set_clock, state, win_start
+from conftest import EARLY, clear, raw_booking, raw_whole, set_clock, state, win_start
 from test_fr10_through_the_api import fill, left, parallel
 
 
@@ -40,9 +40,14 @@ def test_core_an_over_capacity_booking_written_around_the_api_is_refused(api, pg
 
 
 def test_core_raising_a_booking_after_the_fact_is_refused(api, pg):
-    fill(api, 40)
-    refused(pg, "UPDATE bookings SET seats = seats + 5, total_ore = (seats + 5) * price_per_seat_ore "
-                "WHERE id = (SELECT min(id) FROM bookings)")  # the value follows, so only capacity can refuse it
+    for _ in range(8):  # Bookings of 5, so one raised by 5 still holds at most 10 Seats (`bookings_kind_shape`)
+        assert api.book(1, 5).status_code == 201
+    with pytest.raises(errors.CheckViolation) as e:
+        pg.execute("UPDATE bookings SET seats = seats + 5, total_ore = (seats + 5) * price_per_seat_ore "
+                   "WHERE id = (SELECT min(id) FROM bookings)")  # the value follows, so only capacity can refuse it
+        pg.commit()
+    pg.rollback()
+    assert e.value.diag.constraint_name == "booked_within_capacity"
     assert state(pg)["real_booked"] == 40
 
 
@@ -58,12 +63,13 @@ def test_the_stored_numbers_cannot_be_tampered_with(api, pg):
 
 
 def test_whole_sauna_bookings_and_blocks_change_the_capacity_the_store_enforces(api, pg):
-    accepted(pg, "INSERT INTO whole_bookings (window_id, sauna_id) VALUES (1, 4)")  # 15 Seats gone: 29 left
+    raw_whole(pg, 1, 4)  # a paired Whole-sauna booking (AD-21, AD-23): 15 Seats gone, 29 left
     assert left(api) == 29
     fill(api, 29)
     refused(pg, raw_booking(1, 1))
     # a Sauna cannot be booked whole over Seats placed in it, nor a Block laid over a full Window
-    refused(pg, "INSERT INTO whole_bookings (window_id, sauna_id) VALUES (1, 1)")
+    with pytest.raises(errors.CheckViolation):
+        raw_whole(pg, 1, 1)
     refused(pg, "INSERT INTO blocks (sauna_id, during) SELECT 1, during FROM windows WHERE id = 1")
     # and in another, empty Window a Block removes capacity at once
     accepted(pg, "INSERT INTO blocks (sauna_id, during) SELECT 3, during FROM windows WHERE id = 2")

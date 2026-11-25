@@ -10,10 +10,10 @@
     "price_per_seat_ore": 25000
   },
   "saunas": [
-    {"id": 1, "name": "Rauha", "capacity": 7, "fill_order": 1},
-    {"id": 2, "name": "Löyly", "capacity": 10, "fill_order": 2},
-    {"id": 3, "name": "Kajo", "capacity": 12, "fill_order": 3},
-    {"id": 4, "name": "Lumo", "capacity": 15, "fill_order": 4}
+    {"id": 1, "name": "Rauha", "capacity": 7, "fill_order": 1, "whole_price_ore": 185000},
+    {"id": 2, "name": "Löyly", "capacity": 10, "fill_order": 2, "whole_price_ore": 260000},
+    {"id": 3, "name": "Kajo", "capacity": 12, "fill_order": 3, "whole_price_ore": 315000},
+    {"id": 4, "name": "Lumo", "capacity": 15, "fill_order": 4, "whole_price_ore": 395000}
   ],
   "schedule": [
     {"start": "10:00", "end": "11:30"},

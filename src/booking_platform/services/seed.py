@@ -1,7 +1,8 @@
 """The seed (AD-18): `seeds/venue.json`, applied after the migrations and before the app serves, in every
 environment.
 
-The seed inserts the Saunas that are absent, and the daily Window schedule when `window_schedule` is empty. The
+The seed inserts the Saunas that are absent, fills a Sauna's `whole_price_ore` only where the store holds NULL (Story
+5.1, AD-23), and inserts the daily Window schedule when `window_schedule` is empty. The
 Venue values of the `settings` row come from 0004's column defaults, which equal the seed (pinned by
 `tests/test_fr01_venue.py`); the seed only fills such a column when it is NULL. It never overwrites, so after the
 first start the store owns every value. The file goes through the same validation as Administrator input
@@ -104,7 +105,7 @@ def apply(directory: Path | None = None) -> int:
         rows = wq.seed_schedule(c, [(r.start, r.end) for r in seed.schedule])
         if rows:
             log.info("seeded the window schedule: %d rows", rows)
-        return sum(q.seed_sauna(c, s.id, s.name, s.capacity, s.fill_order) for s in seed.saunas)
+        return sum(q.seed_sauna(c, s.id, s.name, s.capacity, s.fill_order, s.whole_price_ore) for s in seed.saunas)
 
     inserted = db.run(work)
     log.info("applied seed %s: %d saunas inserted", VENUE_FILE, inserted)

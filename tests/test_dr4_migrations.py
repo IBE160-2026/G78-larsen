@@ -3,6 +3,7 @@ and at the start of the test run, recorded by full file name, never two with one
 
 from __future__ import annotations
 
+import datetime as dt
 import shutil
 import subprocess
 import time
@@ -21,6 +22,16 @@ BASELINE = "a92152ded6462f5e3c2d67935593d5180206e879"  # the commit before Story
 
 def files() -> list[str]:
     return [p.name for p in migrations.migration_files()]
+
+
+def upto(tmp_path, last: str, name: str = "upto"):
+    """A migrations directory with the files numbered up to and including `last` ("0012")."""
+    d = tmp_path / f"{name}-{last}"
+    d.mkdir()
+    for f in files():
+        if f[:4] <= last:
+            shutil.copy(config.paths.MIGRATIONS / f, d / f)
+    return d
 
 
 @pytest.fixture
@@ -134,7 +145,8 @@ def test_0006_backfills_legacy_bookings_and_counts_only_active_ones(tmp_path, sc
         c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
         c.execute("INSERT INTO bookings (window_id, seats, guest, created_at) VALUES "
                   "(1, 3, '  Ada  ', '2026-11-01 12:00Z'), (1, 40, '', '2026-11-02 12:00Z')")
-    assert "0006_bookings_pay.sql" in migrations.migrate(scratch_db)
+    # up to 0012: 0013 limits a Seat booking to 10 Seats and adds triggers of its own (tested in test_0013_...)
+    assert "0006_bookings_pay.sql" in migrations.migrate(scratch_db, upto(tmp_path, "0012"))
     with psycopg.connect(scratch_db) as c:
         rows = c.execute("SELECT id, reference, name, email, price_per_seat_ore, total_ore, status, "
                          "entry_time = created_at, session_id FROM bookings ORDER BY id").fetchall()
@@ -202,7 +214,7 @@ def test_0012_records_legacy_cancellations_and_adds_the_voucher_columns(tmp_path
         c.execute("UPDATE bookings SET status = 'cancelled' WHERE id = 2")
         c.execute("INSERT INTO payments (booking_id, direction, method, amount_ore) VALUES (1, 'charge', 'card', 50000)")
         due_before = c.execute("SELECT retention_due(1), retention_due(2)").fetchone()
-    assert migrations.migrate(scratch_db) == ["0012_vouchers_cancellation.sql"]
+    assert migrations.migrate(scratch_db, upto(tmp_path, "0012")) == ["0012_vouchers_cancellation.sql"]
     with psycopg.connect(scratch_db) as c:
         got = c.execute("SELECT id, status, cancelled_at = entry_time, cancel_cause, cancel_remedy FROM bookings "
                         "ORDER BY id").fetchall()
@@ -213,3 +225,55 @@ def test_0012_records_legacy_cancellations_and_adds_the_voucher_columns(tmp_path
         with pytest.raises(psycopg.errors.CheckViolation) as e:
             c.execute("UPDATE bookings SET status = 'active', cancelled_at = NULL, cancel_cause = NULL WHERE id = 2")
         assert e.value.diag.constraint_name == "booking_cancelled_frozen"
+
+
+def test_0013_keeps_seat_bookings_and_drops_slice_whole_bookings(tmp_path, scratch_db):
+    """AD-23 / AD-24 (Story 5.1): on a database that holds Seat bookings and slice `whole_bookings` rows (which have no
+    Booking), the existing Bookings become `kind = 'seats'` and keep their Seats, the slice rows are deleted and their
+    Saunas open for Seats again, and the new columns, setting and triggers are in place."""
+    migrations.migrate(scratch_db, upto(tmp_path, "0012", "before"))
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1), (2, 'B', 24, 2)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z')), "
+                  "(tstzrange('2026-12-01 10:30Z', '2026-12-01 12:00Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+                  "VALUES (1, 10, 'AAAAAAAA', 'Ada', 'ada@example.com', 25000, 250000), "
+                  "(1, 2, 'BBBBBBBB', 'Bo', 'bo@example.com', 25000, 50000)")
+        c.execute("INSERT INTO whole_bookings (window_id, sauna_id) VALUES (1, 2), (2, 2)")  # the slice's rows
+        assert c.execute("SELECT seats_left(1), seats_left(2)").fetchone() == (8, 20)
+    assert migrations.migrate(scratch_db) == ["0013_whole_sauna_bookings.sql"]
+    with psycopg.connect(scratch_db) as c:
+        assert c.execute("SELECT id, kind, seats, sauna_id FROM bookings ORDER BY id").fetchall() == [
+            (1, "seats", 10, None), (2, "seats", 2, None)]
+        assert c.execute("SELECT count(*) FROM whole_bookings").fetchone()[0] == 0
+        assert c.execute("SELECT seats_left(1), seats_left(2)").fetchone() == (32, 44)
+        assert c.execute("SELECT seat_capacity, booked FROM windows ORDER BY id").fetchall() == [(44, 12), (44, 0)]
+        assert c.execute("SELECT cutoff_whole FROM settings").fetchone()[0] == dt.timedelta(hours=72)
+        assert c.execute("SELECT whole_price_ore FROM saunas ORDER BY id").fetchall() == [(None,), (None,)]
+        assert c.execute("SELECT is_nullable FROM information_schema.columns "
+                         "WHERE table_name = 'whole_bookings' AND column_name = 'booking_id'").fetchone()[0] == "NO"
+        triggers = c.execute("SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass "
+                             "AND NOT tgisinternal ORDER BY tgname").fetchall()
+        assert triggers == [("a_lock_bookings",), ("b_cancelled_frozen",), ("b_kind_fixed",), ("t_bookings",),
+                            ("t_pair_bookings",)]
+        with pytest.raises(psycopg.errors.CheckViolation) as e:
+            c.execute("UPDATE settings SET cutoff_whole = interval '1 hour'")
+        assert e.value.diag.constraint_name == "cutoff_whole_at_least_2_hours"
+        c.rollback()
+        with pytest.raises(psycopg.errors.CheckViolation) as e:  # a Seat booking holds 1 to 10 Seats
+            c.execute("UPDATE bookings SET seats = 11, total_ore = 275000 WHERE id = 1")
+        assert e.value.diag.constraint_name == "bookings_kind_shape"
+
+
+def test_0013_refuses_a_seat_booking_above_10_seats_and_says_why(tmp_path, scratch_db):
+    """A legacy Seat booking above 10 Seats (slice databases only) stops 0013 with a message that counts the rows."""
+    migrations.migrate(scratch_db, upto(tmp_path, "0012", "before"))
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 44, 1)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+                  "VALUES (1, 12, 'AAAAAAAA', 'Ada', 'ada@example.com', 25000, 300000)")
+    with pytest.raises(psycopg.errors.RaiseException, match=r"1 Booking row\(s\) hold more than 10 Seats"):
+        migrations.migrate(scratch_db)
+    with psycopg.connect(scratch_db) as c:  # nothing of 0013 was applied
+        assert c.execute("SELECT count(*) FROM schema_migrations WHERE name LIKE '0013%'").fetchone()[0] == 0

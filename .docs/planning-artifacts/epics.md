@@ -278,7 +278,7 @@ The PRD, the spine and the UX spines stay the source of truth. Each requirement 
 **If-time plug-ins (only when their epic is built)**
 - **UX-DR39 Voucher field (§4.8).** On Review between the Booking summary and the terms, always visible once built: a Text field with a Text link beside it; reduces the amount and updates the Pay label; expired, used-up and unknown codes get one identical Field error; rest by Simulated payment. Wording when the Voucher covers the whole total is open (Open Item 23) and is decided in that story.
 - **UX-DR40 Manage booking (§4.8, §4.9).** Reached from the Manage link (`/manage#t=…` → `/manage/[reference]`); shows the Booking and the Changes allowed; each Change has a confirming step that changes nothing, then a result page with "Sent by email:"; after the Cutoff the Booking is shown and every Change refused with the reason; an invalid, expired or replaced link shows "This page is not available."; `X-Robots-Tag: noindex`, no referrer. Open Items 19–22 (after a Voucher, after a Venue cancellation, after the Window ends, Cutoff wording) are decided in the §4.8 stories.
-- **UX-DR41 Private sauna (§4.9).** A Text link directly under Book seats in the Landing rail; the price per Sauna on each Sauna card under the size line; the Seat statement gains the group sentence on Landing and in the Book seats rail; a Private sauna page with Sauna options (name, size and price, then Session rows), viewable by Session or by Sauna by regrouping one API response; the same Details, Review ("The sauna is not held while you pay.") and Confirmation (naming the Sauna).
+- **UX-DR41 Private sauna (§4.9).** Two equal Booking choices in the Landing rail, Book seats and directly under it Book private sauna, the same size and with no other text (Lisa 2026-11-25; replaces the Text link); the price per Sauna on each Sauna card under the size line; the Seat statement gains the group sentence on Landing and in the Book seats rail; a Private sauna page with Sauna cards (photo, name, size, price and description), by Sauna with each card's free sessions as buttons so one click chooses both, and by Session with the sessions as buttons and then the free Saunas as cards (Lisa 2026-11-25, proposals H and K), both regrouping one API response; the same Details, Review ("The sauna is not held while you pay.") and Confirmation (naming the Sauna).
 
 ### FR Coverage Map
 
@@ -1427,12 +1427,12 @@ So that I can choose a private sauna for my group before I commit to anything.
 
 **Given** a Guest on Landing after this story
 **When** the page renders
-**Then** the rail holds a "Private sauna" Text link directly under Book seats, never a second Primary button; each Sauna card shows its price under the size line; and the Seat statement in "The saunas" intro gains the group sentence that a group that wants to stay together should book a Private sauna (FR-1.7, FR-4, UX-DR41, UX-DR16)
+**Then** the rail holds two equal Booking choices, "Book seats" and directly under it "Book private sauna", in the Primary button's fill and edge, the label centred, the same size (Lisa 2026-11-25; replaces the Text link); each Sauna card shows its price under the size line; and the Seat statement in "The saunas" intro gains the group sentence that a group that wants to stay together should book a Private sauna (FR-1.7, FR-4, UX-DR41, UX-DR16)
 **And** the Book seats rail shows the same group sentence, still within the Book seats first-view budget at 1366×768 (UX-DR22), and no Seat-flow page names a Sauna (FR-4)
 
 **Given** a Guest opens the Private sauna page and picks a date
 **When** the listing returns
-**Then** the page shows one Sauna option per Sauna with its name, "Holds 12"-style size and price ("NOK …"), then its free sessions as Session rows, and offers the view by session as well, both built only by regrouping the one API response (UX-DR41, AD-24)
+**Then** the page shows one Sauna card per Sauna with its photo, name, "Holds 12"-style size, price ("NOK …") and description, and its free sessions as buttons that choose the Sauna and the session in one click, and offers the view by session as well (session buttons, then the free Saunas as cards), both built only by regrouping the one API response (UX-DR41, AD-24)
 **And** the date control reuses the Date calendar from Book seats (typed or picked, horizon from the server, UX-DR17), the page uses only the shared components and the one stylesheet, and an empty result says so plainly with no urgency cue (NFR-9)
 
 **Given** the Private sauna page in the e2e layer

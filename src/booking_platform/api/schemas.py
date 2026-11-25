@@ -41,6 +41,12 @@ class WindowsQuery(DateQuery):
     seats: Seats | None = None
 
 
+class PrivateSaunasQuery(DateQuery):
+    """`GET /api/private-saunas?date=` (FR-30, AD-24): the Venue date is required. No other field."""
+
+    date: dt.date
+
+
 class BookingListQuery(DateQuery):
     """`GET /api/admin/bookings?date=` (FR-16): the date is optional (the API's today); any calendar date is
     allowed. No other field."""
@@ -138,11 +144,6 @@ class VoucherQuoteIn(Strict):
     seats: Seats
 
 
-class WholeIn(Strict):
-    window_id: Id
-    sauna_id: Id
-
-
 class BlockIn(Strict):
     sauna_id: Id
     start: AwareDatetime  # with an offset: a naive time would be read in some zone silently
@@ -169,9 +170,12 @@ class SettingsIn(Strict):
 
 
 class SaunaOut(BaseModel):
+    """A Sauna of the Venue facts; `whole_price_ore` is null for a Sauna that is not offered whole (AD-23)."""
+
     id: int
     name: str
     capacity: int
+    whole_price_ore: int | None
 
 
 class VenueOut(BaseModel):

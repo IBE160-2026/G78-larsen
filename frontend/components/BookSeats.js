@@ -2,7 +2,8 @@
 
 // Book seats (FR-2, FR-3, FR-4, UX-DR9/12/13/17–21/26/33–35): the three questions in main (date, number of seats,
 // session, nothing pre-selected) and the rail with the Total block, "Continue booking" (always enabled), the
-// Wordmark, the Seat statement, the changing-time note and the Terms and Privacy links.
+// Wordmark, the Seat statement with the group sentence (Story 5.1), the changing-time note and the Terms and Privacy
+// links.
 //
 // - The page calls `POST /api/session` once, on load, so exactly one session cookie is set (AD-8).
 // - Window listings go through lib/api.js; numbers and every time fact (`today`, `horizon_end`, `horizon_days`,
@@ -22,7 +23,7 @@ import TextLink from './TextLink';
 import TotalBlock from './TotalBlock';
 import Wordmark from './Wordmark';
 import { ApiError, api } from '@/lib/api';
-import { BOOK, CHANGING_TIME, SEAT_STATEMENT } from '@/lib/copy';
+import { BOOK, CHANGING_TIME, GROUP_SENTENCE, SEAT_STATEMENT } from '@/lib/copy';
 import { dotted, monthOf, parseDotted } from '@/lib/dates';
 import { paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
 
@@ -253,7 +254,9 @@ export default function BookSeats({ pricePerSeatOre }) {
       <TotalBlock pricePerSeatOre={pricePerSeatOre} seats={seats} />
       <PrimaryButton onClick={onContinue}>{BOOK.continue}</PrimaryButton>
       <Wordmark />
-      <p className="rail-note">{SEAT_STATEMENT}</p>
+      <p className="rail-note">
+        {SEAT_STATEMENT} {GROUP_SENTENCE}
+      </p>
       <p className="rail-note">{CHANGING_TIME}</p>
       <p className="rail-note rail-links">
         <TextLink href="/terms">Terms</TextLink>

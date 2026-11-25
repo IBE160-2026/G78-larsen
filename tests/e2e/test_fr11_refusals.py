@@ -33,10 +33,12 @@ from .test_fr05_book_and_pay import _norm, draft, free_windows, open_session, re
 NAME, EMAIL = "Refused Guest", "refused@example.com"
 REFERENCE = re.compile(r"/confirmation/[0-9A-HJKMNP-TV-Z]{8}$")
 
-# Seats taken around the API (AD-21); "E2F" + the Window id is unique among these rows, removed by the fixture.
+# Seats taken around the API (AD-21), in rows of at most 10 (a Seat booking holds 1 to 10, Story 5.1); "F" + the row's
+# number + "F" + the Window id is unique among these rows, removed by the fixture.
 RAW_FILL = ("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
-            "SELECT v.w, v.s, 'E2F' || lpad(v.w::text, 5, '0'), 'E2E fill', 'e2e@example.com', 25000, v.s * 25000 "
-            "FROM (VALUES (%s, %s)) AS v(w, s)")
+            "SELECT v.w, LEAST(10, v.s - 10 * g.i), 'F' || g.i || 'F' || lpad(v.w::text, 5, '0'), 'E2E fill', "
+            "'e2e@example.com', 25000, LEAST(10, v.s - 10 * g.i) * 25000 "
+            "FROM (VALUES (%s, %s)) AS v(w, s) CROSS JOIN LATERAL generate_series(0, (v.s - 1) / 10) AS g(i)")
 
 
 @pytest.fixture

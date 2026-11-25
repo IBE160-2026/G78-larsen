@@ -159,7 +159,9 @@ def test_a_cancelled_booking_is_frozen_by_the_store(before_cutoff, pg):
     assert rows(pg, "SELECT status, seats, window_id FROM bookings WHERE id = %s", (bid,)) == [("cancelled", 2, 1)]
     triggers = rows(pg, "SELECT tgname FROM pg_trigger WHERE tgrelid = 'bookings'::regclass AND NOT tgisinternal "
                         "ORDER BY tgname")
-    assert triggers == [("a_lock_bookings",), ("b_cancelled_frozen",), ("t_bookings",)]
+    # 0013 (Story 5.1) adds `b_kind_fixed` and the deferred pairing trigger `t_pair_bookings`
+    assert triggers == [("a_lock_bookings",), ("b_cancelled_frozen",), ("b_kind_fixed",), ("t_bookings",),
+                        ("t_pair_bookings",)]
 
 
 def test_the_history_and_payment_shapes_of_a_voucher(before_cutoff, pg):

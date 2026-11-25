@@ -14,14 +14,15 @@ Det vanskelige er kapasiteten: plattformen skal aldri selge samme plass to gange
 
 ## Status (2026-11-24)
 
-Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Epic 4 er bygget: hver Seat-booking får en Manage-lenke i bekreftelses-e-posten, og lenken åpner bookingen uten konto (Story 4.1). Med lenken kan gjesten flytte alle eller noen av plassene til en annen badstueøkt fram til 12 timer før start, og bookinglisten viser status og endringshistorikk (Story 4.2, FR-26). Gjesten kan også gi opp noen eller alle plassene mot en Voucher verdt det som ble betalt; gir gjesten opp alle, er bookingen kansellert (Story 4.3, FR-27). En Voucher betaler hele eller deler av en ny booking på Review; resten betales med simulert kortbetaling (Story 4.4, FR-28). Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
+Core er bygget (Epic 1 og 2, PRD §10.1): landingssiden, Book seats, Details, Review og Confirmation med simulert betaling og avvisninger uten belastning, vilkår og personvern, og for Administrator innlogging, bookinglisten og Outbox. Hele plattformen går over HTTPS (Epic 3, FR-24); vanlig HTTP blir bare sendt videre til HTTPS. Epic 4 er bygget: hver Seat-booking får en Manage-lenke i bekreftelses-e-posten, og lenken åpner bookingen uten konto (Story 4.1). Med lenken kan gjesten flytte alle eller noen av plassene til en annen badstueøkt fram til 12 timer før start, og bookinglisten viser status og endringshistorikk (Story 4.2, FR-26). Gjesten kan også gi opp noen eller alle plassene mot en Voucher verdt det som ble betalt; gir gjesten opp alle, er bookingen kansellert (Story 4.3, FR-27). En Voucher betaler hele eller deler av en ny booking på Review; resten betales med simulert kortbetaling (Story 4.4, FR-28). Epic 5 er påbegynt: siden **Private sauna** (`https://localhost:8443/private-sauna`, lenket fra landingssiden rett under Book seats) viser for en valgt dato hvilke badstuer som kan bookes hele, med størrelse, pris og ledige økter, sortert etter badstue eller etter økt (Story 5.1, FR-29, FR-30). Selve bookingen og betalingen kommer i Story 5.2. Status per vurderingskriterium står i [sensorveiledningen](.docs/sensorveiledning-kravsporing.md).
 
 ### Ikke levert
 
 Dette er ikke bygget per i dag (DR-2). Senere epics korter ned listen.
 
-- **Suksesskriteriene SC2 og SC4–SC8**: hel badstue (SC2, SC4), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
-- **FR-29 til FR-51**: hel badstue, holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett. Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
+- **Suksesskriteriene SC2 og SC4–SC8**: hel badstue (SC2, SC4; bare oversikten fra Story 5.1 er bygget), gavekort (SC5), dørkoder (SC6), medlemskap og klippekort (SC7, bare visjon) og justerbare regler (SC8).
+- **Resten av hel badstue (Story 5.2–5.5)**: å booke og betale en Private sauna (5.2), å kansellere eller flytte den (5.3), Plassering i bookinglisten for Administrator (5.4) og modell- og kappløpstestene for Plassering (5.5). Story 5.1 viser bare hvilke badstuer som kan bookes hele.
+- **FR-31 til FR-51**: holds, gjestekontoer, innstillinger, blokker, gavekort, dørkoder og mobiloppsett (FR-29 og FR-30 er delvis levert, se over). Noen regler fra den første skiva (holds og blokker, FR-35, FR-36, FR-40, FR-41) finnes i databasen og har tester, men ingen side bruker dem ennå.
 - **Mobildelen av SC10**. Core er laget for laptop.
 - **WCAG 1.4.10 Reflow** (innhold i 320 CSS-piksler bredde uten rulling i to retninger) er ikke oppfylt før mobiloppsettet (FR-51) finnes. Det er det eneste avviket fra WCAG 2.2 AA som de automatiske testene kjenner, og tilgjengelighetsrapporten fra e2e-testene oppgir det. De manuelle testene og funnene deres står i [`tests/manual/core-accessibility.md`](tests/manual/core-accessibility.md).
 
@@ -132,6 +133,8 @@ Seeden legger også inn tolv eksempelbookinger (`seeds/bookings.json`), én gang
 | Om 5 dager | 10:00 | 1 (4 plasser) | Vanlig |
 
 En omstart, også en senere dag, lager ingen kopier.
+
+Seeden setter også prisen for å booke en hel badstue (`whole_price_ore` i `seeds/venue.json`, besluttet av Lisa 2026-11-25): Rauha (7 plasser) NOK 1850, Löyly (10 plasser) NOK 2600, Kajo (12 plasser) NOK 3150 og Lumo (15 plasser) NOK 3950. Alle badstuene kan bookes både med plasser og hele, med mindre en badstue er merket som ikke tilgjengelig hel (`bookable_whole = false`) eller ikke har pris. Prisen er snittet for sammenlignbare badstuer i Oslo, omtrent NOK 262 per plass, ganger antall plasser og rundet til nærmeste 50. Seeden fyller bare inn en pris som mangler i databasen, så en pris som er endret der, blir stående.
 
 ## Outbox
 

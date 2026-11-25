@@ -78,7 +78,6 @@ def test_a_query_parameter_of_the_wrong_type_is_422(api):
     ("/api/holds", dict(window_id=2**31, seats=1), ["window_id"]),
     ("/api/bookings", dict(window_id=0, seats=1), ["window_id"]),
     ("/api/admin/marks", dict(window_id=1, sauna_id=2**31), ["sauna_id"]),
-    ("/api/admin/whole-bookings", dict(window_id=2**63, sauna_id=1), ["window_id"]),
 ])
 def test_an_id_outside_int4_is_422(api, admin, pg, path, body, fields):
     c = admin if path.startswith("/api/admin/") else api

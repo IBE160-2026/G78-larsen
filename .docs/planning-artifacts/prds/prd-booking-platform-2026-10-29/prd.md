@@ -162,7 +162,7 @@ Guests are people who already enjoy Finnish saunas, and people who are curious t
 ## 4. Features
 
 ### 4.1 Find a Window *[Core]*
-**Description:** A Guest lands on a calm page. It says in a few lines what Saunalöyly is and offers one main action, **Book seats**. The Guest picks a date within the Booking horizon and the number of Seats, then sees that date's Windows, each with its Seats left, and one total price for the chosen number. The Guest books Seats, never a particular Sauna, and the page says so. The **Private sauna** entry appears only once §4.9 is built. Realizes UJ-1 and UJ-2.
+**Description:** A Guest lands on a calm page. It says in a few lines what Saunalöyly is and offers the action **Book seats**. The Guest picks a date within the Booking horizon and the number of Seats, then sees that date's Windows, each with its Seats left, and one total price for the chosen number. The Guest books Seats, never a particular Sauna, and the page says so. Once §4.9 is built, **Book private sauna** stands directly under Book seats as an equal choice of the same look, so the Guest first chooses between Seats and a Private sauna, as in the brief. Realizes UJ-1 and UJ-2.
 
 **Functional Requirements:**
 
@@ -177,7 +177,7 @@ A Guest can open the website without signing in and start a Seat booking in one 
   - what to bring: swimwear to wear at the venue, two towels (one to sit on and one to dry yourself with) and a bottle for water;
   - safety: drinking enough water, no alcohol at the venue, rounds of at most 10 minutes and leaving when unwell, asking the others before throwing water on the stones, swimming preferably with others and never ice-bathing alone, and children supervised by an adult;
   - practical: changing time is part of the Window, a wardrobe, sea swimming all year round, showers and a tap with drinking water.
-- **FR-1.5** The website presents the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4).
+- **FR-1.5** The website presents the Saunas as places to visit, each with one image and one line, worded so that a Seat booking never seems to choose one (FR-4). Once §4.9 is built, the Private sauna page shows each Sauna with the same image and a longer description of one or two sentences, because there the Guest does choose the Sauna (FR-30).
 - **FR-1.6** The website shows the opening hours and the Window schedule.
 - **FR-1.7** The website shows the price per Seat, and the price per Sauna once §4.9 exists.
 - **FR-1.8** The website shows the fictional address and contact details that FR-5 also shows. None of them can reach anyone: the postcode and the phone number cannot exist in Norway, and the email uses the reserved `.example` domain.
