@@ -44,7 +44,7 @@ Give every Seat booking a Manage link in its confirmation email that opens that 
 - Booking list: one history line per Change under the Booking and a Status column (Active/Cancelled); a Voucher line shows the value issued, never the code. Cancelled Bookings stay listed with cause "Guest" and remedy "Voucher", outside Seats booked.
 - Review (4.4): Voucher field (Text field plus Text link) between the Booking summary and the terms, always visible. A valid code shows the Voucher part and the Pay label becomes the card part; any invalid code gives one identical Field error and Error summary entry with the input kept. After a refusal the code stays in the draft and is quoted again.
 - Decided for 4.3 (Lisa, 2026-11-24; EXPERIENCE.md "Give up seats wording"): after all Seats are given up the Manage page shows the Booking as cancelled with no Changes; the step, result, email and Booking list copy are fixed there.
-- Still for Lisa to decide: the Pay and payment-note wording when a Voucher covers the whole total, the Text link label, and the confirmation wording for Voucher/card parts (4.4).
+- Decided for 4.4 (Lisa, 2026-11-24; EXPERIENCE.md "Pay with a voucher wording", Open Item 23): field "Voucher code" with Text link "Apply voucher"; one invalid-code message; Pay "Book with voucher" when the Voucher covers all, the payment note only with a card part; "Paid with voucher"/"Paid by card" rows on Confirmation and in the email.
 
 ## Cross-Story Dependencies
 

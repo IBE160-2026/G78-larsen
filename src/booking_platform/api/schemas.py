@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import datetime as dt
 import re
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictStr, ValidationInfo, field_validator
+from pydantic import (AwareDatetime, BaseModel, ConfigDict, Field, StrictStr, StringConstraints, ValidationInfo,
+                      field_validator, model_validator)
 
 INT4_MAX = 2_147_483_647
 Seats = Annotated[int, Field(ge=1, le=10)]
@@ -92,6 +93,12 @@ class VoucherIn(Strict):
     version: Int4
 
 
+# A typed Voucher code: any JSON string up to 1024 characters for the shape; whether it is a code is
+# `services.voucher`'s question (`409 voucher_invalid`), never a shape error (AD-30). It is never stripped (also
+# inside `BookingIn`), so input longer than 32 characters stays too long however much of it is spaces.
+VoucherCode = Annotated[StrictStr, StringConstraints(max_length=1024, strip_whitespace=False)]
+
+
 class HoldIn(Strict):
     window_id: Id
     seats: Seats
@@ -109,6 +116,26 @@ class BookingIn(Strict):
     name: Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[^\x00-\x1f\x7f]+$")]
     email: Annotated[str, Field(min_length=3, max_length=254,
                                 pattern=r"^[^@\s\x00-\x1f\x7f]+@[^@\s\x00-\x1f\x7f]+\.[^@\s\x00-\x1f\x7f]+$")]
+    # A Voucher (FR-28, AD-30): one code and the quoted Voucher part, both or neither. Any string up to the shape cap is
+    # accepted here; a code that is not usable is `409 voucher_invalid`, never a shape error.
+    voucher_code: VoucherCode | None = None
+    voucher_part_ore: Annotated[int, Field(ge=1, le=INT4_MAX)] | None = None
+
+    @model_validator(mode="after")
+    def _voucher_both_or_neither(self) -> "BookingIn":
+        if (self.voucher_code is None) != (self.voucher_part_ore is None):
+            raise ValueError("voucher_code and voucher_part_ore go together")
+        return self
+
+
+class VoucherQuoteIn(Strict):
+    """`POST /api/vouchers/quote` (FR-28, AD-30): what a Voucher would pay of `seats` Seats in the Window. Only Seat
+    quotes (`kind: 'seats'`) in v1."""
+
+    code: VoucherCode
+    kind: Literal["seats"]
+    window_id: Id
+    seats: Seats
 
 
 class WholeIn(Strict):
@@ -161,6 +188,20 @@ class VenueOut(BaseModel):
     saunas: list[SaunaOut]
 
 
+class PaidOut(BaseModel):
+    """How a Booking was paid (FR-28, AD-31): its `charge` rows summed by method, in øre."""
+
+    voucher_ore: int
+    card_ore: int
+
+
+class VoucherQuoteOut(BaseModel):
+    """What a Voucher would pay (FR-28): never its balance or expiry."""
+
+    voucher_part_ore: int
+    card_part_ore: int
+
+
 class BookingOut(BaseModel):
     """A Seat booking as every page shows it (FR-8): the stored price and total in øre, the Venue date and the
     Window's start and end in Venue time. No Sauna (FR-4) and no internal id."""
@@ -175,6 +216,7 @@ class BookingOut(BaseModel):
     name: str
     email: str
     status: str
+    paid: PaidOut
 
 
 class EmailOut(BaseModel):

@@ -255,6 +255,24 @@ The Voucher value is always the Seats given up × the price per Seat stored on t
 | "Gave up {N seat(s)} on {dd.mm.yyyy HH:MM} for a voucher of NOK {value}" | Booking list, history line under the Booking; never the code |
 | "Cancelled {dd.mm.yyyy HH:MM} · Guest · Voucher" | Booking list, Status cell of a cancelled Booking (time, cause, remedy); it stays listed, outside Seats booked |
 
+**Pay with a voucher wording, accepted by Lisa (2026-11-24, Story 4.4, FR-28)**
+
+Expired, used-up, unknown and mistyped codes get one identical message, which never says which cause applies (PRD FR-28, AD-30). No page or response states a Voucher's balance or expiry.
+
+| Text | Where |
+|---|---|
+| "Voucher code" | Label of the Voucher field on Review, between the Booking summary and the booking terms, always visible |
+| "Apply voucher" | Text link beside the field; Enter in the field applies too |
+| "This voucher code cannot be used. It may be mistyped, used up or expired. Check the code and try again." | Field error and Error summary entry for every invalid code, on apply or at Pay; the input is kept |
+| "The voucher could not be checked, please try again." | Field error when the code cannot be checked (technical failure); the input is kept, no Voucher applied |
+| "Voucher" "−NOK {part}", then "To pay by card" "NOK {card}" | Booking summary rows on Review after Total, only while a Voucher is applied; "To pay by card" left out when 0 |
+| "Pay NOK {card}" | Pay when a card part remains |
+| "Book with voucher" | Pay when the Voucher covers the whole total (Open Item 23) |
+| "Simulated payment: no money moves" | Payment note, only where a card payment is made (Review, Confirmation, email); left out when the Voucher covers the whole total |
+| "Paid with voucher: NOK {part}", "Paid by card: NOK {card}" | Confirmation and confirmation email, after Total; a zero part left out; without a Voucher nothing new is shown |
+
+Editing or emptying the field removes the applied Voucher; there is no separate remove control. After a refusal (`no_seat_free`, `deadline_passed`, `try_again`) the Voucher has not been spent, and choosing a nearest session keeps the code and quotes it again.
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.
@@ -329,7 +347,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 | Component | Use | Behavioural rules |
 |---|---|---|
 | Private sauna entry | Landing rail | See If-time Plug-in Points. Absent until §4.9 is built |
-| Voucher field | Review | See If-time Plug-in Points. Absent until §4.8 is built |
+| Voucher field | Review | See If-time Plug-in Points and the Pay with a voucher wording in Voice and Tone (Story 4.4) |
 | Sign-in choice | Between Book seats and Details | See If-time Plug-in Points. Absent until §4.12 is built |
 | Sauna option | Private sauna page | One per Sauna that FR-29 allows, with Capacity, price and free Sessions (FR-30). The Guest always picks the Sauna |
 
@@ -512,7 +530,7 @@ Core pages leave room for these and show none of them until built. None of them 
 |---|---|---|
 | Private sauna entry (§4.9) | [ASSUMPTION] Landing rail, directly under Book seats, as a Text link, because the page keeps one main action (§4.1). On narrow screens it is in the page flow, not in the Fixed action bar | Opens the Private sauna page. Landing also gains the price per Sauna: [ASSUMPTION] on each Sauna card, under the size line |
 | Seat statement (§4.9) | Landing "The saunas" intro and Book seats rail | Gains the group sentence (FR-4) |
-| Voucher field (§4.8) | [ASSUMPTION] Review, between the Booking summary and the terms, always visible, because PRD §7 says "at payment" and the total must be settled before accepting | Reduces the amount and updates the Pay label (FR-28). Expired, used-up and unknown codes get one identical refusal as a Field error. Rest paid by Simulated payment |
+| Voucher field (§4.8) | Review, between the Booking summary and the terms, always visible, because PRD §7 says "at payment" and the total must be settled before accepting (confirmed by Story 4.4) | Reduces the amount and updates the Pay label (FR-28). Expired, used-up and unknown codes get one identical refusal as a Field error. Rest paid by Simulated payment |
 | Sign-in choice (§4.12) | After Continue, before Details. Space reserved in the flow by keeping Details as its own page | Continuing without an account is the default and most prominent option, as the Primary button. Sign-in is a Text link (FR-37). A signed-in Guest books with the account's email |
 | Hold (§4.11) | Starts when Continue is pressed. No visible element | The Guest is told nothing (FR-35). [ASSUMPTION] Cancel is a Text link on Details and Review that returns to Book seats and releases the Hold, because FR-35 needs a Cancel and no page names one |
 | My booking (§4.10) | [ASSUMPTION] Text link in the Find us block, which is the home for ways to reach the Venue | Booking reference and email, same reply whether or not they match, no Booking data shown (FR-34). The new link appears only in the Outbox |
@@ -636,7 +654,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 20. Manage page after a Venue cancellation.
 21. Manage page after the end of the Session. FR-25 says the link shows the Booking until then, and the page after that is undecided. It may simply be "This page is not available."
 22. Wording of the reason shown after the Cutoff.
-23. A Voucher that covers the whole total, where "Pay NOK 0" needs other wording.
+23. A Voucher that covers the whole total, where "Pay NOK 0" needs other wording. Closed by Lisa 2026-11-24 (Story 4.4): Pay says "Book with voucher" and the payment note is left out when no card part is paid. See the Pay with a voucher wording in Voice and Tone.
 24. A resend refused by the rate limit. FR-34 requires the same response for match and no match, so check how the two fit together.
 25. Remedy page after the choice or after 30 days. Depends on FR-42 in §4.13.
 26. A Seat taken by another Guest while the details are entered, once Holds exist. Core treats this at Pay (Flow 1).

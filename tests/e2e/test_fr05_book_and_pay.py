@@ -151,10 +151,11 @@ def test_details_review_and_confirmation_pass_axe_and_fit_every_width(page: Page
     page.get_by_role("button", name="Pay NOK 500").wait_for()
     a11y.check_axe(page)
     a11y.no_horizontal_scroll(page)
-    # two columns down to 1200 px: the summary beside the terms; stacked below
+    # two columns down to 1200 px: the summary beside the terms' column (the Voucher field, Story 4.4, then the
+    # terms); stacked below
     page.set_viewport_size({"width": 1366, "height": 768})
     left_box = page.locator(".summary").bounding_box()
-    right_box = page.locator(".terms-section").bounding_box()
+    right_box = page.locator(".review-cols > div:has(.terms-section)").bounding_box()
     assert left_box["x"] < right_box["x"] and abs(left_box["y"] - right_box["y"]) < 40
     page.set_viewport_size({"width": 1199, "height": 768})
     assert page.locator(".summary").bounding_box()["y"] < page.locator(".terms-section").bounding_box()["y"]

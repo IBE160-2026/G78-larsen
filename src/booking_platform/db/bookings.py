@@ -40,6 +40,14 @@ def insert_payment(c: psycopg.Connection, booking_id: int, direction: str, metho
                      (booking_id, direction, method, amount_ore, voucher_id)).fetchone()[0]
 
 
+def charges(c: psycopg.Connection, booking_id: int) -> tuple[int, int]:
+    """(voucher_ore, card_ore): the Booking's `charge` rows summed by method (AD-31). Returns are not subtracted."""
+    return c.execute(
+        "SELECT COALESCE(SUM(amount_ore) FILTER (WHERE method = 'voucher'), 0)::bigint, "
+        "COALESCE(SUM(amount_ore) FILTER (WHERE method = 'card'), 0)::bigint "
+        "FROM payments WHERE booking_id = %s AND direction = 'charge'", (booking_id,)).fetchone()
+
+
 # ------------------------------------------------------------------ the Outbox (AD-12)
 
 

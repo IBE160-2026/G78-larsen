@@ -8,6 +8,7 @@
 // browser session; any other browser, no browser session and an unknown reference get "This page is not available."
 // (FR-20 RB-4). A reload in the paying session shows the page again. Straight after Pay, Review has read it already,
 // so the h1 is on the page at once (lib/confirmation.js). The Manage link (Story 4.1) appears only in the email as sent.
+// A Booking paid with a Voucher (Story 4.4) shows "Paid with voucher" and "Paid by card" after Total.
 import { useEffect, useRef, useState } from 'react';
 import BookingSummary from './BookingSummary';
 import EmailAsSent from './EmailAsSent';
@@ -25,6 +26,18 @@ import { heldConfirmation } from '@/lib/confirmation';
 import { CONFIRMATION, SUMMARY, seatsWord } from '@/lib/copy';
 import { clockTime, longDate } from '@/lib/dates';
 import { nok } from '@/lib/venue-format';
+
+/**
+ * "Paid with voucher" and "Paid by card" after Total when a Voucher paid part (FR-28, Story 4.4); a zero part left out.
+ * Without a Voucher, no rows: the page is as before.
+ */
+function paidRows(paid) {
+  if (!paid || !(paid.voucher_ore > 0)) return [];
+  return [
+    { label: CONFIRMATION.paidWithVoucher, value: nok(paid.voucher_ore) },
+    ...(paid.card_ore > 0 ? [{ label: CONFIRMATION.paidByCard, value: nok(paid.card_ore) }] : []),
+  ];
+}
 
 export default function Confirmation({ reference, venue }) {
   // Straight after Pay, Review has already read it (lib/confirmation.js): the h1 is there from the first render.
@@ -82,6 +95,7 @@ export default function Confirmation({ reference, venue }) {
                 { label: SUMMARY.session, value: `${clockTime(b.start)}–${clockTime(b.end)}` },
                 { label: SUMMARY.seats, value: seatsWord(b.seats) },
                 { label: SUMMARY.total, value: `${nok(b.total_ore)} incl. VAT` },
+                ...paidRows(b.paid),
                 { label: SUMMARY.email, value: b.email },
                 ...venueRows(venue),
               ]}

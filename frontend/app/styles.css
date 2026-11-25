@@ -1023,6 +1023,37 @@ a {
   accent-color: var(--color-link);
 }
 
+/* The Voucher field on Review (Story 4.4): the label above, the Text field with "Apply voucher" beside it. */
+.voucher-field {
+  margin-bottom: var(--space-5);
+}
+
+.voucher-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.voucher-row .text-field {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 18rem;
+}
+
+/* A button that looks and reads as a Text link. */
+.text-button {
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  cursor: pointer;
+}
+
 /* Pay with the payment note beside it. */
 .pay-row {
   display: flex;

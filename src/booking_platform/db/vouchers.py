@@ -1,6 +1,6 @@
-"""SQL for Vouchers (FR-27, AD-30). Only `services.voucher` calls `insert`, the one writer of `vouchers`. The code is
-never passed here: only its SHA-256 hash. Dates come from `app_now()` in Venue time, computed in SQL (AD-4). Every
-function takes the connection of the caller's transaction (`db.run`)."""
+"""SQL for Vouchers (FR-27, FR-28, AD-30). Only `services.voucher` calls `insert` and `spend`, the writers of
+`vouchers`. The code is never passed here: only its SHA-256 hash. Dates come from `app_now()` in Venue time, computed
+in SQL (AD-4). Every function takes the connection of the caller's transaction (`db.run`)."""
 
 from __future__ import annotations
 
@@ -31,3 +31,20 @@ def read(c: psycopg.Connection, voucher_id: int) -> tuple[int, dt.date] | None:
     return c.execute(
         "SELECT v.value_ore, (v.expires_at AT TIME ZONE st.venue_tz)::date - 1 FROM vouchers v CROSS JOIN settings st "
         "WHERE v.id = %s", (voucher_id,)).fetchone()
+
+
+def valid_balance(c: psycopg.Connection, code_hash: bytes) -> int | None:
+    """The balance of a valid Voucher (it exists, `balance_ore > 0`, `expires_at > app_now()`), or None. Unlocked and
+    read-only: for the quote (FR-28). The balance never leaves `services.voucher`."""
+    row = c.execute("SELECT balance_ore FROM vouchers WHERE code_hash = %s AND balance_ore > 0 "
+                    "AND expires_at > app_now()", (code_hash,)).fetchone()
+    return None if row is None else row[0]
+
+
+def spend(c: psycopg.Connection, code_hash: bytes, part_ore: int) -> int | None:
+    """Take `part_ore` from a valid Voucher in one conditional statement (AD-30); its id, or None when no Voucher with
+    this hash has that much left before its expiry. Called only by `services.voucher.spend`, after `lock_windows`."""
+    row = c.execute("UPDATE vouchers SET balance_ore = balance_ore - %(part)s WHERE code_hash = %(h)s "
+                    "AND balance_ore >= %(part)s AND expires_at > app_now() RETURNING id",
+                    {"h": code_hash, "part": part_ore}).fetchone()
+    return None if row is None else row[0]

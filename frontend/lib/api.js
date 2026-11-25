@@ -20,6 +20,7 @@ export const STATUS = Object.freeze({
   booking_cancelled: 409,
   booking_changed: 409,
   change_invalid: 409,
+  voucher_invalid: 409,
   invalid_key: 409,
   payment_pending: 409,
   payment_failed: 409,

@@ -32,6 +32,7 @@ STATUS: dict[str, int] = {
     "booking_cancelled": 409,  # a Change of a cancelled Booking (AD-29)
     "booking_changed": 409,  # a Change sent with another `version` than the Booking's (AD-29); fact `booking`
     "change_invalid": 409,  # a Change that cannot apply (AD-29); fact `reason`: `seats_exceed` or `same_target`
+    "voucher_invalid": 409,  # a Voucher code that cannot be used, for every cause, with no facts (FR-28, AD-30)
     "invalid_key": 409,  # an Idempotency-Key already used by another session or for another request (AD-9)
     "payment_pending": 409,  # the payment is held (test switch `payment = "hold"`, AD-14); nothing written
     "payment_failed": 409,  # the payment failed (test switch `payment = "fail"`, FR-7); nothing written

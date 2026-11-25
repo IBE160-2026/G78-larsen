@@ -1,6 +1,7 @@
 // The Booking draft (AD-9, UX-DR26): `sessionStorage` key `draft:seats`, so the Guest's choices survive a reload in
-// the same tab and disappear with the tab. It holds `{date, seats, window_id, name, email, key}`: Book seats writes the
-// choices, Details the name and email, and Review makes the idempotency key when the Guest first reaches it. After a
+// the same tab and disappear with the tab. It holds `{date, seats, window_id, name, email, key, voucher_code}`: Book
+// seats writes the choices, Details the name and email, and Review makes the idempotency key when the Guest first
+// reaches it and keeps the Voucher code as typed (Story 4.4). After a
 // payment the draft is `{reference}` only, so Details and Review replace themselves with Confirmation and nothing can
 // be paid twice; Book seats then starts a new draft. Call these only inside effects: `sessionStorage` does not exist
 // while rendering on the server. Storage that is unavailable or full is ignored, so the page still works without a
