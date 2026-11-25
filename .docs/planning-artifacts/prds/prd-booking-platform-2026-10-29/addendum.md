@@ -453,6 +453,8 @@ On 2026-11-19 these dates and names were taken out of the FR text (PRD §4 and `
 | FR-23 | Every Core page meets WCAG 2.2 level AA, with one stated exception: success criterion 1.4.10 Reflow (content at 320 CSS pixels wide without two-way scrolling) is met only once the mobile layout exists (FR-51), which comes last in Step 2 | Lisa | 2026-10-30 |
 | FR-23 | The Core meets it once the 200 % test below passes, because 1.4.4 Resize text is part of it | Lisa | 2026-11-06 |
 | FR-26 | A move costs nothing extra, because the price per Seat is the same in every Window in v1 | Lisa | 2026-10-30 |
+| §4.1 | Landing offers Book seats and, once §4.9 is built, Book private sauna directly under it as two equal choices of the same look; this replaces "one main action", written for the Core, and follows the brief ("The guest first chooses Individual seats or Private sauna") | Lisa | 2026-11-25 |
+| FR-1.5 | The Private sauna page shows each Sauna with the same image and a longer description of one or two sentences; the one line stays on Landing | Lisa | 2026-11-25 |
 | FR-29 | Once a Window has started, Seat bookers may already be sitting in any Sauna open for Seats; this is the v1 counterpart of H12 | Lisa | 2026-10-30 |
 | FR-21 | The session cookie is also set when a Guest opens a Manage link (architecture AD-28) | Lisa | 2026-11-19 |
 | FR-24 | On `localhost`, browsers send Secure cookies over plain HTTP anyway, so the local test checks the cookie attributes (architecture AD-27) | Lisa | 2026-11-19 |
