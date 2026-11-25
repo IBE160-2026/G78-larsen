@@ -25,6 +25,8 @@ from psycopg.conninfo import make_conninfo
 
 from booking_platform import config, db
 from booking_platform.services import manage
+from booking_platform.services.booking import nok
+from booking_platform.services.seed import manage_email
 from client import COOKIE, api_client
 from conftest import ADMIN_URL, SAUNAS, TEST_URL, raw_booking, set_clock, start_backend, win_start
 
@@ -493,6 +495,12 @@ def test_the_seed_gives_every_sample_a_link_once(fresh_db, tmp_path):
     assert m and hashlib.sha256(m.group(1).encode()).digest() == bytes(new_tokens[0][2])
     assert f"Booking reference: {later[1]}" in body and re.search(r"(?m)^Session: 10:00–11:30$", body), body
     assert re.search(r"(?m)^Date: \w+day \d{1,2} \w+ \d{4}$", body), body
+    with psycopg.connect(fresh_db) as c:
+        seats = c.execute("SELECT seats FROM bookings WHERE id = %s", (later[0],)).fetchone()[0]
+        total = c.execute("SELECT total_ore FROM bookings WHERE id = %s", (later[0],)).fetchone()[0]
+    # a sample is paid by card alone: no voucher line
+    assert re.search(rf"(?m)^Session: 10:00–11:30\nSeats: {seats}\nPaid by card: {re.escape(nok(total))}$", body), body
+    assert "Paid with voucher" not in body
     assert CHANGE_STATEMENT in body
     assert f"/manage#t={m.group(1)}" in body and body.count("http") == 1
     assert not any(name in body for name in SAUNA_NAMES) and "@" not in body
@@ -509,3 +517,19 @@ def test_the_seed_gives_every_sample_a_link_once(fresh_db, tmp_path):
     for b in (first, second, third):  # no token in the backend's log (AD-19)
         log = b.output()
         assert not TOKEN.search(log) and "#t=" not in log
+
+
+@pytest.mark.parametrize(("paid", "until", "expected"), [
+    ((0, 50000), None, ["Paid by card: NOK 500"]),
+    ((50000, 0), dt.date(2027, 3, 1), ["Paid with voucher: NOK 500, valid until Monday 1 March 2027"]),
+    ((20000, 30000), dt.date(2027, 3, 1),
+     ["Paid with voucher: NOK 200, valid until Monday 1 March 2027", "Paid by card: NOK 300"]),
+])
+def test_the_sample_email_says_how_the_booking_was_paid(paid, until, expected):
+    tz = dt.timezone.utc
+    facts = ("ABC123", 2, 1, dt.date(2026, 12, 5), dt.datetime(2026, 12, 5, 14, 30, tzinfo=tz),
+             dt.datetime(2026, 12, 5, 16, 0, tzinfo=tz), sum(paid), "confirmed", 0, True, None, None, "UTC")
+    _subject, body = manage_email(facts, "https://example.test/manage#t=x", paid, until)
+    lines = body.split("\n")
+    i = lines.index("Seats: 2")
+    assert lines[i + 1:i + 1 + len(expected)] == expected and lines[i + 1 + len(expected)] == ""
