@@ -477,3 +477,19 @@ Lisa kjørte `/ship` for PR #20 (Story 5.1). Claude Code pushet og opprettet PR-
 
 ### Åpne punkter
 - Den lokale databasen har den gamle 0013. Migreringsrunneren har ingen checksum, så de nye triggerne kommer først etter `docker compose down -v` og ny oppstart.
+
+## 2026-11-25 kl. 11:25 — Lisa Larsen
+
+### Oppgave
+Merge PR #20 og sette Story 5.1 til done.
+
+### Plan
+- Sjekke at PR-en kan merges, merge med vanlig merge, og oppdatere `sprint-status.yaml` på en egen gren.
+
+### Resultat
+- PR #20 er merget med vanlig merge (`13667a4`). GitHub rapporterte ingen sjekker, siden repoet ikke har CI. Testene ble kjørt lokalt: 187 i e2e, 564 i API-laget og 19 i e2e etter reviewrettingene.
+- `sprint-status.yaml`: `5-1-a-guest-sees-which-saunas-can-be-booked-whole: done`, på grenen `chore/5-1-done`.
+- Lisa satte done uten egen manuell nettlesertest denne gangen.
+
+### Åpne punkter
+Ingen nye.
