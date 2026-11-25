@@ -17,6 +17,7 @@ Lisa spurte om Terms og Privacy notice burde ha en tilbakeknapp, siden de nås f
 - Commit `6bbd7e8` på `feat/terms-privacy-back`. Ikke pushet.
 - Etterpå flyttet (rebase) oppå `story/5-2-book-and-pay-private-sauna`, slik at Back og Private sauna-bookingen kan prøves sammen; ny commit `6cd99b4`. Konflikt bare i `issues.md` (begge linjene beholdt). `test_fr22` + `test_fr30` 43 passert; stacken bygd på nytt. Lisa testet i nettleseren: ok. Grenen må merges etter Story 5.2.
 - Story 5.2 merget (PR #22). Sprint-status 5.2 → `done` i egen PR #23 (`chore/5-2-done`). Denne grenen pushet og PR opprettet mot `main`.
+- Etter Lisas beskjed: PR #23 merget (`7d9680a`), deretter PR #24 med Back-lenken (`20d4669`). Lokal `main` oppdatert.
 
 ### Åpne punkter
 - Kjent begrensning i nettlesere uten Navigation API (eldre Firefox/Safari): etter at gjesten har navigert inne på nettstedet, går Back tilbake i historikken også når siden ble nådd med nettleserens egen tilbake- eller fremknapp.
