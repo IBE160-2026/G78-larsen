@@ -156,3 +156,20 @@ Committe endringen av knappene på landingssiden.
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:17 — Lisa Larsen
+
+### Oppgave
+På Private sauna-siden skulle kolonnene i badstuvalgene få mer plass mellom prisen og «x free sessions», og mindre avstand mellom badstuas navn og «Holds x».
+
+### Plan
+- Endre kolonnene i `.session-row.sauna-option`, slik at den ledige plassen havner foran «x free sessions».
+
+### Resultat
+- `frontend/app/styles.css`: kolonnene er nå `32px minmax(64px, max-content) minmax(72px, max-content) max-content minmax(0, 1fr)`. Navnet har ikke lenger `padding-right`.
+- Målt ved 1366 px: avstanden fra navn til «Holds» gikk fra ca. 60 px til ca. 26 px. Avstanden fra prisen til «free sessions» gikk fra ca. 60 px til ca. 90 px.
+- Tester: `test_fr30_private_sauna` ga 5 passed.
+- Ikke committet.
+
+### Åpne punkter
+Ingen.
