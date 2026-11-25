@@ -50,3 +50,22 @@ Endre punktet om at e2e-flyten i Story 5.2 må booke Lumo, siden epics.md fortsa
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 01:40 — Lisa Larsen
+
+### Oppgave
+Lisa presiserte at alle badstuer skal være åpne for både helbadstu-booking og enkeltseter, hvis ikke annet er markert. Det erstatter valget fra 2026-11-24 om at bare Badstu 1 og 4 kan bookes hele.
+
+### Plan
+- Rette dokumentene selv (EXPERIENCE.md, epics.md, epic-5-context.md og specens Decisions).
+- La implementasjonsagenten rette seed, tester og README.
+
+### Resultat
+- Prisene er Oslo-snittet NOK 262 per plass ganget med antall plasser, rundet til nærmeste 50: Rauha NOK 1850, Löyly NOK 2600, Kajo NOK 3150 og Lumo NOK 3950.
+- En badstue tilbys ikke hel bare når den har `bookable_whole = false` eller mangler pris.
+- epics.md 5.2 booker Kajo i e2e igjen; endringen til Lumo fra forrige seksjon er tilbakeført.
+- En eksisterende database får prisene for Löyly og Kajo ved neste oppstart, fordi seeden fyller felt som er NULL.
+- Tester: API-laget 561 passed. e2e-filene `test_fr30_private_sauna.py` og `test_fr01_landing.py` ga 19 passed.
+
+### Åpne punkter
+- Hele e2e-laget må fortsatt kjøres, slik punktet i issues.md allerede sier.
