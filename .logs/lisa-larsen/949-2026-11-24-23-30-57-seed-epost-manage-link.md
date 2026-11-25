@@ -18,7 +18,7 @@ Lisa skulle godkjenne ordlyden i seed-e-posten «Manage your booking: {ref}». D
 - `tests/test_fr25_manage_link.py`: seed-testen sjekker nå plasser og kortlinje. En ny parametrisert test dekker de tre tilfellene: bare kort, bare voucher, og begge.
 - EXPERIENCE.md, Voice and Tone: ny tabell «Sample Manage link email, accepted by Lisa».
 - Testkjøring: `tests/test_fr25_manage_link.py` 30 bestått, og API-testene for seed/sample 25 bestått. Hele suiten er ikke kjørt.
-- Commits på grenen: `b2a2cbb` (plasser) og `ee19f0d` (betaling og utløpsdato). Pushet, og PR #19 er åpnet mot `main`.
+- Commits på grenen: `b2a2cbb` (plasser) og `ee19f0d` (betaling og utløpsdato). Pushet, og PR #19 er merget med vanlig merge (`92c6d63`).
 - Lisa skrev «kontanter». Appen har bare simulert kortbetaling, så teksten sier «card».
 
 ### Åpne punkter
