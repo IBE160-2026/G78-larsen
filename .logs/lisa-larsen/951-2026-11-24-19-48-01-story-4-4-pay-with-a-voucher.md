@@ -102,3 +102,24 @@ Implementere Story 4.4 (FR-28, betale med voucher) med `bmad-build` fra specen s
 - Lisa må bestemme om voucher-betalte plasser som gis fra seg skal få en ny voucher med ett års gyldighet, eller beholde utløpsdatoen til den brukte voucheren.
 - Godta endringen i layoutsjekken i `test_fr05_book_and_pay.py`.
 - Gå gjennom endringen (`bmad-walkthrough`), åpne PR og sett 4.4 til `done` etter godkjenning.
+
+## 2026-11-24 kl. 22:31 — Lisa Larsen
+
+### Oppgave
+Lisa bestemte at en voucher fra «gi fra deg plasser» skal beholde utløpsdatoen til voucheren som betalte bookingen, så en voucher ikke kan fornyes i det uendelige.
+
+### Plan
+- Regelen ligger i SQL (`db/vouchers.next_last_valid_date`). Den tar den tidligste siste gyldige datoen til en voucher som betalte bookingen, og følger `booking_changes.new_booking_id` bakover, slik at en booking som er delt opp ved flytting arver datoen. Uten voucher gjelder fortsatt ett år.
+- `services/change.voucher` bruker datoen når voucheren utstedes.
+- Manage-lesingen (`booking_now`) får `voucher_last_valid_date`, og Give up seats-steget viser den i stedet for å regne «i dag + ett år» i nettleseren.
+
+### Resultat
+- Commit `892234b` på `story/4-4-pay-with-a-voucher` (ikke pushet).
+- Nye tester i `tests/test_fr28_voucher.py`: datoen arves ved delvis voucherbetaling, arves gjennom oppdeling ved flytting, og bookinger betalt bare med kort gir fortsatt ett år. `test_fr25_manage_link.py` forventer det nye feltet.
+- 521 API-tester grønne. Frontend-bygget er grønt. E2e for `test_fr27_voucher` og `test_fr28_voucher` er grønne (6).
+- Dokumentasjon: README (FR-27-avsnittet), FR-27 i `epics.md`, `epic-4-context.md` og testtallet i sensorveiledningen (701).
+- Lukket i `issues.md`: vouchers som kan fornyes i det uendelige, og «Valid until» som ble regnet ut i nettleseren.
+- Merk: en booking som er betalt dels med voucher og dels med kort, får hele den nye voucheren med den kortere datoen.
+
+### Åpne punkter
+- Hele e2e-suiten er ikke kjørt etter review-patchene og denne endringen. Punktet om full verifisering står fortsatt åpent.
