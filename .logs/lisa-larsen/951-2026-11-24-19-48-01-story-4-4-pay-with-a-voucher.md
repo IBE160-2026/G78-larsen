@@ -123,3 +123,20 @@ Lisa bestemte at en voucher fra «gi fra deg plasser» skal beholde utløpsdatoe
 
 ### Åpne punkter
 - Hele e2e-suiten er ikke kjørt etter review-patchene og denne endringen. Punktet om full verifisering står fortsatt åpent.
+
+## 2026-11-24 kl. 22:46 — Lisa Larsen
+
+### Oppgave
+Vise voucher-flyten i nettleseren, slik at Lisa kunne teste den manuelt.
+
+### Plan
+- Bygge dev-stakken på nytt fra `story/4-4-pay-with-a-voucher` med `docker compose up --build --wait`, sjekke at `POST /api/vouchers/quote` svarer, og åpne `https://localhost:8443`.
+
+### Resultat
+- Stakken kjører koden fra grenen. Quote-ruten svarer `401 no_session` uten økt, som forventet.
+- Lisa testet flyten og godkjente den. Story 4.4 er satt til `done` i `sprint-status.yaml` (`5ec9cbc`).
+- Endringen i layoutsjekken i `test_fr05` regnes som godtatt.
+
+### Åpne punkter
+- PR for `story/4-4-pay-with-a-voucher` er ikke åpnet ennå.
+- Hele e2e-suiten er ikke kjørt etter de siste endringene (punktet står fortsatt åpent).
