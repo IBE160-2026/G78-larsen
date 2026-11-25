@@ -1,6 +1,6 @@
 // The Sauna cards' copy on Landing, keyed by Sauna id (FR-1.5): the image, its alt text and the one line
 // (EXPERIENCE.md, Open Item 2; alt texts as in ASSETS.md). `description` is the longer text on the Private sauna page
-// (Lisa 2026-11-25, proposals H and K; draft wording until Lisa approves it). The name and Capacity come from `GET /api/venue`;
+// (Lisa 2026-11-25, proposals H and K; wording approved by Lisa 2026-11-25). The name and Capacity come from `GET /api/venue`;
 // a Sauna whose id has no entry here shows its name and size line only.
 export const SAUNA_COPY = Object.freeze({
   1: {
