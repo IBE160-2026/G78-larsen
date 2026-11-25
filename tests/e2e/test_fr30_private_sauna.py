@@ -509,3 +509,24 @@ def test_a_voucher_pays_part_of_a_private_sauna_on_review(page: Page, base_url, 
                         "Total NOK 1850 incl. VAT", "Paid with voucher NOK 250", "Paid by card NOK 1600"], rows
     body = page.locator(".email-body").inner_text()
     assert "Total: NOK 1850 incl. VAT\nPaid with voucher: NOK 250\nPaid by card: NOK 1600\n" in body
+
+
+def test_back_from_details_chooses_the_same_sauna_and_session_again(page: Page, base_url, day):
+    """UX-DR26: Details' Back goes to the Private sauna page for the date, and a pair kept in `draft:whole` that the
+    listing still offers is chosen again, so Continue goes straight back to Details. Nothing is booked."""
+    open_page(page, base_url)
+    type_date(page, day)
+    page.locator("#saunas label.slot:has(input[aria-label='Kajo, 13:00 to 14:30'])").click()
+    page.get_by_role("button", name="Continue booking").click()
+    page.wait_for_url(base_url + "/private-sauna/details")
+    page.wait_for_selector("#name")
+    page.get_by_role("link", name="Back", exact=True).click()
+    page.wait_for_url(base_url + f"{PAGE}?date={day}")
+    checked = page.locator("#saunas input:checked")
+    checked.wait_for()
+    assert checked.count() == 1 and checked.get_attribute("aria-label") == "Kajo, 13:00 to 14:30"
+    assert page.locator("#date").input_value() == dotted(day)
+    page.get_by_role("button", name="Continue booking").click()
+    page.wait_for_url(base_url + "/private-sauna/details")
+    assert page.locator(".error-summary").count() == 0
+    assert whole_draft(page)["sauna_name"] == "Kajo"

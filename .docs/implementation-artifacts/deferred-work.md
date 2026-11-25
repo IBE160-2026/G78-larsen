@@ -83,4 +83,4 @@
 
 - source_spec: `.docs/implementation-artifacts/spec-5-2-book-and-pay-for-a-private-sauna.md`
   summary: Add a positive e2e check that going Back from the Private sauna Details re-selects a still-offered Sauna and session from `draft:whole`.
-  evidence: The only related assertion (`test_a_sauna_taken_while_on_review_...`) expects nothing checked, so deleting the restore in `PrivateSauna.js` would pass every test.
+  evidence: The only related assertion (`test_a_sauna_taken_while_on_review_...`) expects nothing checked, so deleting the restore in `PrivateSauna.js` would pass every test. Resolved 2026-11-25: `test_back_from_details_chooses_the_same_sauna_and_session_again` in `tests/e2e/test_fr30_private_sauna.py` (fails with the restore removed).
