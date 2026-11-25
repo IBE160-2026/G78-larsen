@@ -329,3 +329,19 @@ Endre Löyly-beskrivelsen, så den ikke inneholder den ubekreftede påstanden «
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:10 — Lisa Larsen
+
+### Oppgave
+Committe endringene i PRD-en og på Private sauna-siden.
+
+### Plan
+- To commits: én for PRD-endringene og én for Private sauna-siden med tilhørende dokumenter og tester.
+
+### Resultat
+- `e867ade` «PRD §4.1, FR-1.5: two equal booking choices and longer sauna descriptions» (prd.md, addendum.md og .memlog.md).
+- `550e224` «FR-30: choose the Sauna and the session on photo cards (Story 5.1)» (10 filer: komponent, tekster, CSS, test og UX- og epic-dokumenter). Kolonneendringen fra tidligere i dag er erstattet av de nye kortene og er med her.
+- Ikke pushet.
+
+### Åpne punkter
+Ingen nye.
