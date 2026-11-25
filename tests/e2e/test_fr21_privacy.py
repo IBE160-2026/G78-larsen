@@ -13,7 +13,11 @@ Story 4.1 adds the Manage page: opening a Manage link keeps every request on the
 stylesheet of ours, and the issued Manage token, opened in the browser, never reaches the compose logs (AD-19).
 
 Story 5.1 adds the Private sauna page to the pages that set no cookie; with a date chosen, every request stays on the
-origin too (tests/e2e/test_fr30_private_sauna.py)."""
+origin too (tests/e2e/test_fr30_private_sauna.py).
+
+Story 5.2 adds the Private sauna flow's Details and Review (`/private-sauna/details`, `/private-sauna/review`) and the
+Confirmation of a Whole-sauna booking: each keeps every request on the origin, the one session cookie and one
+stylesheet of ours, and a name with a script tag is text on its Review and Confirmation."""
 
 from __future__ import annotations
 
@@ -22,12 +26,14 @@ import re
 import secrets
 import uuid
 
+import httpx
 import pytest
 from playwright.sync_api import Page
 
 from .admin import LOGIN, SIGN_IN, no_throttle, open_sign_in, type_login  # noqa: F401 (fixture)
 from .test_fr05_book_and_pay import book_in_browser, free_windows, open_session, review_draft, set_draft
 from .test_fr25_manage import open_manage_link
+from . import trust
 
 MANAGE_TOKEN = re.compile(r"/manage#t=([A-Za-z0-9_-]{43})$", re.M)
 
@@ -125,6 +131,80 @@ def test_the_booking_pages_stay_on_the_origin_with_one_cookie_and_one_stylesheet
     assert len(sheets) == 1 and sheets[0].startswith(base_url + "/"), sheets
     assert page.locator("style").count() == 0
     assert page.locator(".shell [style], .shell[style]").count() == 0
+
+
+def _rauha_twice(base_url: str) -> tuple[str, dict]:
+    """A later date on which Rauha can still be booked whole in at least two sessions, preferring a date that already
+    has a Booking, so that the dates other modules need free (`free_windows`) are left alone. Returns (date, Rauha as
+    the listing shows it)."""
+    get = lambda path, **params: httpx.get(base_url + path, params=params, timeout=30,  # noqa: E731
+                                           verify=trust.context()).json()
+    facts = get("/api/windows")
+    candidates = [d for d in reversed(facts["dates"][:-3]) if d > facts["today"]]
+    fallback = None
+    for d in candidates:
+        rauha = next((s for s in get("/api/private-saunas", date=d)["saunas"] if s["id"] == 1), None)
+        if rauha is None or len(rauha["windows"]) < 2:
+            continue
+        if any(w["seats_left"] != 44 for w in get("/api/windows", date=d)["windows"]):
+            return d, rauha
+        fallback = fallback or (d, rauha)
+    assert fallback, "no date on which Rauha can be booked whole twice"
+    return fallback
+
+
+def _whole_paid_pages(page: Page, base_url: str, name: str = "Olav Berg") -> dict[str, str]:
+    """Open a session, pay for Rauha whole in the last session of a free date as `name` (Story 5.2), and return the
+    addresses of the Private sauna Details and Review and the Confirmation, with a `draft:whole` in the tab that opens
+    Details and Review for another pair (Rauha, the first session of that date)."""
+    date, rauha = _rauha_twice(base_url)
+    open_session(page, base_url)
+    status, body = page.evaluate(
+        """async ({body, key}) => {
+             const r = await fetch('/api/bookings', {method: 'POST', credentials: 'same-origin',
+               headers: {'Content-Type': 'application/json', 'Idempotency-Key': key}, body: JSON.stringify(body)});
+             return [r.status, await r.json()];
+           }""",
+        {"body": {"kind": "whole", "window_id": rauha["windows"][-1]["id"], "sauna_id": rauha["id"], "name": name,
+                  "email": "olav@example.com"}, "key": str(uuid.uuid4())})
+    assert status == 201, body
+    page.evaluate("d => sessionStorage.setItem('draft:whole', JSON.stringify(d))",
+                  {"date": date, "window_id": rauha["windows"][0]["id"], "sauna_id": rauha["id"],
+                   "sauna_name": rauha["name"], "whole_price_ore": rauha["whole_price_ore"], "name": name,
+                   "email": "olav@example.com"})
+    return {"details": "/private-sauna/details", "review": "/private-sauna/review",
+            "confirmation": f"/confirmation/{body['booking']['reference']}"}
+
+
+@pytest.mark.parametrize("which", ["details", "review", "confirmation"])
+def test_the_private_sauna_pages_stay_on_the_origin_with_one_cookie_and_one_stylesheet(page: Page, base_url, which):
+    """Story 5.2: the Private sauna flow's Details and Review and a Whole-sauna booking's Confirmation."""
+    path = _whole_paid_pages(page, base_url)[which]
+    requests = []
+    page.on("request", lambda r: requests.append(r.url))
+    page.goto(base_url + path)
+    page.wait_for_selector("#name" if which == "details" else ".summary")
+    page.wait_for_load_state("networkidle")
+    others = [u for u in requests if not (u == base_url or u.startswith(base_url + "/"))]
+    assert not others, f"requests to another origin: {others}"
+    assert [c["name"] for c in page.context.cookies()] == ["bp_session"]
+    sheets = page.evaluate("() => Array.from(document.styleSheets).map(s => s.href)")
+    assert len(sheets) == 1 and sheets[0].startswith(base_url + "/"), sheets
+    assert page.locator("style").count() == 0
+    assert page.locator(".shell [style], .shell[style]").count() == 0
+
+
+def test_a_name_with_a_script_tag_is_text_on_the_private_sauna_review_and_confirmation(page: Page, base_url):
+    pages = _whole_paid_pages(page, base_url, SCRIPT_NAME)
+    page.goto(base_url + pages["review"])
+    row = page.locator(".summary-row", has=page.locator("dt", has_text="Name"))
+    row.wait_for()
+    assert row.locator("dd").inner_text() == SCRIPT_NAME
+    assert page.locator(".summary b, .summary script").count() == 0
+    page.goto(base_url + pages["confirmation"])
+    page.wait_for_selector(".email-body")
+    assert page.locator("main script, main b").count() == 0
+    assert page.evaluate("() => window.__pwned") is None
 
 
 def test_a_name_with_a_script_tag_is_text_on_review_and_confirmation(page: Page, base_url):

@@ -31,6 +31,13 @@
 //   again. `voucher_invalid` (on apply or at Pay) is one Field error and Error summary entry for every cause, the input
 //   kept; a quote that cannot be checked is a Field error only. A stored code is quoted again when Review opens and
 //   after a nearest Session is chosen. Pay sends only an applied code with its Voucher part.
+// - The Private sauna flow (`flow="whole"`, Story 5.2, FR-29) uses this page with its own draft (`draft:whole`): the
+//   Sauna and session are read from `GET /api/private-saunas?date=` (a pair no longer listed goes back to the Private
+//   sauna page for the date); the summary is Sauna, Date, Session, Total, Name, Email, Venue, Contact (never the
+//   Sauna's Capacity); the terms are `content/terms-whole.json` with "The sauna is not held while you pay."; the total
+//   is the Sauna's `whole_price_ore`, and the Voucher is quoted with `kind: 'whole'`. `sauna_unavailable`,
+//   `outside_horizon` and `deadline_passed` show the Notice with the Text link "Choose another sauna or session" to the
+//   Private sauna page for the same date (no Nearest sessions), and remove Pay, the payment note and the checkbox.
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import BookingSummary from './BookingSummary';
@@ -43,12 +50,23 @@ import PrimaryButton from './PrimaryButton';
 import TermsCheckbox from './TermsCheckbox';
 import TextLink from './TextLink';
 import Wordmark from './Wordmark';
-import terms from '@/content/terms-seats.json';
+import termsSeats from '@/content/terms-seats.json';
+import termsWhole from '@/content/terms-whole.json';
 import { ApiError, api } from '@/lib/api';
 import { holdConfirmation } from '@/lib/confirmation';
-import { REVIEW, SIMULATED_PAYMENT, SUMMARY, VOUCHER_FIELD, reviewRefusal, seatsWord } from '@/lib/copy';
+import {
+  LANDING_CHOICES,
+  PRIVATE,
+  REVIEW,
+  SIMULATED_PAYMENT,
+  SUMMARY,
+  VOUCHER_FIELD,
+  reviewRefusal,
+  seatsWord,
+} from '@/lib/copy';
 import { clockTime, longDate } from '@/lib/dates';
 import { newKey, paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
+import { flowOf } from '@/lib/flows';
 import { nok } from '@/lib/venue-format';
 
 /** The Venue and Contact rows of a Booking summary, from the Venue facts (AD-16); none when they are not known. */
@@ -84,10 +102,13 @@ async function nearestSessions(draft, refusedStart) {
   }
 }
 
-export default function Review({ venue }) {
+export default function Review({ venue, flow: flowName = 'seats' }) {
+  const flow = flowOf(flowName);
+  const whole = flow.kind === 'whole';
   const router = useRouter();
   const [draft, setDraft] = useState(null);
-  const [session, setSession] = useState(null); // the Window: {start, end}
+  // the Window: {start, end}; in the Private sauna flow also the Sauna as listed: {sauna: {id, name, price}}
+  const [session, setSession] = useState(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
@@ -108,50 +129,63 @@ export default function Review({ venue }) {
   const requote = useRef(false);
 
   useEffect(() => {
-    const stored = readDraft();
+    const stored = readDraft(flow.slot);
     const paid = paidReference(stored);
     if (paid) {
       router.replace(`/confirmation/${paid}`);
       return;
     }
-    if (!Number.isInteger(stored.window_id) || !stored.date || !stored.seats) {
-      router.replace('/book-seats');
+    if (!flow.chosen(stored)) {
+      router.replace(flow.start(stored));
       return;
     }
     if (!stored.name || !stored.email) {
-      router.replace('/book-seats/details');
+      router.replace(flow.details);
       return;
     }
     const key = typeof stored.key === 'string' && stored.key ? stored.key : newKey();
-    if (key !== stored.key) writeDraft({ key });
+    if (key !== stored.key) writeDraft({ key }, flow.slot);
     const code = typeof stored.voucher_code === 'string' ? stored.voucher_code : '';
     setVoucherInput(code);
     requote.current = code.trim() !== '';
     setDraft({ ...stored, key });
-  }, [router]);
+  }, [router, flow]);
 
   const draftDate = draft?.date;
   const draftWindow = draft?.window_id;
+  const draftSauna = draft?.sauna_id;
   useEffect(() => {
     if (!draftDate) return undefined;
     const controller = new AbortController();
-    api(`/api/windows?date=${encodeURIComponent(draftDate)}`, { signal: controller.signal })
+    const date = encodeURIComponent(draftDate);
+    const back = flow.start({ date: draftDate });
+    api(whole ? `/api/private-saunas?date=${date}` : `/api/windows?date=${date}`, { signal: controller.signal })
       .then((body) => {
         if (controller.signal.aborted) return;
+        if (whole) {
+          const s = (body.saunas || []).find((x) => x.id === draftSauna);
+          const w = s && s.windows.find((x) => x.id === draftWindow);
+          if (!w) {
+            router.replace(back); // the Sauna is no longer offered in the session: choose again
+            return;
+          }
+          setSession({ start: w.start, end: w.end, sauna: { id: s.id, name: s.name, price: s.whole_price_ore } });
+          return;
+        }
         const w = (body.windows || []).find((x) => x.id === draftWindow);
         if (!w) {
-          router.replace('/book-seats'); // the session is no longer offered: choose again
+          router.replace(back); // the session is no longer offered: choose again
           return;
         }
         setSession({ start: w.start, end: w.end });
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
-        if (err instanceof ApiError && err.code === 'outside_horizon') router.replace('/book-seats');
+        if (err instanceof ApiError && err.code === 'outside_horizon') router.replace(back);
         else setLoadFailed(true);
       });
     return () => controller.abort();
-  }, [draftDate, draftWindow, router]);
+  }, [draftDate, draftWindow, draftSauna, whole, flow, router]);
 
   // After a nearest Session is chosen, focus moves to the Review heading (UX-DR13).
   useEffect(() => {
@@ -169,7 +203,9 @@ export default function Review({ venue }) {
     try {
       parts = await api('/api/vouchers/quote', {
         method: 'POST',
-        body: { code, kind: 'seats', window_id: d.window_id, seats: d.seats },
+        body: whole
+          ? { code, kind: 'whole', window_id: d.window_id, sauna_id: d.sauna_id }
+          : { code, kind: 'seats', window_id: d.window_id, seats: d.seats },
       });
     } catch (err) {
       const c = err instanceof ApiError ? err.code : 'unavailable';
@@ -206,7 +242,7 @@ export default function Review({ venue }) {
     setVoucherInput(value);
     setApplied(null);
     setVoucherError(null);
-    writeDraft({ voucher_code: value });
+    writeDraft({ voucher_code: value }, flow.slot);
   };
 
   const pay = async () => {
@@ -223,8 +259,9 @@ export default function Review({ venue }) {
       const body = await api('/api/bookings', {
         method: 'POST',
         body: {
-          window_id: draft.window_id,
-          seats: draft.seats,
+          ...(whole
+            ? { kind: 'whole', window_id: draft.window_id, sauna_id: draft.sauna_id }
+            : { window_id: draft.window_id, seats: draft.seats }),
           name: draft.name,
           email: draft.email,
           ...(applied ? { voucher_code: applied.code, voucher_part_ore: applied.voucher_part_ore } : {}),
@@ -232,7 +269,7 @@ export default function Review({ venue }) {
         idempotencyKey: draft.key,
       });
       const reference = body.booking.reference;
-      replaceDraft({ reference }); // Back can never reach a page that pays again
+      replaceDraft({ reference }, flow.slot); // Back can never reach a page that pays again
       // Read the Confirmation before navigating, so its h1 is there at once and takes focus (lib/confirmation.js).
       // If the read fails, Confirmation reads it itself, as on a reload.
       await api(`/api/bookings/${encodeURIComponent(reference)}/confirmation`)
@@ -257,7 +294,8 @@ export default function Review({ venue }) {
         setPaying(false);
         return;
       }
-      const nearest = r.kind === 'closed' ? await nearestSessions(draft, session?.start) : [];
+      // Nearest sessions are the Seat flow's; the Private sauna flow links back to its page instead
+      const nearest = r.kind === 'closed' && !whole ? await nearestSessions(draft, session?.start) : [];
       setRefusal((prev) => ({ ...r, nearest, n: (prev?.n ?? 0) + 1 }));
       if (r.kind === 'failed') setFocusKey((k) => k + 1);
     }
@@ -266,7 +304,7 @@ export default function Review({ venue }) {
   };
 
   const chooseNearest = (w) => {
-    writeDraft({ date: w.date, window_id: w.id });
+    writeDraft({ date: w.date, window_id: w.id }, flow.slot);
     setDraft((d) => ({ ...d, date: w.date, window_id: w.id }));
     setSession(null);
     setLoadFailed(false);
@@ -281,9 +319,10 @@ export default function Review({ venue }) {
     setHeadingKey((k) => k + 1);
   };
 
-  // Book seats after `invalid_key`: a new draft, so Review will make a new key (AD-9); the name and email stay.
+  // The flow's first page after `invalid_key`: a new draft, so Review will make a new key (AD-9); the name and email
+  // stay.
   const startNewDraft = () => {
-    replaceDraft({ name: draft?.name, email: draft?.email });
+    replaceDraft({ name: draft?.name, email: draft?.email }, flow.slot);
   };
 
   const errors = [
@@ -291,8 +330,10 @@ export default function Review({ venue }) {
     ...(showErrors && !accepted ? [{ key: 'terms', text: REVIEW.acceptTerms, href: '#terms' }] : []),
     ...(refusal?.kind === 'failed' ? [{ key: 'payment', text: refusal.text }] : []),
   ];
-  const price = venue?.price_per_seat_ore;
-  const amount = draft && Number.isInteger(price) ? nok(draft.seats * price) : null;
+  // The total before payment: Seats times the price per Seat, or the Sauna's price as listed. Confirmation shows the
+  // stored total.
+  const price = whole ? session?.sauna?.price : venue?.price_per_seat_ore;
+  const amount = draft && Number.isInteger(price) ? nok(whole ? price : draft.seats * price) : null;
   const payGone = refusal?.kind === 'closed' || refusal?.kind === 'paid';
   const cardPart = applied ? applied.card_part_ore : null;
   const payLabel = !applied ? REVIEW.pay(amount) : cardPart > 0 ? REVIEW.pay(nok(cardPart)) : REVIEW.bookWithVoucher;
@@ -302,9 +343,10 @@ export default function Review({ venue }) {
 
   const rows = draft
     ? [
+        ...(whole ? [{ label: SUMMARY.sauna, value: session?.sauna?.name ?? '' }] : []),
         { label: SUMMARY.date, value: longDate(draft.date) },
         { label: SUMMARY.session, value: session ? `${clockTime(session.start)}–${clockTime(session.end)}` : '' },
-        { label: SUMMARY.seats, value: seatsWord(draft.seats) },
+        ...(whole ? [] : [{ label: SUMMARY.seats, value: seatsWord(draft.seats) }]),
         ...(amount ? [{ label: SUMMARY.total, value: `${amount} incl. VAT` }] : []),
         ...(applied ? [{ label: SUMMARY.voucher, value: SUMMARY.voucherPart(nok(applied.voucher_part_ore)) }] : []),
         ...(applied && cardPart > 0 ? [{ label: SUMMARY.toPayByCard, value: nok(cardPart) }] : []),
@@ -314,8 +356,19 @@ export default function Review({ venue }) {
       ]
     : [];
 
+  const startHref = flow.start(draft);
+  const terms = whole ? termsWhole : termsSeats;
   let notice = null;
-  if (refusal?.kind === 'closed') {
+  if (refusal?.kind === 'closed' && whole) {
+    notice = (
+      <Notice block focusKey={refusal.n}>
+        <p>{refusal.text}</p>
+        <p className="notice-next">
+          <TextLink href={startHref}>{PRIVATE.chooseAnother}</TextLink>
+        </p>
+      </Notice>
+    );
+  } else if (refusal?.kind === 'closed') {
     notice = (
       <Notice block focusKey={refusal.n}>
         <p>{refusal.text}</p>
@@ -336,8 +389,8 @@ export default function Review({ venue }) {
       <Notice block focusKey={refusal.n}>
         <p>{refusal.text}</p>
         <p className="notice-next">
-          <TextLink href="/book-seats" onClick={startNewDraft}>
-            {REVIEW.bookSeats}
+          <TextLink href={startHref} onClick={startNewDraft}>
+            {whole ? LANDING_CHOICES.private : REVIEW.bookSeats}
           </TextLink>
         </p>
       </Notice>
@@ -353,7 +406,7 @@ export default function Review({ venue }) {
           {REVIEW.heading}
         </h1>
         <p className="back">
-          <TextLink href="/book-seats/details">{REVIEW.back}</TextLink>
+          <TextLink href={flow.details}>{REVIEW.back}</TextLink>
         </p>
         {errors.length > 0 && (
           <ErrorSummary errors={errors} focusKey={focusKey} onChoose={(key) => document.getElementById(key)?.focus()} />
@@ -400,6 +453,7 @@ export default function Review({ venue }) {
                 {terms.paragraphs.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
+                {whole && <p>{PRIVATE.notHeld}</p>}
                 <p className="terms-links">
                   <TextLink href="/terms">Terms</TextLink>
                   <TextLink href="/privacy">Privacy notice</TextLink>

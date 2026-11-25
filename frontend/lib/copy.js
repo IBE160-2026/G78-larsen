@@ -57,6 +57,8 @@ export const SUMMARY = Object.freeze({
   date: 'Date',
   session: 'Session',
   seats: 'Seats',
+  // Story 5.2: a Whole-sauna booking's summary names its Sauna where a Seat booking's states its Seats.
+  sauna: 'Sauna',
   total: 'Total',
   name: 'Name',
   email: 'Email',
@@ -106,7 +108,8 @@ export const REVIEW = Object.freeze({
 
 /**
  * Review's one code -> message mapping (AD-16). Every code here is in `api/errors.py` and `lib/api.js` STATUS.
- * - `closed`: the session cannot be had (Notice with Nearest sessions; Pay, the note and the checkbox removed)
+ * - `closed`: the session (or, for a Private sauna, the Sauna in it) cannot be had (Notice with Nearest sessions, or
+ *   in the Private sauna flow the link back to the Private sauna page; Pay, the note and the checkbox removed)
  * - `failed`: the payment failed (Error summary; Pay kept)
  * - `paid`: the key is known elsewhere (Notice with a Book seats link; Pay removed)
  * - `voucher`: the Voucher cannot be used (Field error and Error summary on the Voucher field; Pay kept)
@@ -124,6 +127,8 @@ export function reviewRefusal(code, facts = {}) {
     case 'deadline_passed':
     case 'outside_horizon':
       return { kind: 'closed', text: REVIEW.closed };
+    case 'sauna_unavailable':
+      return { kind: 'closed', text: PRIVATE.unavailable };
     case 'payment_failed':
       return { kind: 'failed', text: REVIEW.paymentFailed };
     case 'invalid_key':
@@ -257,8 +262,8 @@ export const LANDING_CHOICES = Object.freeze({
   private: 'Book private sauna',
 });
 
-// The Private sauna page (FR-29, FR-30, Story 5.1). Verbatim from EXPERIENCE.md (Private sauna wording). Booking and
-// paying for the chosen Sauna and session is Story 5.2.
+// The Private sauna page (FR-29, FR-30, Story 5.1) and its booking (Story 5.2). Verbatim from EXPERIENCE.md (Private
+// sauna wording, and the required statement "Private sauna is not held").
 export const PRIVATE = Object.freeze({
   heading: 'Private sauna',
   link: 'Private sauna',
@@ -276,6 +281,13 @@ export const PRIVATE = Object.freeze({
   // The Sauna card's price line on Landing, only for a Sauna offered whole.
   cardPrice: (price) => `Private sauna: ${price}`,
   noSauna: (longDate) => `No sauna can be booked whole on ${longDate}.`,
+  // Story 5.2: the rail's Continue (as on Book seats) and its Error summary entry when no pair is chosen.
+  continue: 'Continue booking',
+  choosePair: 'Choose a sauna and a session',
+  // Review (FR-29, UX-DR25).
+  notHeld: 'The sauna is not held while you pay.',
+  unavailable: 'This sauna can no longer be booked for this session. You have not been charged.',
+  chooseAnother: 'Choose another sauna or session',
 });
 
 // The Administrator pages (UX-DR3, UX-DR30, EXPERIENCE.md). The copy never uses the word "session" for a sign-in.

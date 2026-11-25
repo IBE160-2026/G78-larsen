@@ -61,13 +61,18 @@ def request_hash(window_id: int, seats: int, voucher_part: int | None = None) ->
 
 
 def facts(c: psycopg.Connection, booking_id: int) -> dict:
-    """The Booking as it is now, as every Seat page and the confirmation email show it (with name and email), with
-    `paid`: its `charge` rows summed by method (FR-28, AD-31)."""
-    ref, date, start, end, seats, price, total, name, email, status, tz_name = q.booking(c, booking_id)
+    """The one Booking serializer (AD-23): the Booking as it is now, as every booking page and the confirmation email
+    show it (with name and email), with `paid`: its `charge` rows summed by method (FR-28, AD-31). `kind` is `seats` or
+    `whole`; a Seat booking has `seats` and `price_per_seat_ore` and `sauna` null, a Whole-sauna booking has `sauna`
+    (`{id, name}`) and `seats` and `price_per_seat_ore` null. Never a Sauna's Capacity, and never a Sauna for a Seat
+    booking (AD-25)."""
+    (ref, date, start, end, seats, price, total, name, email, status, tz_name, kind, sauna_id,
+     sauna_name) = q.booking(c, booking_id)
     voucher_ore, card_ore = q.charges(c, booking_id)
     tz = ZoneInfo(tz_name)
-    return {"reference": ref, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
-            "end": end.astimezone(tz).isoformat(), "seats": seats, "price_per_seat_ore": price, "total_ore": total,
+    return {"reference": ref, "kind": kind, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
+            "end": end.astimezone(tz).isoformat(), "seats": seats, "price_per_seat_ore": price,
+            "sauna": None if sauna_id is None else {"id": sauna_id, "name": sauna_name}, "total_ore": total,
             "name": name, "email": email, "status": status,
             "paid": {"voucher_ore": voucher_ore, "card_ore": card_ore}}
 
@@ -94,7 +99,9 @@ def long_date(date: dt.date) -> str:
 def confirmation_email(booking: dict, venue: tuple, manage_link: str) -> tuple[str, str]:
     """(subject, body) in the line layout of `mockups/key-confirmation.html`. Built from the stored Booking facts and
     the Venue facts; the booking terms (with the change statement) and the reception sentence come from `content/`.
-    The Manage link (`services.manage.link`, AD-28) stands just before "Before you come". No Sauna (FR-4).
+    The Manage link (`services.manage.link`, AD-28) stands just before "Before you come". A Seat booking's email names
+    no Sauna (FR-4); a Whole-sauna booking's says "Sauna: {name}" where a Seat booking's says "Seats: N", never the
+    Sauna's Capacity, and its terms are `content/terms-whole.json` (AD-12, AD-23).
     A Booking paid with a Voucher shows "Paid with voucher" and "Paid by card" after the total (a zero part left out),
     and the payment note only when a card part was paid; without a Voucher the email is as before (FR-28)."""
     venue_name, address_lines, phone, venue_email = venue[0], venue[1], venue[2], venue[3]
@@ -106,6 +113,7 @@ def confirmation_email(booking: dict, venue: tuple, manage_link: str) -> tuple[s
         if paid["card_ore"] > 0:
             payment_lines.append(f"Paid by card: {nok(paid['card_ore'])}")
     card_paid = paid["voucher_ore"] == 0 or paid["card_ore"] > 0
+    whole = booking.get("kind") == "whole"
     lines = [
         "Booking confirmed",
         "",
@@ -117,7 +125,7 @@ def confirmation_email(booking: dict, venue: tuple, manage_link: str) -> tuple[s
         f"Booking reference: {booking['reference']}",
         f"Date: {long_date(dt.date.fromisoformat(booking['date']))}",
         f"Session: {start}–{end}",
-        f"Seats: {booking['seats']}",
+        f"Sauna: {booking['sauna']['name']}" if whole else f"Seats: {booking['seats']}",
         f"Total: {nok(booking['total_ore'])} incl. VAT",
         *payment_lines,
         f"Email: {booking['email']}",
@@ -125,7 +133,7 @@ def confirmation_email(booking: dict, venue: tuple, manage_link: str) -> tuple[s
         *content.paragraphs(content.RECEPTION),
         "",
         "Booking terms",
-        *content.paragraphs(content.TERMS_SEATS),
+        *content.paragraphs(content.TERMS_WHOLE if whole else content.TERMS_SEATS),
         "",
         "Manage your booking",
         manage_link,

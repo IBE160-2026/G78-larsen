@@ -7,8 +7,8 @@ import datetime as dt
 import re
 from typing import Annotated, Literal
 
-from pydantic import (AwareDatetime, BaseModel, ConfigDict, Field, StrictStr, StringConstraints, ValidationInfo,
-                      field_validator, model_validator)
+from pydantic import (AwareDatetime, BaseModel, ConfigDict, Discriminator, Field, StrictStr, StringConstraints, Tag,
+                      ValidationInfo, field_validator, model_validator)
 
 INT4_MAX = 2_147_483_647
 Seats = Annotated[int, Field(ge=1, le=10)]
@@ -110,15 +110,26 @@ class HoldIn(Strict):
     seats: Seats
 
 
-class BookingIn(Strict):
-    """`POST /api/bookings` (FR-5, FR-9): one Window, 1 to 10 Seats, the Guest's name and email and nothing else. A
-    second Window (`window_ids`, any other field) is an unknown field. Leading and trailing spaces are not part of a
-    name or an email, and neither may hold a control character (U+0000 to U+001F, U+007F)."""
+# A request that comes in two kinds (`POST /api/bookings`, `POST /api/vouchers/quote`) is a union chosen by `kind`
+# (AD-23). Its tags start with `kind=`, and `api/errors.py` leaves them out of a shape error's `fields`, so a field is
+# named as in a one-kind request ("window_id", never "kind=seats.window_id"). Anything that is not `kind: 'whole'`
+# goes to the Seat shape, whose own `kind` field then reports a wrong value.
+KIND_TAG = "kind="
+
+
+def _kind_of(value: object) -> str:
+    kind = value.get("kind") if isinstance(value, dict) else getattr(value, "kind", None)
+    return KIND_TAG + ("whole" if kind == "whole" else "seats")
+
+
+class _BookingFields(Strict):
+    """The fields every Booking request has: the Window, the Guest's name and email and an optional Voucher. Leading
+    and trailing spaces are not part of a name or an email, and neither may hold a control character (U+0000 to
+    U+001F, U+007F)."""
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     window_id: Id
-    seats: Seats
     name: Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[^\x00-\x1f\x7f]+$")]
     email: Annotated[str, Field(min_length=3, max_length=254,
                                 pattern=r"^[^@\s\x00-\x1f\x7f]+@[^@\s\x00-\x1f\x7f]+\.[^@\s\x00-\x1f\x7f]+$")]
@@ -128,20 +139,54 @@ class BookingIn(Strict):
     voucher_part_ore: Annotated[int, Field(ge=1, le=INT4_MAX)] | None = None
 
     @model_validator(mode="after")
-    def _voucher_both_or_neither(self) -> "BookingIn":
+    def _voucher_both_or_neither(self):
         if (self.voucher_code is None) != (self.voucher_part_ore is None):
             raise ValueError("voucher_code and voucher_part_ore go together")
         return self
 
 
-class VoucherQuoteIn(Strict):
-    """`POST /api/vouchers/quote` (FR-28, AD-30): what a Voucher would pay of `seats` Seats in the Window. Only Seat
-    quotes (`kind: 'seats'`) in v1."""
+class SeatBookingIn(_BookingFields):
+    """`POST /api/bookings` for Seats (FR-5, FR-9): one Window, 1 to 10 Seats, the Guest's name and email and nothing
+    else. `kind` may be left out (every Seat request before Story 5.2 is unchanged). A second Window (`window_ids`, any
+    other field) is an unknown field, and so is a `sauna_id`."""
+
+    kind: Literal["seats"] = "seats"
+    seats: Seats
+
+
+class WholeBookingIn(_BookingFields):
+    """`POST /api/bookings` for a Whole-sauna booking (FR-29, Story 5.2): `kind: 'whole'`, one Window and one Sauna, the
+    Guest's name and email. A `seats` field is an unknown field."""
+
+    kind: Literal["whole"]
+    sauna_id: Id
+
+
+BookingIn = Annotated[Annotated[SeatBookingIn, Tag(KIND_TAG + "seats")] | Annotated[WholeBookingIn, Tag(KIND_TAG + "whole")],
+                      Discriminator(_kind_of)]
+
+
+class SeatQuoteIn(Strict):
+    """`POST /api/vouchers/quote` for Seats (FR-28, AD-30): what a Voucher would pay of `seats` Seats in the Window."""
 
     code: VoucherCode
     kind: Literal["seats"]
     window_id: Id
     seats: Seats
+
+
+class WholeQuoteIn(Strict):
+    """`POST /api/vouchers/quote` for a Whole-sauna booking (Story 5.2): what a Voucher would pay of the Sauna's
+    `whole_price_ore`."""
+
+    code: VoucherCode
+    kind: Literal["whole"]
+    window_id: Id
+    sauna_id: Id
+
+
+VoucherQuoteIn = Annotated[Annotated[SeatQuoteIn, Tag(KIND_TAG + "seats")] | Annotated[WholeQuoteIn, Tag(KIND_TAG + "whole")],
+                           Discriminator(_kind_of)]
 
 
 class BlockIn(Strict):
@@ -206,16 +251,27 @@ class VoucherQuoteOut(BaseModel):
     card_part_ore: int
 
 
+class SaunaRef(BaseModel):
+    """The Sauna of a Whole-sauna booking: its id and name, never its Capacity (AD-23)."""
+
+    id: int
+    name: str
+
+
 class BookingOut(BaseModel):
-    """A Seat booking as every page shows it (FR-8): the stored price and total in øre, the Venue date and the
-    Window's start and end in Venue time. No Sauna (FR-4) and no internal id."""
+    """A Booking as every page shows it (FR-8), from the one serializer (AD-23): `kind`, the stored price and total in
+    øre, the Venue date and the Window's start and end in Venue time. A Seat booking has `seats` and
+    `price_per_seat_ore` and `sauna` null (FR-4, AD-25); a Whole-sauna booking has `sauna` and `seats` and
+    `price_per_seat_ore` null. No internal Booking id."""
 
     reference: str
+    kind: Literal["seats", "whole"]
     date: str
     start: str
     end: str
-    seats: int
-    price_per_seat_ore: int
+    seats: int | None
+    price_per_seat_ore: int | None
+    sauna: SaunaRef | None
     total_ore: int
     name: str
     email: str

@@ -169,15 +169,16 @@ def voucher_email(booking: dict, venue: tuple, given_up: int, code: str, value_o
 def _locked(c: psycopg.Connection, session_id: int, booking_id: int, extra_windows: list[int], key: uuid.UUID,
             endpoint: str, h: bytes) -> q.Locked | dict:
     """The prologue of every Change: the unlocked read of `window_id`, `lock_windows` with it and `extra_windows`, the
-    locked re-read (`db.Retry` when `window_id` moved), the grant re-check by join and the key read. Returns the locked
+    locked re-read (`db.Retry` when `window_id` moved; a Booking that is not a Seat booking is `404 not_found`, as a
+    route of the other kind, AD-28), the grant re-check by join and the key read. Returns the locked
     Booking, or the first outcome (a dict) when the key is a repeat of this request from this session."""
     current = q.window_of(c, booking_id)  # unlocked (AD-29)
     if current is None:
         raise Refused("not_found")
     db.lock_windows(c, [current, *extra_windows])
     b = q.lock_booking(c, booking_id)
-    if b is None:
-        raise Refused("not_found")
+    if b is None or b.kind != "seats":
+        raise Refused("not_found")  # a Seat Change of a Whole-sauna booking: a route of the other kind (AD-28)
     if b.window_id != current:
         raise db.Retry()  # moved in between: lock the new Windows
     if not q.grant_valid(c, session_id, booking_id):

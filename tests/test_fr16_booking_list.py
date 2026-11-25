@@ -83,8 +83,9 @@ def test_a_day_with_bookings_lists_every_window_in_order_and_bookings_oldest_fir
     assert (w2["seat_capacity"], w2["seats_booked"], w2["seats_left"]) == (44, 6, 38)
     assert [b["reference"] for b in w2["bookings"]] == [first, raw, second]
     b = w2["bookings"][0]
-    assert set(b) == {"reference", "name", "email", "seats", "total_ore", "created_at", "status", "cancelled_at",
-                      "cancel_cause", "cancel_remedy", "history"}  # Story 4.3: the cancellation columns
+    assert set(b) == {"reference", "kind", "name", "email", "seats", "sauna", "total_ore", "created_at", "status",
+                      "cancelled_at", "cancel_cause", "cancel_remedy", "history"}  # Story 4.3: the cancellation columns
+    assert (b["kind"], b["sauna"]) == ("seats", None)  # Story 5.2: a Whole-sauna booking names its Sauna instead
     assert (b["name"], b["email"], b["seats"], b["total_ore"]) == ("Test Guest", "guest@example.com", 3, 75000)
     assert (b["status"], b["history"]) == ("active", [])  # Story 4.2: status and Change history (FR-16)
     assert (b["cancelled_at"], b["cancel_cause"], b["cancel_remedy"]) == (None, None, None)

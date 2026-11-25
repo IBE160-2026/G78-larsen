@@ -12,7 +12,7 @@ import datetime as dt
 
 import pytest
 
-from client import api_client
+from client import GUEST, api_client, new_key
 from conftest import win_start
 
 NOT_FOUND = {"detail": {"error": "not_found"}}
@@ -97,10 +97,14 @@ def test_an_unknown_window_is_not_found(api):
     assert r.status_code == 404 and r.json() == NOT_FOUND
 
 
-def test_an_unknown_sauna_is_not_found(admin):
+def test_an_unknown_sauna_is_not_found(admin, api, pg):
     st = win_start(1)
-    # the slice's `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1)
-    for path, body in [("/api/admin/blocks", dict(sauna_id=99, start=st.isoformat(),
-                                                   end=(st + dt.timedelta(minutes=90)).isoformat()))]:
-        r = admin.post(path, json=body)
+    # the slice's `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1); its reshape is the Guest's
+    # Whole-sauna booking (Story 5.2, AD-21), sent with the Guest session
+    for c, path, body in [(admin, "/api/admin/blocks", dict(sauna_id=99, start=st.isoformat(),
+                                                             end=(st + dt.timedelta(minutes=90)).isoformat())),
+                          (api, "/api/bookings", dict(kind="whole", window_id=1, sauna_id=99, **GUEST))]:
+        before = snapshot(pg)
+        r = c.post(path, json=body, headers=new_key())
         assert r.status_code == 404 and r.json() == NOT_FOUND, (path, r.text)
+        assert snapshot(pg) == before

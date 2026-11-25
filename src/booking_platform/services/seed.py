@@ -233,7 +233,8 @@ def manage_email(facts: tuple, link: str, paid: tuple[int, int] = (0, 0),
     `paid` is (voucher_ore, card_ore) as `bq.charges` sums them: "Paid with voucher" and "Paid by card" each show
     when that part is above zero, so a Booking paid both ways shows both. `voucher_until` is the last valid date of
     the Voucher that paid it, which a Voucher for Seats given up keeps (`voucher.next_last_valid_date`)."""
-    ref, seats, _wid, date, start, end, *_rest, tz_name = facts
+    ref, seats, _wid, date, start, end = facts[:6]
+    tz_name = facts[12]  # `db.manage.booking`'s Venue time zone; the kind and Sauna follow it
     tz = ZoneInfo(tz_name)
     lines = [
         "Manage your booking",

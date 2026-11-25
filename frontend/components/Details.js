@@ -3,8 +3,12 @@
 // Details (FR-5, UX-DR9/12/23/26/33): "Your details", Back, the name and email Text fields, the Privacy notice link
 // and "Continue booking", with only the Wordmark in the rail.
 //
-// - The draft (`draft:seats`) is read only in effects. Without a chosen session this page goes to Book seats; after a
-//   payment (a `{reference}`-only draft) it replaces itself with Confirmation, so it can never lead to a second payment.
+// - Two flows share this page (`flow`, lib/flows.js, Story 5.2): the Seat flow (`/book-seats/details`, draft
+//   `draft:seats`) and the Private sauna flow (`/private-sauna/details`, draft `draft:whole`). Back goes to the flow's
+//   first page and Continue to its Review.
+// - The draft is read only in effects. Without a chosen session (and, for a Private sauna, a Sauna) this page goes to
+//   the flow's first page; after a payment (a `{reference}`-only draft) it replaces itself with Confirmation, so it can
+//   never lead to a second payment.
 // - What the Guest types is written to the draft at once, so Back, the browser's back button and a visit to the
 //   Privacy notice keep it.
 // - Empty or invalid fields give an Error summary and Field errors, with the input kept. The server checks again
@@ -19,8 +23,8 @@ import TextLink from './TextLink';
 import Wordmark from './Wordmark';
 import { DETAILS } from '@/lib/copy';
 import { paidReference, readDraft, writeDraft } from '@/lib/draft';
+import { flowOf } from '@/lib/flows';
 
-export const REVIEW_PATH = '/book-seats/review';
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /** The Field error of each field for the values given, or null. The server's rules (FR-5). */
@@ -33,8 +37,10 @@ export function detailErrors(name, email) {
   };
 }
 
-export default function Details() {
+export default function Details({ flow: flowName = 'seats' }) {
+  const flow = flowOf(flowName);
   const router = useRouter();
+  const [back, setBack] = useState(flow.start());
   const [ready, setReady] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -42,25 +48,26 @@ export default function Details() {
   const [focusKey, setFocusKey] = useState(0);
 
   useEffect(() => {
-    const draft = readDraft();
+    const draft = readDraft(flow.slot);
     const paid = paidReference(draft);
     if (paid) {
       router.replace(`/confirmation/${paid}`);
       return;
     }
-    if (!Number.isInteger(draft.window_id) || !draft.date || !draft.seats) {
-      router.replace('/book-seats');
+    if (!flow.chosen(draft)) {
+      router.replace(flow.start(draft));
       return;
     }
     if (typeof draft.name === 'string') setName(draft.name);
     if (typeof draft.email === 'string') setEmail(draft.email);
+    setBack(flow.start(draft));
     setReady(true);
-  }, [router]);
+  }, [router, flow]);
 
   const change = (field, value) => {
     if (field === 'name') setName(value);
     else setEmail(value);
-    writeDraft({ [field]: value });
+    writeDraft({ [field]: value }, flow.slot);
   };
 
   const errors = detailErrors(name, email);
@@ -78,8 +85,8 @@ export default function Details() {
       setFocusKey((k) => k + 1);
       return;
     }
-    writeDraft({ name: name.trim(), email: email.trim() });
-    router.push(REVIEW_PATH);
+    writeDraft({ name: name.trim(), email: email.trim() }, flow.slot);
+    router.push(flow.review);
   };
 
   const field = (id, label, value, type, autoComplete, maxLength, error) => (
@@ -110,7 +117,7 @@ export default function Details() {
           {DETAILS.heading}
         </h1>
         <p className="back">
-          <TextLink href="/book-seats">{DETAILS.back}</TextLink>
+          <TextLink href={back}>{DETAILS.back}</TextLink>
         </p>
         {ready && (
           <form noValidate onSubmit={onSubmit}>

@@ -25,6 +25,7 @@ from .. import db
 from ..db import seats as sq
 from ..db import venue as vq
 from ..db import vouchers as q
+from ..db import whole as wq
 from .errors import Refused
 
 CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -84,16 +85,25 @@ def normalise(text: object) -> str | None:
     return code
 
 
-def quote(window_id: int, seats: int, code: object) -> dict:
-    """`{voucher_part_ore, card_part_ore}` for `seats` Seats in the Window at the price in Settings: the Voucher part is
-    the lesser of the balance and the total. Takes no lock and writes nothing. An unknown Window is `404 not_found`;
-    any unusable code is `409 voucher_invalid` with no facts."""
+def quote(window_id: int, code: object, *, seats: int | None = None, sauna_id: int | None = None) -> dict:
+    """`{voucher_part_ore, card_part_ore}` for a Booking in the Window: `seats` Seats at the price in Settings, or the
+    Sauna `sauna_id` whole at its `whole_price_ore` (Story 5.2). The Voucher part is the lesser of the balance and the
+    total. Takes no lock and writes nothing. An unknown Window or Sauna is `404 not_found`, a Sauna not offered whole
+    `409 sauna_unavailable`; any unusable code is `409 voucher_invalid` with no facts."""
     normalised = normalise(code)
 
     def work(c):
         if sq.get_window(c, window_id) is None:
             raise Refused("not_found")
-        total = seats * vq.venue_facts(c)[7]
+        if sauna_id is not None:
+            row = wq.price(c, sauna_id)
+            if row is None:
+                raise Refused("not_found")
+            if row[0] is None:
+                raise Refused("sauna_unavailable")
+            total = row[0]
+        else:
+            total = seats * vq.venue_facts(c)[7]
         balance = None if normalised is None else q.valid_balance(c, code_hash(normalised))
         if balance is None:
             raise Refused("voucher_invalid")

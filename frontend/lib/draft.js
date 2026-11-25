@@ -1,17 +1,21 @@
-// The Booking draft (AD-9, UX-DR26): `sessionStorage` key `draft:seats`, so the Guest's choices survive a reload in
-// the same tab and disappear with the tab. It holds `{date, seats, window_id, name, email, key, voucher_code}`: Book
-// seats writes the choices, Details the name and email, and Review makes the idempotency key when the Guest first
-// reaches it and keeps the Voucher code as typed (Story 4.4). After a
-// payment the draft is `{reference}` only, so Details and Review replace themselves with Confirmation and nothing can
-// be paid twice; Book seats then starts a new draft. Call these only inside effects: `sessionStorage` does not exist
-// while rendering on the server. Storage that is unavailable or full is ignored, so the page still works without a
-// draft.
-const KEY = 'draft:seats';
+// The Booking drafts (AD-9, UX-DR26): one `sessionStorage` slot per flow, so the Guest's choices survive a reload in the
+// same tab and disappear with the tab.
+// - `draft:seats` (the Seat flow) holds `{date, seats, window_id, name, email, key, voucher_code}`: Book seats writes
+//   the choices, Details the name and email, and Review makes the idempotency key when the Guest first reaches it and
+//   keeps the Voucher code as typed (Story 4.4).
+// - `draft:whole` (the Private sauna flow, Story 5.2) holds `{date, window_id, sauna_id, sauna_name, whole_price_ore,
+//   name, email, key, voucher_code}`: the Private sauna page writes the choices, Details and Review as above.
+// After a payment the draft is `{reference}` only, so Details and Review replace themselves with Confirmation and nothing
+// can be paid twice; the flow's first page then starts a new draft. Call these only inside effects: `sessionStorage`
+// does not exist while rendering on the server. Storage that is unavailable or full is ignored, so the page still works
+// without a draft. Every function takes the slot; without one it is the Seat flow's.
+export const SEATS_SLOT = 'draft:seats';
+export const WHOLE_SLOT = 'draft:whole';
 
-/** @returns {object} the stored draft, or an empty object */
-export function readDraft() {
+/** @returns {object} the stored draft of the slot, or an empty object */
+export function readDraft(slot = SEATS_SLOT) {
   try {
-    const raw = window.sessionStorage.getItem(KEY);
+    const raw = window.sessionStorage.getItem(slot);
     const value = raw ? JSON.parse(raw) : null;
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   } catch {
@@ -19,18 +23,18 @@ export function readDraft() {
   }
 }
 
-/** Replace the stored draft with `value`. */
-export function replaceDraft(value) {
+/** Replace the slot's stored draft with `value`. */
+export function replaceDraft(value, slot = SEATS_SLOT) {
   try {
-    window.sessionStorage.setItem(KEY, JSON.stringify(value));
+    window.sessionStorage.setItem(slot, JSON.stringify(value));
   } catch {
     // no storage: the draft is a convenience, never needed to book
   }
 }
 
-/** Merge `fields` into the stored draft. */
-export function writeDraft(fields) {
-  replaceDraft({ ...readDraft(), ...fields });
+/** Merge `fields` into the slot's stored draft. */
+export function writeDraft(fields, slot = SEATS_SLOT) {
+  replaceDraft({ ...readDraft(slot), ...fields }, slot);
 }
 
 /** The reference of a paid Booking when the draft is `{reference}` only (after a payment), else null. */

@@ -77,12 +77,14 @@ def emails_by_change(c: psycopg.Connection, change_id: int) -> list[tuple[int, s
 
 
 def booking(c: psycopg.Connection, booking_id: int) -> tuple | None:
-    """(reference, venue date, start, end, seats, price_per_seat_ore, total_ore, name, email, status, venue_tz) of a
-    Booking as it is now. Start and end are timestamptz; the date is the Venue date the Window starts on."""
+    """(reference, venue date, start, end, seats, price_per_seat_ore, total_ore, name, email, status, venue_tz, kind,
+    sauna_id, sauna name) of a Booking as it is now. Start and end are timestamptz; the date is the Venue date the
+    Window starts on. The Sauna id and name are NULL for a Seat booking (AD-23, AD-25)."""
     return c.execute(
         "SELECT b.reference, venue_date(w.id), lower(w.during), upper(w.during), b.seats, b.price_per_seat_ore, "
-        "b.total_ore, b.name, b.email, b.status, st.venue_tz "
-        "FROM bookings b JOIN windows w ON w.id = b.window_id CROSS JOIN settings st WHERE b.id = %s",
+        "b.total_ore, b.name, b.email, b.status, st.venue_tz, b.kind, s.id, s.name "
+        "FROM bookings b JOIN windows w ON w.id = b.window_id CROSS JOIN settings st "
+        "LEFT JOIN saunas s ON s.id = b.sauna_id WHERE b.id = %s",
         (booking_id,)).fetchone()
 
 

@@ -20,8 +20,9 @@ from .windows import ensure_generated
 
 def day(date: dt.date | None = None) -> dict:
     """`{"today", "date", "windows"}`: without a date, the Venue date of app_now(). Each Window has `id`, `start`,
-    `end` (Venue time), `seat_capacity`, `seats_booked`, `seats_left` and `bookings` (oldest first, each with
-    `status`, `cancelled_at`, `cancel_cause`, `cancel_remedy` (null while active) and `history`)."""
+    `end` (Venue time), `seat_capacity`, `seats_booked`, `seats_left` and `bookings` (oldest first, each with `kind`,
+    `seats` (null for a Whole-sauna booking), `sauna` (`{id, name}` for a Whole-sauna booking, else null), `status`,
+    `cancelled_at`, `cancel_cause`, `cancel_remedy` (null while active) and `history`)."""
     ensure_generated()
 
     def work(c):
@@ -32,9 +33,10 @@ def day(date: dt.date | None = None) -> dict:
         changes = history.of_bookings(c, [r[0] for r in rows], tz)
         per_window: dict[int, list[dict]] = {}
         for (bid, wid, reference, name, email, seats, total_ore, created_at, status, cancelled_at, cause,
-             remedy) in rows:
+             remedy, kind, sauna_id, sauna_name) in rows:
             per_window.setdefault(wid, []).append(
-                {"reference": reference, "name": name, "email": email, "seats": seats, "total_ore": total_ore,
+                {"reference": reference, "kind": kind, "name": name, "email": email, "seats": seats,
+                 "sauna": None if sauna_id is None else {"id": sauna_id, "name": sauna_name}, "total_ore": total_ore,
                  "created_at": created_at.astimezone(tz).isoformat(), "status": status,
                  "cancelled_at": None if cancelled_at is None else cancelled_at.astimezone(tz).isoformat(),
                  "cancel_cause": cause, "cancel_remedy": remedy, "history": changes[bid]})

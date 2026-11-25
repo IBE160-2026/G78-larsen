@@ -44,8 +44,9 @@ def test_pay_creates_the_booking_one_charge_one_email_and_one_key(api, pg):
     body = r.json()
     assert set(body) == {"booking", "emails"}
     b = body["booking"]
-    assert set(b) == {"reference", "date", "start", "end", "seats", "price_per_seat_ore", "total_ore", "name", "email",
-                      "status", "paid"}
+    assert set(b) == {"reference", "kind", "date", "start", "end", "seats", "price_per_seat_ore", "sauna", "total_ore",
+                      "name", "email", "status", "paid"}
+    assert (b["kind"], b["sauna"]) == ("seats", None)  # the one serializer (AD-23); no Sauna for Seats (AD-25)
     assert b["paid"] == {"voucher_ore": 0, "card_ore": 50000}  # Story 4.4: summed from the charge rows
     assert REFERENCE.fullmatch(b["reference"]), b["reference"]
     assert (b["date"], b["start"], b["end"]) == ("2026-12-01", "2026-12-01T10:00:00+01:00",

@@ -16,21 +16,38 @@
 // - The loading line, the failed-read Notice and the empty-date sentence sit in one polite live region (`role="status"`, as the
 //   Notices of Book seats), so a screen reader hears them. A date the API refuses as outside the horizon gets the
 //   date's Field error; after a failed read, picking the same date again reads it again.
-// - Booking and paying for the chosen pair is Story 5.2.
-import { useEffect, useMemo, useState } from 'react';
+// - Story 5.2: the rail's "Continue booking" (as on Book seats) writes the chosen pair to the draft `draft:whole`
+//   (`{date, window_id, sauna_id, sauna_name, whole_price_ore}`, lib/draft.js), opens the browser session the booking
+//   needs (AD-8; viewing the page opens none) and goes to the shared Details. Without a date or a pair it shows an
+//   Error summary instead. The page reads `?date=` (Review's "Choose another sauna or session" and Details' Back come
+//   here with the date) and otherwise the draft's date; a pair kept in the draft is chosen again only while the
+//   listing still offers it. After a payment the draft is `{reference}` only, and this page then starts a new one.
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DateCalendar from './DateCalendar';
+import ErrorSummary from './ErrorSummary';
 import GuestShell from './GuestShell';
 import Notice from './Notice';
+import PrimaryButton from './PrimaryButton';
 import Wordmark from './Wordmark';
 import TextLink from './TextLink';
 import { ApiError, api } from '@/lib/api';
 import { BOOK, PRIVATE } from '@/lib/copy';
 import { SAUNA_COPY, SAUNA_IMAGE_SIZE } from '@/lib/sauna-copy';
 import { clockTime, dotted, longDate, monthOf, parseDotted } from '@/lib/dates';
+import { WHOLE_SLOT, paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
+import { FLOWS } from '@/lib/flows';
 import { holds, nok } from '@/lib/venue-format';
 
 const BY_SAUNA = 'sauna';
 const BY_SESSION = 'session';
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+function focusFirst(selector, fallbackId) {
+  const radios = Array.from(document.querySelectorAll(selector));
+  const target = radios.find((r) => r.checked) || radios[0] || document.getElementById(fallbackId);
+  if (target) target.focus();
+}
 
 /** Every free session of the listing once, in time order. */
 function sessionsOf(saunas) {
@@ -207,6 +224,7 @@ function SessionThenSauna({ sessions, saunas, windowId, saunaId, onWindow, onSau
 }
 
 export default function PrivateSauna() {
+  const router = useRouter();
   const [facts, setFacts] = useState(null); // {today, horizon_end, horizon_days, dates}
   const [factsFailed, setFactsFailed] = useState(false);
   const [date, setDate] = useState(null);
@@ -220,6 +238,32 @@ export default function PrivateSauna() {
   const [windowId, setWindowId] = useState(null);
   const [reload, setReload] = useState(0);
   const [factsReload, setFactsReload] = useState(0);
+  const [pending, setPending] = useState(null); // {saunaId, windowId}: a pair from the draft, chosen once listed
+  const [showErrors, setShowErrors] = useState(false);
+  const [focusKey, setFocusKey] = useState(0);
+  const continuing = useRef(false);
+
+  // The date from `?date=` or the draft, and the draft's pair (UX-DR26). Read in an effect: no `window` on the server.
+  useEffect(() => {
+    if (paidReference(readDraft(WHOLE_SLOT))) replaceDraft({}, WHOLE_SLOT);
+    const draft = readDraft(WHOLE_SLOT);
+    let fromQuery = null;
+    try {
+      fromQuery = new URLSearchParams(window.location.search).get('date');
+    } catch {
+      fromQuery = null;
+    }
+    const draftDate = typeof draft.date === 'string' && ISO.test(draft.date) ? draft.date : null;
+    const d = fromQuery && ISO.test(fromQuery) ? fromQuery : draftDate;
+    if (!d) return;
+    setDate(d);
+    setText(dotted(d));
+    setMonth(monthOf(d));
+    setStatus('loading');
+    if (d === draftDate && Number.isInteger(draft.sauna_id) && Number.isInteger(draft.window_id)) {
+      setPending({ saunaId: draft.sauna_id, windowId: draft.window_id });
+    }
+  }, []);
 
   // The calendar facts: the bookable dates and the horizon, from the server (AD-4).
   useEffect(() => {
@@ -265,6 +309,17 @@ export default function PrivateSauna() {
   const sessions = useMemo(() => sessionsOf(saunas), [saunas]);
   const sauna = saunas.find((s) => s.id === saunaId) || null;
 
+  // A pair kept in the draft is chosen again once the listing shows it is still offered.
+  useEffect(() => {
+    if (status !== 'ok' || !pending) return;
+    const s = saunas.find((x) => x.id === pending.saunaId);
+    if (s && s.windows.some((w) => w.id === pending.windowId)) {
+      setSaunaId(s.id);
+      setWindowId(pending.windowId);
+    }
+    setPending(null);
+  }, [status, pending, saunas]);
+
   const pickDate = (iso) => {
     setDateError(null);
     setText(dotted(iso));
@@ -278,6 +333,7 @@ export default function PrivateSauna() {
     setSaunas([]);
     setSaunaId(null);
     setWindowId(null);
+    setPending(null);
   };
 
   const commitText = () => {
@@ -323,6 +379,36 @@ export default function PrivateSauna() {
     else setSaunaId(null);
   };
 
+  const chosen = sauna && windowId != null ? sauna.windows.find((w) => w.id === windowId) || null : null;
+  const dateFieldError = dateError || (showErrors && !date ? BOOK.chooseDate : null);
+  const pairError = showErrors && date && !chosen ? PRIVATE.choosePair : null;
+  const errors = [
+    dateFieldError && showErrors ? { key: 'date', text: dateFieldError, href: '#date' } : null,
+    pairError ? { key: 'pair', text: pairError, href: '#saunas' } : null,
+  ].filter(Boolean);
+
+  const onSummaryChoose = (key) => {
+    if (key === 'date') document.getElementById('date')?.focus();
+    else if (view === BY_SESSION && windowId == null) focusFirst('#sessions input[type=radio]', 'sessions');
+    else focusFirst('#saunas input[type=radio]', 'saunas');
+  };
+
+  // "Continue booking": the pair goes to the draft, the browser gets its session (AD-8), and Details opens.
+  const onContinue = async () => {
+    if (continuing.current) return;
+    if (!date || dateError || !chosen) {
+      setShowErrors(true);
+      setFocusKey((k) => k + 1);
+      return;
+    }
+    continuing.current = true;
+    writeDraft({ date, window_id: chosen.id, sauna_id: sauna.id, sauna_name: sauna.name,
+      whole_price_ore: sauna.whole_price_ore }, WHOLE_SLOT);
+    await api('/api/session', { method: 'POST', body: {} }).catch(() => {}); // Review opens one again if needed
+    router.push(FLOWS.whole.details);
+    continuing.current = false;
+  };
+
   // `message` sits in the polite live region; the choices do not, so a screen reader hears the loading line, the
   // Notice or the empty-date sentence, not every card and session button of the listing.
   let message = null;
@@ -354,13 +440,14 @@ export default function PrivateSauna() {
   }
 
   const rail = (
-    <>
+    <div className="rail-book">
+      <PrimaryButton onClick={onContinue}>{PRIVATE.continue}</PrimaryButton>
       <Wordmark />
       <p className="rail-note rail-links">
         <TextLink href="/terms">Terms</TextLink>
         <TextLink href="/privacy">Privacy notice</TextLink>
       </p>
-    </>
+    </div>
   );
 
   return (
@@ -369,6 +456,7 @@ export default function PrivateSauna() {
         {PRIVATE.heading}
       </h1>
       <p className="private-lead">{PRIVATE.lead}</p>
+      {showErrors && <ErrorSummary errors={errors} focusKey={focusKey} onChoose={onSummaryChoose} />}
       <div className="book-cols">
         <DateCalendar
           facts={facts}
@@ -379,7 +467,7 @@ export default function PrivateSauna() {
           onText={setText}
           onCommitText={commitText}
           onPick={pickDate}
-          error={dateError}
+          error={dateFieldError}
           readFailed={factsFailed}
           label={PRIVATE.dateQuestion}
         />

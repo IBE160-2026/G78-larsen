@@ -493,3 +493,21 @@ Merge PR #20 og sette Story 5.1 til done.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 11:28 — Lisa Larsen
+
+### Oppgave
+Merge PR #21 (Story 5.1 done) og nullstille den lokale databasen, så den får de nye reglene i 0013.
+
+### Plan
+- Merge PR #21 med vanlig merge.
+- Slette bare databasevolumet, ikke `docker compose down -v`, som også ville slettet `caddy_data` og laget et nytt rotsertifikat.
+
+### Resultat
+- PR #21 er merget (`5082285`).
+- `docker compose down`, `docker volume rm g78-larsen_dbdata` og `docker compose up --build --wait`: alle tjenestene er friske.
+- I den nye databasen er det bekreftet at `trg_check_mark` krever pris og at `trg_booking_cancelled_frozen` fryser `sauna_id`. Alle fire badstuer har pris. `/private-sauna` svarer 200.
+- Punktet er lukket i `issues.md`.
+
+### Åpne punkter
+Ingen nye.

@@ -15,6 +15,7 @@ export const STATUS = Object.freeze({
   already_exists: 409,
   deadline_passed: 409,
   outside_horizon: 409,
+  sauna_unavailable: 409,
   release_after_deadline: 409,
   cutoff_passed: 409,
   booking_cancelled: 409,

@@ -80,3 +80,7 @@
 - source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
   summary: `seat_guest_refund_forbidden` (0012) applies to every Booking and will refuse a Whole-sauna cancel with refund; limit it to `kind = 'seats'` in Story 5.3's migration. Resolved 2026-11-25 in 5.1's migration 0013 (Lisa's request).
   evidence: Reported by the 5.1 implementation; the CHECK predates `kind`.
+
+- source_spec: `.docs/implementation-artifacts/spec-5-2-book-and-pay-for-a-private-sauna.md`
+  summary: Add a positive e2e check that going Back from the Private sauna Details re-selects a still-offered Sauna and session from `draft:whole`.
+  evidence: The only related assertion (`test_a_sauna_taken_while_on_review_...`) expects nothing checked, so deleting the restore in `PrivateSauna.js` would pass every test.

@@ -12,16 +12,18 @@ from __future__ import annotations
 import pytest
 
 from booking_platform import db
-from client import booking_body, new_key
+from client import GUEST, booking_body, new_key
 from test_fr10_through_the_api import fill
 
 ALWAYS = 10**9
 
 # (path, body, table the request writes to); /api/admin/ paths are sent with the Administrator session. The slice's
-# `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1); the Whole-sauna booking of Story 5.2 adds its own.
+# `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1); the Whole-sauna booking (Story 5.2) is its
+# reshape (AD-21): `POST /api/bookings` with `kind: 'whole'`, conflicting on its capacity row.
 WRITES = [
     ("/api/bookings", booking_body(1, 3), "bookings"),
     ("/api/holds", dict(window_id=1, seats=3), "holds"),
+    ("/api/bookings", {"kind": "whole", "window_id": 1, "sauna_id": 4, **GUEST}, "whole_bookings"),
 ]
 
 
@@ -82,8 +84,8 @@ def test_when_every_attempt_conflicts_the_guest_is_told_to_try_again_and_nothing
     assert r.status_code == 503 and r.json() == {"detail": {"error": "try_again"}}, r.text
     assert force_conflict.attempts() == db.RETRIES, "bounded: exactly RETRIES attempts, no more, no fewer"
     assert rows(pg, table) == 0
-    if table == "bookings":  # a Booking that never came has no charge, no email and no key (FR-12, FR-14)
-        assert [rows(pg, t) for t in ("payments", "outbox_emails", "idempotency_keys")] == [0, 0, 0]
+    if table in ("bookings", "whole_bookings"):  # a Booking that never came: no row, charge, email or key (FR-12, FR-14)
+        assert [rows(pg, t) for t in ("bookings", "payments", "outbox_emails", "idempotency_keys")] == [0, 0, 0, 0]
 
 
 def test_a_failed_booking_leaves_the_guests_hold_untouched(api, pg, force_conflict):
