@@ -155,3 +155,19 @@ Kjøre hele e2e-suiten etter review-patchene og endringen av voucherens utløpsd
 
 ### Åpne punkter
 - PR for `story/4-4-pay-with-a-voucher` er ikke åpnet ennå.
+
+## 2026-11-24 kl. 23:03 — Lisa Larsen
+
+### Oppgave
+Pushe `story/4-4-pay-with-a-voucher` og opprette PR.
+
+### Plan
+- Pushe grenen. Skrive PR-beskrivelsen etter samme mal som PR #16.
+
+### Resultat
+- Grenen er pushet til `origin`.
+- PR #17 «Story 4.4: Pay with a voucher (FR-28)» er opprettet mot `main` og åpnet i nettleseren: https://github.com/IBE160-2026/G78-larsen/pull/17
+- Lukket i `issues.md`: «gå gjennom endringen, åpne PR og sett 4.4 til done».
+
+### Åpne punkter
+- Merge PR #17.
