@@ -42,7 +42,7 @@ from ..db import manage as mq
 from ..db import sessions as sq
 from ..db import venue as q
 from ..db import windows as wq
-from . import auth, booking, manage, outbox
+from . import auth, booking, manage, outbox, voucher
 from .errors import Refused
 from .venue import VenueSeed
 
@@ -224,9 +224,14 @@ def apply_bookings(directory: Path | None = None) -> int:
     return created
 
 
-def manage_email(facts: tuple, link: str) -> tuple[str, str]:
+def manage_email(facts: tuple, link: str, paid: tuple[int, int] = (0, 0),
+                 voucher_until: dt.date | None = None) -> tuple[str, str]:
     """(subject, body) of the email that brings an existing sample Booking its Manage link: the reference, the date,
-    the session, the Seats, the link and the change statement. No Sauna (FR-4)."""
+    the session, the Seats, how it was paid, the link and the change statement. No Sauna (FR-4).
+
+    `paid` is (voucher_ore, card_ore) as `bq.charges` sums them: "Paid with voucher" and "Paid by card" each show
+    when that part is above zero, so a Booking paid both ways shows both. `voucher_until` is the last valid date of
+    the Voucher that paid it, which a Voucher for Seats given up keeps (`voucher.next_last_valid_date`)."""
     ref, seats, _wid, date, start, end, *_rest, tz_name = facts
     tz = ZoneInfo(tz_name)
     lines = [
@@ -236,6 +241,9 @@ def manage_email(facts: tuple, link: str) -> tuple[str, str]:
         f"Date: {booking.long_date(date)}",
         f"Session: {start.astimezone(tz):%H:%M}–{end.astimezone(tz):%H:%M}",
         f"Seats: {seats}",
+        *([f"Paid with voucher: {booking.nok(paid[0])}"
+           + (f", valid until {booking.long_date(voucher_until)}" if voucher_until else "")] if paid[0] > 0 else []),
+        *([f"Paid by card: {booking.nok(paid[1])}"] if paid[1] > 0 else []),
         "",
         manage.change_statement(),
         "",
@@ -255,7 +263,9 @@ def issue_sample_links(keys: list[uuid.UUID]) -> int:
             token = manage.issue(c, booking_id)
             facts = mq.booking(c, booking_id)
             recipient = mq.recipient(c, booking_id)
-            subject, body = manage_email(facts, manage.link(token))
+            paid = bq.charges(c, booking_id)
+            until = voucher.next_last_valid_date(c, booking_id) if paid[0] > 0 else None
+            subject, body = manage_email(facts, manage.link(token), paid, until)
             outbox.send(c, recipient, subject, body, booking_id=booking_id)
 
         db.run(work)

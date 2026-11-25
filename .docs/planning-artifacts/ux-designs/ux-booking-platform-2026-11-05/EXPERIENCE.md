@@ -211,7 +211,7 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 
 | Text | Where |
 |---|---|
-| Subject "Manage your booking: {ref}"; body "Manage your booking", "Booking reference: {ref}", "Date: {long date}", "Session: {HH:MM}–{HH:MM}", "Seats: N", the change statement, last the Manage link on its own line | Outbox email that the seed sends to a sample Booking that has no Manage link yet. Guests never get it; they get the link in the confirmation email. No Sauna, price or Venue block |
+| Subject "Manage your booking: {ref}"; body "Manage your booking", "Booking reference: {ref}", "Date: {long date}", "Session: {HH:MM}–{HH:MM}", "Seats: N", then how it was paid: "Paid with voucher: NOK {part}, valid until {long date}" and "Paid by card: NOK {card}", each only when that part is above zero, so both when both paid; then the change statement, last the Manage link on its own line | Outbox email that the seed sends to a sample Booking that has no Manage link yet. Guests never get it; they get the link in the confirmation email. The voucher date is the last valid date of the Voucher that paid, which a Voucher for Seats given up keeps. No Sauna, Total or Venue block |
 
 **Move seats wording, accepted by Lisa (2026-11-24, Story 4.2, FR-26)**
 
