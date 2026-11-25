@@ -108,3 +108,21 @@ Lisa ville at «Book seats» og «Book private sauna» på landingssiden skulle 
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:06 — Lisa Larsen
+
+### Oppgave
+Lisa syntes knappene på landingssiden fikk for lang tekst. De skulle bare si «Book seats» og «Book private sauna», og være like store.
+
+### Plan
+- Fjerne forklaringslinjene fra Booking choice og gi begge knappene samme bredde og høyde.
+
+### Resultat
+- `BookingChoice.js` har bare handlingsteksten. Forklaringene og `aria-describedby` er fjernet, og `seatsNote` og `privateNote` er tatt ut av `LANDING_CHOICES`.
+- `.booking-choice` har full bredde i railen og samme høyde som primærknappen (minst 48 px). Teksten er venstrestilt. `.booking-choice-note` er fjernet.
+- `test_fr01_landing.py` sjekker nå at knappene har samme bredde og høyde. `epics.md`, `EXPERIENCE.md`, `DESIGN.md` og spec-5-1 er rettet tilsvarende.
+- Tester: `test_fr01_landing` og `test_fr30_private_sauna` ga 19 passed etter at frontend ble bygget på nytt.
+- Kodeendringene er ikke committet.
+
+### Åpne punkter
+Ingen.
