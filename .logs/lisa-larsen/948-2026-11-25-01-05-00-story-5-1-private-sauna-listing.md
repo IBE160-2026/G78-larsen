@@ -173,3 +173,20 @@ På Private sauna-siden skulle kolonnene i badstuvalgene få mer plass mellom pr
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:21 — Lisa Larsen
+
+### Oppgave
+I «3. Choose a sauna» (visningen «Show by session») skulle «x free sessions» fjernes, fordi tallet kan forvirre når økten alt er valgt. Tabellen skulle tilpasses.
+
+### Plan
+- Gi `SaunaOptions` en `showFree`-parameter, slå den av i steg 3 og gi radene der en egen kolonnemal.
+
+### Resultat
+- `frontend/components/PrivateSauna.js`: steg 3 har `showFree={false}`. Raden har klassen `no-free`, og `aria-label` er «Navn, Holds x, NOK y».
+- `frontend/app/styles.css`: `.sauna-option.no-free` bruker kolonnene `32px minmax(64px, max-content) minmax(72px, max-content) minmax(0, 1fr)`. Navn, størrelse og pris står i samme kolonner som i steg 2.
+- `EXPERIENCE.md` (Sauna option) og `test_fr30_private_sauna.py` er oppdatert. Tester: 5 passed.
+- Ikke committet, sammen med kolonneendringen fra forrige seksjon.
+
+### Åpne punkter
+Ingen.
