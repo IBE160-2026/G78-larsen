@@ -222,3 +222,19 @@ Lisa ba om fem nye forslag der de ledige øktene står som knapper ved hver bads
 
 ### Åpne punkter
 - Lisa må velge forslag. Hun må også bestemme om «Show by session» skal beholdes når badstu og økt velges i ett steg.
+
+## 2026-11-25 kl. 09:42 — Lisa Larsen
+
+### Oppgave
+Lisa valgte forslag H (brede bannere med øktknapper) for «Show by sauna». Hun ba om fem lignende forslag med bilder og tekst for «Show by session».
+
+### Plan
+- Lage en ny artifact der økta velges først og de ledige badstuene vises i H-stil.
+
+### Resultat
+- Artifact: https://claude.ai/artifact/Bhhi9wKNAk7Zfw31zEe8Pk
+- Forslagene er K øktknapper og så badstukort, L gruppert per økt med små kort, M trekkspill per økt, N øktknapper og så badstuer med bilde ved siden av, og O tidslinje med bildeknapper og den valgte badstua stort under.
+- Overskriften er «2. Choose a session and a sauna». Ingen kode er endret.
+
+### Åpne punkter
+- Lisa må velge et forslag for «Show by session». Deretter bygges H og det valgte forslaget inn, og beskrivelsene må godkjennes.
