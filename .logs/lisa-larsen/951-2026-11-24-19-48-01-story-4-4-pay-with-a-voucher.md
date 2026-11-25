@@ -140,3 +140,18 @@ Vise voucher-flyten i nettleseren, slik at Lisa kunne teste den manuelt.
 ### Åpne punkter
 - PR for `story/4-4-pay-with-a-voucher` er ikke åpnet ennå.
 - Hele e2e-suiten er ikke kjørt etter de siste endringene (punktet står fortsatt åpent).
+
+## 2026-11-24 kl. 23:00 — Lisa Larsen
+
+### Oppgave
+Kjøre hele e2e-suiten etter review-patchene og endringen av voucherens utløpsdato.
+
+### Plan
+- To kjøringer i forgrunnen (8 + 9 testfiler), hver under 10 minutter. Forrige bakgrunnskjøring ble stoppet på grunn av lite minne.
+
+### Resultat
+- E2e: 98 + 82 = 180 tester grønne. Sammen med 521 API-tester og frontend-bygget fra forrige økt er hele verifiseringen grønn for koden i `892234b`.
+- Lukket i `issues.md`: «kjør full verifisering på nytt».
+
+### Åpne punkter
+- PR for `story/4-4-pay-with-a-voucher` er ikke åpnet ennå.
