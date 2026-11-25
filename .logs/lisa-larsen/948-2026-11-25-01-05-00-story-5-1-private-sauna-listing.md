@@ -206,3 +206,19 @@ Lisa ba om fem designforslag for Private sauna-siden der hver badstu vises med b
 
 ### Åpne punkter
 - Lisa må velge et forslag og godkjenne beskrivelsene før bildene bygges inn på Private sauna-siden.
+
+## 2026-11-25 kl. 09:36 — Lisa Larsen
+
+### Oppgave
+Lisa ba om fem nye forslag der de ledige øktene står som knapper ved hver badstu, så steg 3 kanskje ikke trengs. Overskriften skal være «Choose a sauna and a session».
+
+### Plan
+- Lage en ny artifact med de samme bildene og beskrivelsene. Badstu og økt velges med ett klikk.
+
+### Resultat
+- Artifact: https://claude.ai/artifact/KRErnbSV2aYiQr6t1zC723
+- Forslagene er F rader med lite bilde og øktknapper, G 2×2-kort med øktrutenett, H brede bannere med start–slutt-knapper, I stort bilde med øktrutenett, og J en tabell med badstuer mot økter.
+- Overskriften er «2. Choose a sauna and a session». Opptatte økter er eksempeldata. Ingen kode er endret.
+
+### Åpne punkter
+- Lisa må velge forslag. Hun må også bestemme om «Show by session» skal beholdes når badstu og økt velges i ett steg.
