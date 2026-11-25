@@ -195,7 +195,7 @@ def test_the_quote_needs_a_session_and_a_known_window(before_cutoff, guest, pg):
     {"code": "x" * 1025, "kind": "seats", "window_id": 1, "seats": 1},
     {"code": 1234, "kind": "seats", "window_id": 1, "seats": 1},
     {"code": None, "kind": "seats", "window_id": 1, "seats": 1},
-    {"code": "ABCD", "kind": "whole", "window_id": 1, "seats": 1},  # Whole-sauna quotes are Epic 5
+    {"code": "ABCD", "kind": "whole", "window_id": 1, "seats": 1},  # a Whole-sauna quote names a Sauna, never Seats
     {"code": "ABCD", "window_id": 1, "seats": 1},
     {"code": "ABCD", "kind": "seats", "window_id": 1, "seats": 11},
     {"code": "ABCD", "kind": "seats", "window_id": 0, "seats": 1},

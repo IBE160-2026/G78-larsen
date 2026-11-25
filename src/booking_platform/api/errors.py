@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ..services.errors import Refused, StoreError
+from .schemas import KIND_TAG
 
 log = logging.getLogger("booking_platform.api")
 
@@ -27,6 +28,7 @@ STATUS: dict[str, int] = {
     "deadline_passed": 409,  # past the Window's Booking deadline (FR-39)
     "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2), or a Window
     # that starts after it, on a booking, Hold or Whole-sauna booking (FR-18 IV-2, AD-4)
+    "sauna_unavailable": 409,  # a Sauna that cannot be booked whole in the Window any more (FR-29, AD-24)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
     "cutoff_passed": 409,  # a Change after the Booking's Cutoff (AD-4, AD-16); fact `cutoff_at`
     "booking_cancelled": 409,  # a Change of a cancelled Booking (AD-29)
@@ -47,7 +49,9 @@ def envelope(code: str, **facts) -> JSONResponse:
 
 
 def _field(loc: tuple) -> str:
+    """The field a shape error names. The `kind=` tag of a two-kind request (`schemas.KIND_TAG`) is not a field."""
     parts = loc[1:] if loc and loc[0] in ("body", "query", "path", "header", "cookie") else loc
+    parts = [p for p in parts if not (isinstance(p, str) and p.startswith(KIND_TAG))]
     return ".".join(str(p) for p in parts) or str(loc[0])
 
 

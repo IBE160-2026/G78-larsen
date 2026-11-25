@@ -1,5 +1,5 @@
-"""The public `/api` router: health, the Venue facts, Windows, the Private sauna listing, the session, Holds, Seat
-bookings and the confirmation read."""
+"""The public `/api` router: health, the Venue facts, Windows, the Private sauna listing, the session, Holds, Seat and
+Whole-sauna bookings, the Voucher quote and the confirmation read."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Header, Query, Request, Response
 from ..services import booking, holds, sessions, venue, voucher, whole, windows
 from .deps import COOKIE, current_session, require_session, set_session_cookie
 from .schemas import (BookingIn, BookingResult, HoldIn, PrivateSaunasQuery, SessionIn, VenueOut, VoucherQuoteIn,
-                      VoucherQuoteOut, WindowsQuery)
+                      VoucherQuoteOut, WholeBookingIn, WholeQuoteIn, WindowsQuery)
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -69,17 +69,25 @@ def release_hold(window_id: int, s: sessions.Session = Depends(require_session))
 @router.post("/bookings", status_code=201, response_model=BookingResult)
 def book(body: BookingIn, idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
          s: sessions.Session = Depends(require_session)):
-    """Pay and create a Seat booking (FR-5, FR-6, FR-9). The `Idempotency-Key` UUID is required (AD-9): a repeat from
-    the same session with the same Window and Seats returns the first outcome (201 again) and writes nothing."""
+    """Pay and create a Booking (FR-5, FR-6, FR-9): a Seat booking (`kind` `seats` or left out), or a Whole-sauna
+    booking (`kind: 'whole'` with `sauna_id`, FR-29, Story 5.2). The `Idempotency-Key` UUID is required (AD-9): a
+    repeat from the same session with the same request returns the first outcome (201 again) and writes nothing."""
+    if isinstance(body, WholeBookingIn):
+        return whole.create(s.id, body.window_id, body.sauna_id, body.name, body.email, idempotency_key,
+                            voucher_code=body.voucher_code, voucher_part=body.voucher_part_ore)
     return booking.create(s.id, body.window_id, body.seats, body.name, body.email, idempotency_key,
                           voucher_code=body.voucher_code, voucher_part=body.voucher_part_ore)
 
 
 @router.post("/vouchers/quote", response_model=VoucherQuoteOut)
 def quote_voucher(body: VoucherQuoteIn, _s: sessions.Session = Depends(require_session)):
-    """What a Voucher would pay of a Seat booking (FR-28, AD-30): `{voucher_part_ore, card_part_ore}`. Takes no lock and
-    writes nothing. Any unusable code is `409 voucher_invalid` with no facts; an unknown Window is `404 not_found`."""
-    return voucher.quote(body.window_id, body.seats, body.code)
+    """What a Voucher would pay of a Seat booking, or of a Whole-sauna booking at the Sauna's `whole_price_ore` (FR-28,
+    AD-30, Story 5.2): `{voucher_part_ore, card_part_ore}`. Takes no lock and writes nothing. Any unusable code is
+    `409 voucher_invalid` with no facts; an unknown Window or Sauna is `404 not_found`, a Sauna not offered whole
+    `409 sauna_unavailable`."""
+    if isinstance(body, WholeQuoteIn):
+        return voucher.quote(body.window_id, body.code, sauna_id=body.sauna_id)
+    return voucher.quote(body.window_id, body.code, seats=body.seats)
 
 
 @router.get("/bookings/{reference}/confirmation", response_model=BookingResult)

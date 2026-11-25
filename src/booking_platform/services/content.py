@@ -9,6 +9,7 @@ import json
 from .. import config
 
 TERMS_SEATS = "terms-seats"  # the booking terms of a Seat booking (FR-5)
+TERMS_WHOLE = "terms-whole"  # the booking terms of a Whole-sauna booking (FR-29, FR-33)
 RECEPTION = "reception"  # what happens next (FR-8); never under a heading
 
 

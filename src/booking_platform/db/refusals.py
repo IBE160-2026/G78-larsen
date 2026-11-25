@@ -36,9 +36,11 @@ MAP: dict[str, str] = {
     # capacity (AD-2)
     "booked_within_capacity": "no_seat_free",
     # named trigger refusals (0003_named_store_refusals.sql); window_out_of_step stays unmapped: it is a 500. The
-    # Whole-sauna rule is the one name `whole_bookable` (0013); it is mapped to `sauna_unavailable` with the
-    # Whole-sauna booking (Story 5.2), and until then nothing outside tests writes `whole_bookings`. `whole_pairing`
-    # and `booking_kind_fixed` stay unmapped: they are 500s (AD-1, AD-23)
+    # Whole-sauna rule is the one name `whole_bookable` (0013); it is not in this global table: the Whole-sauna
+    # booking (`services.whole.create`, Story 5.2) passes its own override to `db.run`, which maps `whole_bookable`,
+    # `booked_within_capacity` and the `(window_id, sauna_id)` key to `sauna_unavailable` for that action only
+    # (AD-24), so the Seat flow keeps `no_seat_free`. `whole_pairing` and `booking_kind_fixed` stay unmapped: they
+    # are 500s (AD-1, AD-23)
     "mark_not_bookable": "rule_refused",
     "mark_seats_placed": "rule_refused",
     "release_not_due": "rule_refused",

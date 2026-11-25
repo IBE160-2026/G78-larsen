@@ -35,6 +35,7 @@ class Locked(NamedTuple):
     email: str
     change_allowed: bool
     cutoff_at: dt.datetime
+    kind: str
 
 
 def lock_booking(c: psycopg.Connection, booking_id: int) -> Locked | None:
@@ -42,7 +43,7 @@ def lock_booking(c: psycopg.Connection, booking_id: int) -> Locked | None:
     `cutoff_at` are judged in the same statement on app_now() (AD-4)."""
     row = c.execute(
         "SELECT b.id, b.reference, b.status, b.version, b.seats, b.window_id, b.price_per_seat_ore, b.cutoff, b.name, "
-        "b.email, app_now() < lower(w.during) - b.cutoff, lower(w.during) - b.cutoff "
+        "b.email, app_now() < lower(w.during) - b.cutoff, lower(w.during) - b.cutoff, b.kind "
         "FROM bookings b JOIN windows w ON w.id = b.window_id WHERE b.id = %s FOR NO KEY UPDATE OF b",
         (booking_id,)).fetchone()
     return None if row is None else Locked(*row)

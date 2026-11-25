@@ -9,6 +9,9 @@
 // (FR-20 RB-4). A reload in the paying session shows the page again. Straight after Pay, Review has read it already,
 // so the h1 is on the page at once (lib/confirmation.js). The Manage link (Story 4.1) appears only in the email as sent.
 // A Booking paid with a Voucher (Story 4.4) shows "Paid with voucher" and "Paid by card" after Total.
+// One page for both flows (Story 5.2), rendered by the Booking's `kind`: a Whole-sauna booking shows "Sauna" with its
+// name where a Seat booking shows "Seats" (never the Sauna's Capacity), and the Whole-sauna booking terms
+// (`content/terms-whole.json`) instead of the Seat booking terms.
 import { useEffect, useRef, useState } from 'react';
 import BookingSummary from './BookingSummary';
 import EmailAsSent from './EmailAsSent';
@@ -20,7 +23,8 @@ import { venueRows } from './Review';
 import TextLink from './TextLink';
 import Wordmark from './Wordmark';
 import reception from '@/content/reception.json';
-import terms from '@/content/terms-seats.json';
+import termsSeats from '@/content/terms-seats.json';
+import termsWhole from '@/content/terms-whole.json';
 import { ApiError, api } from '@/lib/api';
 import { heldConfirmation } from '@/lib/confirmation';
 import { CONFIRMATION, SUMMARY, seatsWord } from '@/lib/copy';
@@ -72,6 +76,8 @@ export default function Confirmation({ reference, venue }) {
   if (state.status === 'not_available') return <NotAvailable />;
 
   const b = state.booking;
+  const whole = b?.kind === 'whole';
+  const terms = whole ? termsWhole : termsSeats;
   return (
     <GuestShell rail={<Wordmark />}>
       <div className="col">
@@ -91,9 +97,10 @@ export default function Confirmation({ reference, venue }) {
             ))}
             <BookingSummary
               rows={[
+                ...(whole ? [{ label: SUMMARY.sauna, value: b.sauna?.name ?? '' }] : []),
                 { label: SUMMARY.date, value: longDate(b.date) },
                 { label: SUMMARY.session, value: `${clockTime(b.start)}–${clockTime(b.end)}` },
-                { label: SUMMARY.seats, value: seatsWord(b.seats) },
+                ...(whole ? [] : [{ label: SUMMARY.seats, value: seatsWord(b.seats) }]),
                 { label: SUMMARY.total, value: `${nok(b.total_ore)} incl. VAT` },
                 ...paidRows(b.paid),
                 { label: SUMMARY.email, value: b.email },

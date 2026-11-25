@@ -70,6 +70,11 @@ export default function MoveSeats({ reference }) {
     api(`/api/manage/${encodeURIComponent(reference)}`, { signal: controller.signal })
       .then((booking) => {
         if (controller.signal.aborted) return;
+        if (booking.kind !== 'seats') {
+          // a Seat Change of a Whole-sauna booking: the API refuses it as a route of the other kind (Story 5.2)
+          setLoad({ status: 'not_available', booking: null });
+          return;
+        }
         if (booking.status === 'active' && booking.change_allowed) changeKey(reference, ACTION);
         setLoad({ status: 'ok', booking });
         if (booking.seats === 1) setSeats(1);

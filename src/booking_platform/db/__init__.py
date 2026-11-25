@@ -54,10 +54,14 @@ def close_pool() -> None:
         _pool = None
 
 
-def _translate(e: psycopg.Error) -> Exception:
-    """A store error becomes a Refused when its constraint name is mapped, otherwise a StoreError (a 500)."""
+def _translate(e: psycopg.Error, refusals: dict[str, str] | None = None) -> Exception:
+    """A store error becomes a Refused when its constraint name is mapped, otherwise a StoreError (a 500). The
+    action's own `refusals` (constraint -> code) are judged before the global `MAP` (AD-24: in a Whole-sauna action
+    the FR-29 names are `sauna_unavailable`)."""
     constraint = e.diag.constraint_name
-    code = code_for(constraint)
+    code = refusals.get(constraint) if refusals and constraint else None
+    if code is None:
+        code = code_for(constraint)
     if code is not None:
         return Refused(code)
     return StoreError(e.sqlstate, constraint)
@@ -72,10 +76,11 @@ def _force_conflict(c: psycopg.Connection) -> None:
         c.execute("DO $$ BEGIN RAISE EXCEPTION 'forced conflict (test switch)' USING ERRCODE = '40001'; END $$")
 
 
-def run(work: Callable[[psycopg.Connection], T]) -> T:
+def run(work: Callable[[psycopg.Connection], T], *, refusals: dict[str, str] | None = None) -> T:
     """Run one unit of work in one READ COMMITTED transaction, retrying temporary conflicts a bounded number of
     times (`Retry` counts as one). Anything the work wrote is rolled back on every failed attempt (FR-14). Store refusals, at any
-    statement or at COMMIT, are translated by constraint name. Retries used up is `Refused('try_again')`."""
+    statement or at COMMIT, are translated by constraint name: first by the action's `refusals` override, then by the
+    global `MAP`. Retries used up is `Refused('try_again')`."""
     assert _pool is not None, "pool is not open"
     last: str | None = None
     for attempt in range(RETRIES):
@@ -88,7 +93,7 @@ def run(work: Callable[[psycopg.Connection], T]) -> T:
             last = e.sqlstate
             time.sleep(0.005 * (attempt + 1))
         except psycopg.Error as e:
-            raise _translate(e) from None
+            raise _translate(e, refusals) from None
     log.warning("retries used up: sqlstate=%s attempts=%d", last, RETRIES)
     raise Refused("try_again")
 

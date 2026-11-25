@@ -2,7 +2,7 @@
 and the read of the Booking it opens.
 
 - `issue` is the only writer of `access_tokens`. Only Booking creators call it, inside their own transaction: the Seat
-  flow (`services.booking.create`), a split (`services.change.move`) and the seed. It locks the Booking `FOR NO KEY UPDATE`, revokes any unrevoked
+  flow (`services.booking.create`), the Whole-sauna flow (`services.whole.create`), a split (`services.change.move`) and the seed. It locks the Booking `FOR NO KEY UPDATE`, revokes any unrevoked
   Manage token of it, then stores the SHA-256 hash of a new 256-bit token. The raw token is returned only to build
   the email link and is never stored, logged or put in a path or query (AD-19).
 - `open` checks the token, creates or reuses the session (AD-8) and upserts the grant. Every bad token (unknown,
@@ -11,8 +11,8 @@ and the read of the Booking it opens.
 - `grant` is the one check of every route under `/api/manage/{reference}/`: one autocommit statement that judges
   `manage_grant_valid` and touches `last_used_at` (AD-4). No session, no grant, another Booking's reference and an
   unknown reference are all `404 not_found`, never `401`.
-- `read` writes nothing. Its Booking JSON never holds a name, an email, an Outbox body, a token or a Sauna (FR-4,
-  FR-17).
+- `read` writes nothing. Its Booking JSON never holds a name, an email, an Outbox body or a token (FR-17), and names a
+  Sauna only for a Whole-sauna booking (`kind = 'whole'`, FR-4, AD-25).
 """
 
 from __future__ import annotations
@@ -92,13 +92,14 @@ def booking_now(c: psycopg.Connection, booking_id: int) -> dict:
     row = q.booking(c, booking_id)
     if row is None:
         raise Refused("not_found")
-    ref, seats, window_id, date, start, end, total, status, version, allowed, cutoff_at, cancelled_at, tz_name = row
+    (ref, seats, window_id, date, start, end, total, status, version, allowed, cutoff_at, cancelled_at, tz_name, kind,
+     sauna_id, sauna_name) = row
     tz = ZoneInfo(tz_name)
     return {
         "reference": ref,
-        "kind": "seats",
+        "kind": kind,
         "seats": seats,
-        "sauna": None,
+        "sauna": None if sauna_id is None else {"id": sauna_id, "name": sauna_name},
         "window": {"id": window_id, "date": date.isoformat(), "start": start.astimezone(tz).isoformat(),
                    "end": end.astimezone(tz).isoformat()},
         "total_ore": total,

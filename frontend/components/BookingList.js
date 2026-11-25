@@ -120,7 +120,8 @@ function SessionGroup({ session }) {
                   <td className="tabular">{b.reference}</td>
                   <td>{b.name}</td>
                   <td>{b.email}</td>
-                  <td className="num">{b.seats}</td>
+                  {/* a Whole-sauna booking names its Sauna in the Seats column (Story 5.2, FR-16) */}
+                  {b.kind === 'whole' ? <td>{b.sauna?.name}</td> : <td className="num">{b.seats}</td>}
                   <td className="num">{nok(b.total_ore)}</td>
                   <td className="num">{dottedTime(b.created_at)}</td>
                   <td>{statusText(b)}</td>
