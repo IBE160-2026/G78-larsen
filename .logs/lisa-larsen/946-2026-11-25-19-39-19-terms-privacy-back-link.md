@@ -15,6 +15,7 @@ Lisa spurte om Terms og Privacy notice burde ha en tilbakeknapp, siden de nås f
 - Tester i `tests/e2e/test_fr22_terms_privacy_a11y.py`: tabulatorrekkefølge, direkte åpning → landingssiden, Review → Terms → Privacy → Back → Back til Review med alt bevart og fokus på h1, uten JavaScript, og reserven uten Navigation API. `test_fr22` 33 passert; fr01, fr05, fr21, fr23 ×2 og stack routing 79 passert; frontend bygger.
 - Review (Blind Hunter): 10 funn, 6 rettet, 4 avvist.
 - Commit `6bbd7e8` på `feat/terms-privacy-back`. Ikke pushet.
+- Etterpå flyttet (rebase) oppå `story/5-2-book-and-pay-private-sauna`, slik at Back og Private sauna-bookingen kan prøves sammen; ny commit `6cd99b4`. Konflikt bare i `issues.md` (begge linjene beholdt). `test_fr22` + `test_fr30` 43 passert; stacken bygd på nytt. Lisa testet i nettleseren: ok. Grenen må merges etter Story 5.2.
 
 ### Åpne punkter
 - Kjent begrensning i nettlesere uten Navigation API (eldre Firefox/Safari): etter at gjesten har navigert inne på nettstedet, går Back tilbake i historikken også når siden ble nådd med nettleserens egen tilbake- eller fremknapp.
