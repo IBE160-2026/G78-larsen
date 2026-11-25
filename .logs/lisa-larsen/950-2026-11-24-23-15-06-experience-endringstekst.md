@@ -16,7 +16,7 @@ Endret `.docs/planning-artifacts/ux-designs/ux-booking-platform-2026-11-05/EXPER
 - Flow 1, steg 6: Review-vilkårene i reisen er oppdatert.
 - Open Item 11 og avstemmingspunkt 5 (PRD) har en merknad om at teksten ble erstattet 2026-11-24. Den gamle teksten står igjen der bare som historikk.
 - `updated` er satt til 2026-11-24.
-Ikke committet. Dokumentendringen ligger i arbeidskopien på `main`.
+Committet som `bda14ca` på grenen `docs/experience-change-statement` (sammen med denne loggen), pushet, og PR #18 er åpnet mot `main`.
 
 ### Åpne punkter
 Ingen.
