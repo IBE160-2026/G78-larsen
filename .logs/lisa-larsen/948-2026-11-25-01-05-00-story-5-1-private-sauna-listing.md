@@ -440,3 +440,17 @@ Lukke punktet i `issues.md` om å godkjenne beskrivelsene av badstuene.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:53 — Lisa Larsen
+
+### Oppgave
+Kjøre hele e2e-laget før Story 5.1 merges.
+
+### Plan
+- `uv run pytest tests/e2e` i bakgrunnen.
+
+### Resultat
+- 187 passed på 21 min 22 s, exit 0. Hele e2e-laget er grønt etter alle endringene i dag. Punktet i `issues.md` er lukket.
+
+### Åpne punkter
+Ingen nye.
