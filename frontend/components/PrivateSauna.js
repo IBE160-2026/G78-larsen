@@ -5,13 +5,14 @@
 //
 // - The calendar facts (`today`, `horizon_end`, `horizon_days`, `dates`) come from `GET /api/windows` with no date;
 //   the pairs from `GET /api/private-saunas?date=`. No clock is read here (AD-4), and no session is opened (AD-8).
-// - Both views are built from the one listing response by regrouping only (AD-24): "Show by sauna" (chosen first)
-//   asks for the Sauna, then one of its free sessions; "Show by session" asks for the session, then a Sauna free in
-//   it. The second group appears once the first is answered and lists only what is free with that choice.
-// - Each choice is a radio group in a fieldset with its question as legend, one tab stop with arrow keys inside.
-//   The rows reuse the Session row look; a Sauna option shows its name, "Holds 7", its price and its free sessions,
-//   and the radio's accessible name says all of it (the visible text is hidden from assistive technology, as in the
-//   Session list). An empty date says so plainly, with no urgency cue (NFR-9).
+// - Both views are built from the one listing response by regrouping only (AD-24). "Show by sauna" (chosen first,
+//   proposal H, Lisa 2026-11-25) shows one card per Sauna (photo, name, size, price, description) with its free
+//   sessions as buttons: one click chooses the Sauna and the session. "Show by session" (proposal K) shows the
+//   sessions as buttons with how many Saunas are free in each, then the Saunas free in the chosen one as cards.
+// - Each choice is a radio group in a fieldset with a legend, one tab stop with arrow keys inside; a radio's
+//   accessible name says what its button shows, and a card's description is its accessible description. The
+//   photos are decorative here (alt=""); their alt texts are on Landing. An empty date says so plainly, with no
+//   urgency cue (NFR-9).
 // - The loading line, the result and the empty-date sentence sit in one polite live region (`role="status"`, as the
 //   Notices of Book seats), so a screen reader hears them. A date the API refuses as outside the horizon gets the
 //   date's Field error; after a failed read, picking the same date again reads it again.
@@ -24,6 +25,7 @@ import Wordmark from './Wordmark';
 import TextLink from './TextLink';
 import { ApiError, api } from '@/lib/api';
 import { BOOK, PRIVATE } from '@/lib/copy';
+import { SAUNA_COPY, SAUNA_IMAGE_SIZE } from '@/lib/sauna-copy';
 import { clockTime, dotted, longDate, monthOf, parseDotted } from '@/lib/dates';
 import { holds, nok } from '@/lib/venue-format';
 
@@ -63,79 +65,143 @@ function ViewPicker({ view, onChange }) {
   );
 }
 
-function SaunaOptions({ legend, saunas, saunaId, onChoose }) {
+/** "13:00–14:30" and its spoken form "13:00 to 14:30", with "Already started" when it has. */
+function sessionText(w) {
+  const start = clockTime(w.start);
+  const end = clockTime(w.end);
+  return { shown: `${start}–${end}`, spoken: `${start} to ${end}${w.already_started ? `, ${BOOK.alreadyStarted}` : ''}` };
+}
+
+/** A Sauna's photo, name, size, price and description (Lisa 2026-11-25, proposal H). The photo is decorative here:
+ * the name and the description say what the Guest needs, and the alt texts are on Landing. */
+function SaunaHead({ sauna }) {
+  const copy = SAUNA_COPY[sauna.id];
   return (
-    <fieldset className="question question-saunas" id="saunas">
-      <legend className="q">{legend}</legend>
-      <div className="session-rows">
-        {saunas.map((s) => {
-          const size = holds(s.capacity);
-          const price = nok(s.whole_price_ore);
-          const free = PRIVATE.freeSessions(s.windows.length);
-          const selected = saunaId === s.id;
-          return (
-            <label key={s.id} className={selected ? 'session-row sauna-option selected' : 'session-row sauna-option'}>
-              <input
-                type="radio"
-                name="sauna"
-                id={`sauna-${s.id}`}
-                value={s.id}
-                checked={selected}
-                aria-label={`${s.name}, ${size}, ${price}, ${free}`}
-                onChange={() => onChoose(s.id)}
-              />
-              <span className="session-time" aria-hidden="true">
-                {s.name}
-              </span>
-              <span aria-hidden="true">{size}</span>
-              <span className="tabular" aria-hidden="true">
-                {price}
-              </span>
-              <span className="sauna-free" aria-hidden="true">
-                {free}
-              </span>
-            </label>
-          );
-        })}
+    <>
+      {copy && (
+        <img
+          className="private-card-image"
+          src={copy.image}
+          alt=""
+          width={SAUNA_IMAGE_SIZE.width}
+          height={SAUNA_IMAGE_SIZE.height}
+        />
+      )}
+      <span className="private-card-top">
+        <span className="private-card-name" id={`sauna-name-${sauna.id}`}>
+          {sauna.name} <span className="private-card-size">· {holds(sauna.capacity)}</span>
+        </span>
+        <span className="private-card-price tabular">{nok(sauna.whole_price_ore)}</span>
+      </span>
+      {copy?.description && (
+        <span className="private-card-text" id={`sauna-text-${sauna.id}`}>
+          {copy.description}
+        </span>
+      )}
+    </>
+  );
+}
+
+// "Show by sauna" (proposal H): one card per Sauna with its free sessions as buttons. One radio group for the whole
+// listing, so one click chooses the Sauna and the session, with one tab stop and arrow keys inside.
+function SaunaCards({ saunas, saunaId, windowId, onChoose }) {
+  return (
+    <fieldset className="question question-pairs" id="saunas">
+      <legend className="q">{PRIVATE.bySaunaQuestion}</legend>
+      <div className="private-cards">
+        {saunas.map((s) => (
+          <div
+            key={s.id}
+            className="private-card"
+            role="group"
+            aria-labelledby={`sauna-name-${s.id}`}
+            aria-describedby={SAUNA_COPY[s.id]?.description ? `sauna-text-${s.id}` : undefined}
+          >
+            <SaunaHead sauna={s} />
+            <span className="slot-grid">
+              {s.windows.map((w) => {
+                const t = sessionText(w);
+                return (
+                  <label key={w.id} className="cell slot">
+                    <input
+                      type="radio"
+                      name="pair"
+                      id={`pair-${s.id}-${w.id}`}
+                      value={`${s.id}-${w.id}`}
+                      checked={saunaId === s.id && windowId === w.id}
+                      aria-label={`${s.name}, ${t.spoken}`}
+                      onChange={() => onChoose(s.id, w.id)}
+                    />
+                    <span aria-hidden="true">
+                      {t.shown}
+                      {w.already_started && <small>{BOOK.alreadyStarted}</small>}
+                    </span>
+                  </label>
+                );
+              })}
+            </span>
+          </div>
+        ))}
       </div>
     </fieldset>
   );
 }
 
-function SessionOptions({ legend, sessions, windowId, onChoose }) {
+// "Show by session" (proposal K): the sessions as buttons with how many Saunas are free in each, then the Saunas
+// free in the chosen session as cards to choose from.
+function SessionThenSauna({ sessions, saunas, windowId, saunaId, onWindow, onSauna }) {
+  const freeIn = (id) => saunas.filter((s) => s.windows.some((w) => w.id === id));
   return (
-    <fieldset className="question question-sessions" id="sessions">
-      <legend className="q">{legend}</legend>
-      <div className="session-rows">
-        {sessions.map((w) => {
-          const start = clockTime(w.start);
-          const end = clockTime(w.end);
-          const started = w.already_started ? `, ${BOOK.alreadyStarted}` : '';
-          const selected = windowId === w.id;
-          return (
-            <label key={w.id} className={selected ? 'session-row selected' : 'session-row'}>
-              <input
-                type="radio"
-                name="session"
-                id={`session-${w.id}`}
-                value={w.id}
-                checked={selected}
-                aria-label={`${start} to ${end}${started}`}
-                onChange={() => onChoose(w.id)}
-              />
-              <span className="session-time" aria-hidden="true">
-                {start}–{end}
-              </span>
-              <span aria-hidden="true" />
-              {w.already_started && (
-                <span className="session-started" aria-hidden="true">
-                  {BOOK.alreadyStarted}
+    <fieldset className="question question-pairs" id="by-session">
+      <legend className="q">{PRIVATE.bySessionQuestion}</legend>
+      <fieldset className="question" id="sessions">
+        <legend className="q-sub">{PRIVATE.sessionLegend}</legend>
+        <span className="slot-grid">
+          {sessions.map((w) => {
+            const t = sessionText(w);
+            const free = PRIVATE.saunasFree(freeIn(w.id).length);
+            return (
+              <label key={w.id} className="cell slot">
+                <input
+                  type="radio"
+                  name="session"
+                  id={`session-${w.id}`}
+                  value={w.id}
+                  checked={windowId === w.id}
+                  aria-label={`${t.spoken}, ${free}`}
+                  onChange={() => onWindow(w.id)}
+                />
+                <span aria-hidden="true">
+                  {t.shown}
+                  <small>{w.already_started ? BOOK.alreadyStarted : free}</small>
                 </span>
-              )}
-            </label>
-          );
-        })}
-      </div>
+              </label>
+            );
+          })}
+        </span>
+      </fieldset>
+      {windowId != null && (
+        <fieldset className="question question-saunas" id="saunas">
+          <legend className="q-sub">{PRIVATE.saunaLegend}</legend>
+          <div className="private-cards">
+            {freeIn(windowId).map((s) => (
+              <label key={s.id} className="private-card private-pick">
+                <input
+                  type="radio"
+                  name="sauna"
+                  id={`sauna-${s.id}`}
+                  value={s.id}
+                  checked={saunaId === s.id}
+                  aria-label={`${s.name}, ${holds(s.capacity)}, ${nok(s.whole_price_ore)}`}
+                  aria-describedby={SAUNA_COPY[s.id]?.description ? `sauna-text-${s.id}` : undefined}
+                  onChange={() => onSauna(s.id)}
+                />
+                <SaunaHead sauna={s} />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </fieldset>
   );
 }
@@ -234,12 +300,9 @@ export default function PrivateSauna() {
     pickDate(iso);
   };
 
-  const chooseSauna = (id) => {
-    setSaunaId(id);
-    const s = saunas.find((x) => x.id === id);
-    if (view === BY_SAUNA && windowId != null && !(s && s.windows.some((w) => w.id === windowId))) {
-      setWindowId(null);
-    }
+  const choosePair = (sid, wid) => {
+    setSaunaId(sid);
+    setWindowId(wid);
   };
 
   const chooseWindow = (id) => {
@@ -265,37 +328,21 @@ export default function PrivateSauna() {
   } else if (date && status === 'ok' && saunas.length === 0) {
     result = <p className="private-empty">{PRIVATE.noSauna(longDate(date))}</p>;
   } else if (date && status === 'ok') {
-    const second = view === BY_SAUNA
-      ? sauna && (
-        <SessionOptions
-          legend={PRIVATE.sessionQuestion(3)}
-          sessions={sauna.windows}
-          windowId={windowId}
-          onChoose={chooseWindow}
-        />
-      )
-      : windowId != null && (
-        <SaunaOptions
-          legend={PRIVATE.saunaQuestion(3)}
-          saunas={saunas.filter((s) => s.windows.some((w) => w.id === windowId))}
-          saunaId={saunaId}
-          onChoose={chooseSauna}
-        />
-      );
     result = (
       <>
         <ViewPicker view={view} onChange={chooseView} />
         {view === BY_SAUNA ? (
-          <SaunaOptions legend={PRIVATE.saunaQuestion(2)} saunas={saunas} saunaId={saunaId} onChoose={chooseSauna} />
+          <SaunaCards saunas={saunas} saunaId={saunaId} windowId={windowId} onChoose={choosePair} />
         ) : (
-          <SessionOptions
-            legend={PRIVATE.sessionQuestion(2)}
+          <SessionThenSauna
             sessions={sessions}
+            saunas={saunas}
             windowId={windowId}
-            onChoose={chooseWindow}
+            saunaId={saunaId}
+            onWindow={chooseWindow}
+            onSauna={setSaunaId}
           />
         )}
-        {second}
       </>
     );
   }

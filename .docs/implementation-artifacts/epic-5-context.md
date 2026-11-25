@@ -38,7 +38,7 @@ Let a group book one whole Sauna for one session (shown to Guests as "Private sa
 ## UX & Interaction Patterns
 
 - Landing: two equal Booking choices, "Book seats" and directly under it "Book private sauna", each with a short note (Lisa 2026-11-25; replaces the "Private sauna" Text link); Sauna card price line under the size line for Saunas offered whole; group sentence after the Seat statement on Landing and in the Book seats rail (inside the 1366×768 first-view budget).
-- Private sauna page: Date calendar reused from Book seats; "View" radio group regroups one API response (by sauna / by session); Sauna option = name, "Holds N", price, free sessions; empty date says so plainly. Wording in EXPERIENCE.md "Private sauna wording".
+- Private sauna page: Date calendar reused from Book seats; "View" radio group regroups one API response (by sauna / by session); Sauna card = photo, name, "Holds N", price, description; by sauna its free sessions are buttons (one click chooses both), by session the sessions are buttons and the free Saunas cards (Lisa 2026-11-25, proposals H and K); empty date says so plainly. Wording in EXPERIENCE.md "Private sauna wording".
 - 5.2 Review: same Details/Review/Confirmation, draft slot `draft:whole`, "The sauna is not held while you pay."; after `sauna_unavailable` the Notice "This sauna can no longer be booked for this session. You have not been charged." with the Text link "Choose another sauna or session" (decided 2026-11-24).
 - 5.3 reuses `ManageBookingSummary`, `ConfirmingStep`, `ChangeResult` and Epic 4's wording patterns.
 - 5.4 Booking list Placement: table "Saunas" per Session group, columns "Sauna" and "Seats counted", cells "7 of 7", "Booked whole · {ref}", "Blocked", "Private sauna only" (decided 2026-11-24).

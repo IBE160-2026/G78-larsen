@@ -917,13 +917,133 @@ a {
 }
 
 /* A Sauna option: the Session row look with name, size, price and free sessions. */
-.session-row.sauna-option {
-  grid-template-columns: 32px minmax(96px, max-content) minmax(72px, max-content) minmax(0, 1fr) auto;
-  column-gap: var(--space-3);
+/* Private sauna choices (Lisa 2026-11-25): "Show by sauna" is proposal H, a card per Sauna with a wide photo, name,
+   size, price, description and its free sessions as buttons; "Show by session" is proposal K, the sessions as
+   buttons, then the free Saunas as cards to choose. The buttons are the calendar's cells, two lines high. */
+.q-sub {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-md-size);
+  line-height: var(--type-heading-md-line);
+  font-weight: var(--type-heading-md-weight);
 }
 
-.sauna-free {
-  text-align: right;
+.question-pairs > .question + .question {
+  margin-top: var(--space-5);
+}
+
+.private-cards {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.private-card {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.private-card > :not(img) {
+  margin-inline: var(--space-3);
+}
+
+.private-card-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+}
+
+.private-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.private-card-name {
+  font-family: var(--font-heading);
+  font-size: var(--type-heading-md-size);
+  line-height: var(--type-heading-md-line);
+}
+
+.private-card-size {
+  font-family: var(--font-text);
+  font-size: var(--type-body-sm-size);
+  color: var(--color-muted);
+}
+
+.private-card-price {
+  font-size: var(--type-body-sm-size);
+}
+
+.private-card-text {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  color: var(--color-muted);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+@media (max-width: 479px) {
+  .slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cell.slot span {
+  flex-direction: column;
+  height: auto;
+  min-height: var(--control-height);
+  padding: var(--space-1);
+  font-size: var(--type-body-sm-size);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.cell.slot small {
+  font-size: var(--type-hint-size);
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.cell.slot input:checked + span small {
+  color: var(--color-on-primary);
+}
+
+/* A Sauna card to choose (by session): the whole card is the radio's label. */
+.private-pick {
+  position: relative;
+  cursor: pointer;
+}
+
+.private-pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.private-pick:has(input:checked) {
+  border: 2px solid var(--color-button-edge);
+  margin: -1px;
+  box-shadow: inset 0 -4px 0 var(--color-primary);
+}
+
+.private-pick:has(input:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
 }
 
 /* ------------------------------------------------------------------ Details, Review, Confirmation (UX-DR9/10/14/23/24/27) */

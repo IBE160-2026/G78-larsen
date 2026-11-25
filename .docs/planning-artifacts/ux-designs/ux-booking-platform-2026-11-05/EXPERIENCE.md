@@ -292,8 +292,9 @@ Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every
 | "Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it." | Private sauna page, under the `h1` |
 | "1. Choose a date" | Private sauna page, above the Date calendar |
 | "Show by sauna", "Show by session" | Private sauna page, a radio group named "View" that regroups the one listing; "Show by sauna" is chosen first |
-| "2. Choose a sauna", "3. Choose a session" (by sauna) / "2. Choose a session", "3. Choose a sauna" (by session) | The two radio groups; the second lists only what is free with the first choice |
-| Name, "Holds 7", "NOK 1850", "{N} free sessions" (or "1 free session") | Sauna option |
+| "2. Choose a sauna and a session" (by sauna) / "2. Choose a session and a sauna", with "Session" and "Sauna" (by session) | Lisa 2026-11-25. By sauna (proposal H): one Sauna card per Sauna with its free sessions as buttons, one radio group for the whole listing, so one click chooses both and there is no third question. By session (proposal K): the sessions as buttons ("Session"), then the Saunas free in the chosen one as Sauna cards to choose ("Sauna") |
+| Photo, name, "Holds 7", "NOK 1850" and the Sauna's description | Sauna card on the Private sauna page (Lisa 2026-11-25). The descriptions are in `lib/sauna-copy.js` and are draft wording until Lisa approves them: Rauha "Our smallest sauna. Rauha means peace: a quiet room for a small group.", Löyly "Löyly is the steam that rises when water meets the hot stones. A sauna for a mid-sized group.", Kajo "Kajo means a soft glow. Warm light, and a bucket and ladle for throwing water on the stones.", Lumo "Our largest sauna, with long benches lit softly from behind. Room for a big group." The photo is decorative there (its alt text is on Landing) |
+| "13:00–14:30" and, by session, "{N} saunas free" (or "1 sauna free") | Session button on the Private sauna page; spoken "13:00 to 14:30" (by sauna "Kajo, 13:00 to 14:30") |
 | "No sauna can be booked whole on {long date}." | Private sauna page, empty result (no urgency cue, NFR-9) |
 | "This sauna can no longer be booked for this session. You have not been charged." with the Text link "Choose another sauna or session" (to the Private sauna page for the same date) | Notice on Review after `sauna_unavailable` (Story 5.2); Pay, the payment note and the Terms checkbox are removed and the Notice takes focus |
 | Table "Saunas" in each Session group, columns "Sauna" and "Seats counted"; cells "7 of 7", "Booked whole · {ref}", "Blocked", "Private sauna only" | Booking list, Placement (Story 5.4), Saunas in Fill order, tabular figures, never colour alone |
@@ -374,7 +375,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 | Private sauna entry | Landing rail | See If-time Plug-in Points. Absent until §4.9 is built |
 | Voucher field | Review | See If-time Plug-in Points and the Pay with a voucher wording in Voice and Tone (Story 4.4) |
 | Sign-in choice | Between Book seats and Details | See If-time Plug-in Points. Absent until §4.12 is built |
-| Sauna option | Private sauna page | One per Sauna that FR-29 allows, with Capacity, price and free Sessions (FR-30). The Guest always picks the Sauna |
+| Sauna card | Private sauna page | One per Sauna that FR-29 allows, with a wide photo, Capacity, price and description, and by sauna its free Sessions as buttons (FR-30; Lisa 2026-11-25, proposals H and K). The Guest always picks the Sauna |
 
 ## State Patterns
 

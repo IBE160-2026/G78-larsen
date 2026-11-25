@@ -450,7 +450,8 @@ Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, 
 - **Private sauna entry.** Changed by Lisa 2026-11-25: Landing shows two equal **Booking choices**, Book seats and Book private sauna. Each is a full-width link in `{colors.primary}` with the 1.5 px `{colors.button-edge}`, at least 48 px high, the action centred in the button type and nothing else, both the same size; `{spacing.3}` between them. Landing then has no Primary button; every other page keeps one.
 - **Voucher field.** A Text field with a Text link beside it.
 - **Sign-in choice.** One Primary button for continuing without an account, with sign-in as a Text link.
-- **Sauna option.** Sauna name in `{typography.heading-md}`, size and price in `{typography.body-sm}`, then Session rows.
+- **Sauna card (Private sauna page, Lisa 2026-11-25).** `{colors.surface}` with a 1 px `{colors.border}` edge: a photo across the full width at 3:1, then the Sauna name in `{typography.heading-md}` with "Holds N" beside it and the price at the right in `{typography.body-sm}`, then the description in `{typography.body-sm}` `{colors.muted}`. By sauna, the free sessions follow as Session buttons; by session, the whole card is the choice and a chosen card gets a 2 px `{colors.button-edge}` edge.
+- **Session button.** The calendar's cell, at least `{spacing.control-height}` high, in a grid of four columns (two below 480 px), "13:00–14:30" in `{typography.body-sm}` with an optional second line in `{typography.hint}`.
 
 ## Do's and Don'ts
 

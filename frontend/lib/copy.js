@@ -267,12 +267,14 @@ export const PRIVATE = Object.freeze({
   view: 'View',
   bySauna: 'Show by sauna',
   bySession: 'Show by session',
-  // "2. Choose a sauna", "3. Choose a session" by sauna; "2. Choose a session", "3. Choose a sauna" by session
-  saunaQuestion: (n) => `${n}. Choose a sauna`,
-  sessionQuestion: (n) => `${n}. Choose a session`,
+  // One question per view (Lisa 2026-11-25): proposal H by sauna, proposal K by session.
+  bySaunaQuestion: '2. Choose a sauna and a session',
+  bySessionQuestion: '2. Choose a session and a sauna',
+  sessionLegend: 'Session',
+  saunaLegend: 'Sauna',
+  saunasFree: (n) => (n === 1 ? '1 sauna free' : `${n} saunas free`),
   // The Sauna card's price line on Landing, only for a Sauna offered whole.
   cardPrice: (price) => `Private sauna: ${price}`,
-  freeSessions: (n) => (n === 1 ? '1 free session' : `${n} free sessions`),
   noSauna: (longDate) => `No sauna can be booked whole on ${longDate}.`,
 });
 
