@@ -46,6 +46,6 @@ Let a group book one whole Sauna for one session (shown to Guests as "Private sa
 ## Cross-Story Dependencies
 
 - 5.1 lays the schema (`kind`, `sauna_id`, pairing, `whole_bookable`, `cutoff_whole`, `whole_price_ore`) and the listing that 5.2 books from and 5.3 moves through.
-- 5.2 adds `sauna_unavailable` to `api/errors.py` and the frontend mirror; its e2e flow books Lumo (Kajo is not offered whole in the seed).
+- 5.2 adds `sauna_unavailable` to `api/errors.py` and the frontend mirror; its e2e flow books Lumo (Kajo is not offered whole in the seed; epics.md updated 2026-11-25).
 - 5.3 depends on 5.2's payments ledger and Epic 4's Manage, Change, history and Voucher services. 5.4's INV checker and brute-force Placement are reused by 5.5.
 - Epic 4's race and model tests must keep passing as capacity counting changes.

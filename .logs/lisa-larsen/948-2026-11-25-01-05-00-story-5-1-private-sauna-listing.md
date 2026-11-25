@@ -35,3 +35,18 @@ Bygge story 5-1 med `bmad-build`. Whole-sauna-prisene skulle settes ut fra snitt
 - Story 5.2: gjenopprett whole-dekningen i `test_fr14_retry`, `test_fr20_access` og `test_fr2_input` mot `POST /api/bookings` med `kind = 'whole'` (deferred-work).
 - Story 5.3: `seat_guest_refund_forbidden` må begrenses til `kind = 'seats'`, og `whole_bookable(..., ignore_booking)` må se bort fra den ignorerte raden også i `room_ahead` (deferred-work).
 - e2e-test der badstuene har ulike ledige sesjoner, for omgrupperingen på `/private-sauna` (deferred-work).
+
+## 2026-11-25 kl. 01:15 — Lisa Larsen
+
+### Oppgave
+Endre punktet om at e2e-flyten i Story 5.2 må booke Lumo, siden epics.md fortsatt sa Kajo.
+
+### Plan
+- Rette e2e-kriteriet i Story 5.2 i epics.md og lukke punktet i issues.md.
+
+### Resultat
+- `.docs/planning-artifacts/epics.md` Story 5.2: «a Guest books Lumo for a session with the keyboard alone (Kajo is not offered whole in the seed, Lisa 2026-11-24)». De andre Kajo-eksemplene i Epic 5 er katalogtester som setter egne priser i testfixturen, og de er ikke endret.
+- `epic-5-context.md` er oppdatert, og punktet i issues.md er lukket.
+
+### Åpne punkter
+Ingen.

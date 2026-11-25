@@ -1509,7 +1509,7 @@ So that the whole Sauna is ours for that session and nobody else can book it or 
 **And** Sauna names still appear only in Venue facts and in `kind = 'whole'` responses
 
 **Given** the Private sauna flow in the e2e layer
-**When** a Guest books Kajo for a session with the keyboard alone
+**When** a Guest books Lumo for a session with the keyboard alone (Kajo is not offered whole in the seed, Lisa 2026-11-24)
 **Then** the flow completes, axe reports no A or AA failure on Review and Confirmation, and the page titles and focus follow UX-DR33 (FR-23)
 **And** `test_fr21_privacy.py` covers the flow's pages, and the README names the Private sauna flow and its seed prices (DR-2)
 
