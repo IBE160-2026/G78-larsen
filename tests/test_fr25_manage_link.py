@@ -493,6 +493,9 @@ def test_the_seed_gives_every_sample_a_link_once(fresh_db, tmp_path):
     assert m and hashlib.sha256(m.group(1).encode()).digest() == bytes(new_tokens[0][2])
     assert f"Booking reference: {later[1]}" in body and re.search(r"(?m)^Session: 10:00–11:30$", body), body
     assert re.search(r"(?m)^Date: \w+day \d{1,2} \w+ \d{4}$", body), body
+    with psycopg.connect(fresh_db) as c:
+        seats = c.execute("SELECT seats FROM bookings WHERE id = %s", (later[0],)).fetchone()[0]
+    assert re.search(rf"(?m)^Session: 10:00–11:30\nSeats: {seats}$", body), body
     assert CHANGE_STATEMENT in body
     assert f"/manage#t={m.group(1)}" in body and body.count("http") == 1
     assert not any(name in body for name in SAUNA_NAMES) and "@" not in body

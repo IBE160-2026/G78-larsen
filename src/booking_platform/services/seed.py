@@ -226,8 +226,8 @@ def apply_bookings(directory: Path | None = None) -> int:
 
 def manage_email(facts: tuple, link: str) -> tuple[str, str]:
     """(subject, body) of the email that brings an existing sample Booking its Manage link: the reference, the date,
-    the session, the link and the change statement. No Sauna (FR-4)."""
-    ref, _seats, _wid, date, start, end, *_rest, tz_name = facts
+    the session, the Seats, the link and the change statement. No Sauna (FR-4)."""
+    ref, seats, _wid, date, start, end, *_rest, tz_name = facts
     tz = ZoneInfo(tz_name)
     lines = [
         "Manage your booking",
@@ -235,6 +235,7 @@ def manage_email(facts: tuple, link: str) -> tuple[str, str]:
         f"Booking reference: {ref}",
         f"Date: {booking.long_date(date)}",
         f"Session: {start.astimezone(tz):%H:%M}–{end.astimezone(tz):%H:%M}",
+        f"Seats: {seats}",
         "",
         manage.change_statement(),
         "",

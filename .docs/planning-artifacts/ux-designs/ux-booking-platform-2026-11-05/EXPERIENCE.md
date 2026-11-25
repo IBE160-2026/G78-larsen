@@ -207,6 +207,12 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | "Loading sessions" | Book seats while reading |
 | "No emails" | Empty Outbox |
 
+**Sample Manage link email, accepted by Lisa (2026-11-24, Story 4.1, FR-25)**
+
+| Text | Where |
+|---|---|
+| Subject "Manage your booking: {ref}"; body "Manage your booking", "Booking reference: {ref}", "Date: {long date}", "Session: {HH:MM}–{HH:MM}", "Seats: N", the change statement, last the Manage link on its own line | Outbox email that the seed sends to a sample Booking that has no Manage link yet. Guests never get it; they get the link in the confirmation email. No Sauna, price or Venue block |
+
 **Move seats wording, accepted by Lisa (2026-11-24, Story 4.2, FR-26)**
 
 | Text | Where |
