@@ -57,3 +57,48 @@ Føre inn 4.4-tekstene i EXPERIENCE.md og lukke Open Item 23.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-24 kl. 22:13 — Lisa Larsen
+
+### Oppgave
+Implementere Story 4.4 (FR-28, betale med voucher) med `bmad-build` fra specen som var `ready-for-dev`. Lisa ba om at jeg ikke skulle spørre noen underveis, så avgjørelsene i review-steget tok jeg selv.
+
+### Plan
+- Ny gren `story/4-4-pay-with-a-voucher` fra `main` (4a91e65). De ukommitterte endringene i specen og EXPERIENCE.md ble med på grenen.
+- Steg 3: en implementeringsagent fulgte specen. Jeg gikk gjennom diffen og sjekket matrisen mot testene. Deretter kjørte jeg API- og e2e-suitene og frontend-bygget.
+- Steg 4: tre review-agenter (Blind Hunter, Edge Case Hunter, Verification Gap). De stoppet på bruksgrensen og ble gjenopptatt etter at den ble nullstilt. Triage-loggen står i specen.
+- Spec: [spec-4-4-pay-with-a-voucher.md](../../.docs/implementation-artifacts/spec-4-4-pay-with-a-voucher.md) (`done`).
+
+### Resultat
+- Commit `34d7c54` på `story/4-4-pay-with-a-voucher` (ikke pushet). Den inneholder:
+  - `POST /api/vouchers/quote`
+  - voucher på `POST /api/bookings`, trukket med én betinget UPDATE etter at Window er låst
+  - `paid` i bookingsvaret
+  - voucher-feltet på Review, med en ny quote når Review åpnes og etter at en nærmeste økt er valgt
+  - radene «Paid with voucher»/«Paid by card» på Confirmation og i e-posten
+  - `tests/test_fr28_voucher.py` (54) og `tests/e2e/test_fr28_voucher.py` (4)
+  - README, sensorveiledningen (rad 3: 698 tester) og `sprint-status` (4-4: `review`)
+- Før review-patchene: 518 API-tester, 179 e2e-tester og frontend-bygget var grønne. Alle radene i matrisen har en test som har kjørt.
+- Review: 19 funn.
+  - 6 ble patchet:
+    - ny quote av lagret kode (ved reload og etter valg av nærmeste økt)
+    - «could not be checked»-feilen
+    - Confirmation når voucheren dekker hele beløpet
+    - lange linjer
+    - testtallet i sensorveiledningen
+    - sprint-status
+  - 1 ble utsatt: fornying av voucher ved å gi fra seg plasser. Den står i `deferred-work.md`.
+  - 12 ble avvist med begrunnelse. Blant dem:
+    - En kode som er skrevet inn men ikke brukt, ignoreres ved Pay. Pay-knappen viser da hele beløpet.
+    - Ingen rate limit på quote. Det hører til Open Item 24.
+- Etter patchene kjørte agenten `test_fr28` (API og e2e) grønt. Min fulle kjøring på nytt ble stoppet av Claude Code fordi maskinen hadde lite minne. Patchene endret i kildekoden bare kommentarer og docstrings.
+- Agenten endret layoutsjekken i `tests/e2e/test_fr05_book_and_pay.py`, slik at den måler hele høyrekolonnen. Voucher-feltet ligger nå over vilkårene, slik specen bestemmer.
+- Lukket i `issues.md`:
+  - «implementer Story 4.4»
+  - «sensorveiledningen sier fortsatt 536 tester»
+
+### Åpne punkter
+- Kjør full verifisering på nytt etter review-patchene. Kjøringen ble stoppet på grunn av lite minne.
+- Lisa må bestemme om voucher-betalte plasser som gis fra seg skal få en ny voucher med ett års gyldighet, eller beholde utløpsdatoen til den brukte voucheren.
+- Godta endringen i layoutsjekken i `test_fr05_book_and_pay.py`.
+- Gå gjennom endringen (`bmad-walkthrough`), åpne PR og sett 4.4 til `done` etter godkjenning.
