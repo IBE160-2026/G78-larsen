@@ -88,3 +88,23 @@ Begrense regelen som forbyr refusjon ved gjestekansellering til setebookinger, s
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 09:01 — Lisa Larsen
+
+### Oppgave
+Lisa ville at «Book seats» og «Book private sauna» på landingssiden skulle se like ut. Hun fikk fem forslag og deretter fem blå varianter av forslag E, og valgte E1 uten pil. Prisen «NOK 250 per seat, incl. VAT» blir stående i railen; Lisa trakk tilbake ønsket om å fjerne den.
+
+### Plan
+- Forslagene ble vist som artifact: https://claude.ai/artifact/TuGZHGyrs3fNAjUbk39XGf
+- Bytte tekstlenken «Private sauna» med to like Booking choices, og rette UX-DR41 i dokumentene.
+
+### Resultat
+- Ny komponent `frontend/components/BookingChoice.js` og `LANDING_CHOICES` i `frontend/lib/copy.js`: «Book seats» / «Share a sauna with others» og «Book private sauna» / «A whole sauna for your group». Primærknappens blå fyll og kant, venstrestilt, uten pil.
+- Lenkens navn er bare handlingen. Forklaringen er `aria-hidden` og leses som beskrivelse via `aria-describedby`. En første versjon med `aria-label` feilet axe (`label-content-name-mismatch`).
+- `frontend/app/page.js` og `frontend/app/styles.css`: `.rail-private` er erstattet av `.booking-choices` og `.booking-choice`. Landingssiden har nå ingen `.button-primary`.
+- Dokumenter rettet: UX-DR41 og akseptkriteriet for Story 5.1 i `epics.md`, `EXPERIENCE.md` (tekstabell og §4.9-raden), `DESIGN.md` (Private sauna entry), `epic-5-context.md` og en ny merknad i spec-5-1.
+- Tester rettet: `test_fr01_landing.py` og `test_fr30_private_sauna.py`. De ga 19 passed etter at frontend ble bygget på nytt.
+- Kodeendringene er ikke committet.
+
+### Åpne punkter
+Ingen.
