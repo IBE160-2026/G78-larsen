@@ -44,3 +44,23 @@ Implementere Story 5.2 etter den godkjente specen (subagent i `bmad-build`, steg
 ### Åpne punkter
 - Hele e2e-laget er ikke kjørt i ett etter endringene (bare `test_fr30` alene, 10 passert); `test_fr21`-tilleggene er kjørt før stoppet.
 - Kodereview av Story 5.2 er ikke kjørt.
+
+## 2026-11-25 kl. 18:04 — Lisa Larsen
+
+### Oppgave
+Fullføre Story 5.2 med `bmad-build` fra specen som lå ukommittert på `story/5-2-book-and-pay-private-sauna`: implementering (steg 3), review (steg 4) og avslutning (steg 5).
+
+### Plan
+- Spec: [spec-5-2-book-and-pay-for-a-private-sauna.md](../../.docs/implementation-artifacts/spec-5-2-book-and-pay-for-a-private-sauna.md) (`ready-for-dev` → `done`); Review Triage Log står i specen.
+- Implementering i subagent; selv lest hele diffen mot oppgavene og I/O-matrisen, så tre review-lag (blind, edge case, verification gap), triage, rettelser i samme subagent, full verifisering.
+
+### Resultat
+- Selv rettet: e2e-testen for tatt badstue brukte `label[for=terms]` (finnes ikke; avkrysningsboksen ligger inne i labelen) → `label.terms-check`. README fikk «Prøv å booke en Private sauna».
+- Review: 23 funn. 5 rettet (badstuenavn uten `num`-klasse i bookinglisten, README-statusdato, tre e2e-tester: bookinglistecelle, Manage-side og flytt/gi opp for hel booking, Voucher i Private sauna-Review), 1 utsatt til `deferred-work.md` (gjenoppretting av valgt par ved Back), 17 avvist med begrunnelse i specens Review Triage Log.
+- Verifisert: `uv run pytest -x -q tests --ignore=tests/e2e` → 610 passert; `npm --prefix frontend run build` → ok; `uv run pytest -q tests/e2e` → **196 passert** i én kjøring; `booking_e2e`-stacken var nede etterpå.
+- Spec `done`, `sprint-status.yaml` 5-2 → `review`. Commit `7da6447` (feat: book and pay for a Private sauna (Story 5.2)). Ikke pushet, ingen PR.
+- Lukket i `issues.md`: hele e2e-laget og kodereview for Story 5.2.
+
+### Åpne punkter
+- `.docs/sensorveiledning-kravsporing.md` rad 2 sier fortsatt «FR-29 og videre er ikke levert»; før inn FR-29/FR-30 (Story 5.1 og 5.2) med testfilene.
+- Utsatt fra review: positiv e2e-sjekk av at Back fra Private sauna-Details velger samme badstue og økt igjen (`deferred-work.md`).
