@@ -29,7 +29,9 @@ Both Changes start with one shared prologue (`_locked`), in the order of AD-29:
    There is no target Window, so no `same_target`, horizon, deadline or capacity refusal;
 2. some Seats: one UPDATE takes them off (`total_ore` follows the stored price per Seat, `version + 1`). All Seats:
    one UPDATE cancels the Booking (`cancelled_at = app_now()`, `guest`, `voucher`, `version + 1`; Seats and total stay);
-3. `services.voucher.issue` (value = Seats given up x the Booking's `price_per_seat_ore`), one `voucher` history row
+3. `services.voucher.issue` (value = Seats given up x the Booking's `price_per_seat_ore`; valid through
+   `services.voucher.next_last_valid_date`: a Voucher that paid the Booking keeps its date, so giving up never renews
+   a Voucher; otherwise one year), one `voucher` history row
    with `seats` and `voucher_id`, one `payments` row `refund`/`voucher` of the value with its `voucher_id` (AD-31; no
    `card` row), one email with the Voucher code through `outbox.send` with the Change's id, and last the key row.
 
@@ -280,7 +282,8 @@ def voucher(session_id: int, booking_id: int, reference_: str, seats: int, versi
             q.cancel_for_voucher(c, booking_id)
         else:
             q.give_up_for_voucher(c, booking_id, seats)
-        voucher_id, code, last_valid_date = vouchers.issue(c, booking_id, value_ore)
+        voucher_id, code, last_valid_date = vouchers.issue(
+            c, booking_id, value_ore, last_valid_date=vouchers.next_last_valid_date(c, booking_id))
         change_id = history.record(c, booking_id, "voucher", seats=seats, voucher_id=voucher_id)
         bq.insert_payment(c, booking_id, "refund", "voucher", value_ore, voucher_id)  # AD-31: no card row
         subject, body = voucher_email(booking_service.facts(c, booking_id), vq.venue_facts(c), seats, code, value_ore,

@@ -8,9 +8,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Query, Request, Response
 
-from ..services import booking, holds, sessions, venue, windows
+from ..services import booking, holds, sessions, venue, voucher, windows
 from .deps import COOKIE, current_session, require_session, set_session_cookie
-from .schemas import BookingIn, BookingResult, HoldIn, SessionIn, VenueOut, WindowsQuery
+from .schemas import (BookingIn, BookingResult, HoldIn, SessionIn, VenueOut, VoucherQuoteIn, VoucherQuoteOut,
+                      WindowsQuery)
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -62,7 +63,15 @@ def book(body: BookingIn, idempotency_key: Annotated[uuid.UUID, Header(alias="Id
          s: sessions.Session = Depends(require_session)):
     """Pay and create a Seat booking (FR-5, FR-6, FR-9). The `Idempotency-Key` UUID is required (AD-9): a repeat from
     the same session with the same Window and Seats returns the first outcome (201 again) and writes nothing."""
-    return booking.create(s.id, body.window_id, body.seats, body.name, body.email, idempotency_key)
+    return booking.create(s.id, body.window_id, body.seats, body.name, body.email, idempotency_key,
+                          voucher_code=body.voucher_code, voucher_part=body.voucher_part_ore)
+
+
+@router.post("/vouchers/quote", response_model=VoucherQuoteOut)
+def quote_voucher(body: VoucherQuoteIn, _s: sessions.Session = Depends(require_session)):
+    """What a Voucher would pay of a Seat booking (FR-28, AD-30): `{voucher_part_ore, card_part_ore}`. Takes no lock and
+    writes nothing. Any unusable code is `409 voucher_invalid` with no facts; an unknown Window is `404 not_found`."""
+    return voucher.quote(body.window_id, body.seats, body.code)
 
 
 @router.get("/bookings/{reference}/confirmation", response_model=BookingResult)

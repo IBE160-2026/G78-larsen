@@ -19,7 +19,7 @@ Give every Seat booking a Manage link in its confirmation email that opens that 
 - **No accidental changes:** loading a page changes nothing. Every Change goes through a confirming step with a one-time idempotency key; a repeat applies once and returns the first outcome.
 - **Cutoff:** after it, the page still shows the Booking and refuses every Change with the reason and time (`cutoff_passed` with `cutoff_at`).
 - **Move:** atomic; no room means nothing changes. A partial move splits the Booking (new reference, own Manage link, same price per Seat and Cutoff). Freed Seats count in Seats left at once.
-- **Voucher:** value = Seats given up × price paid per Seat, valid one year, never paid out. The code appears only in the Change email, shown on the result page under "Sent by email:". Giving up all Seats cancels the Booking; it is the only way a Seat booking is cancelled.
+- **Voucher:** value = Seats given up × price paid per Seat, valid one year, never paid out. When a Voucher paid the Booking (or the Booking it was split from), the new Voucher keeps that Voucher's last valid date instead, so giving up never renews a Voucher (Lisa, 2026-11-24). The code appears only in the Change email, shown on the result page under "Sent by email:". Giving up all Seats cancels the Booking; it is the only way a Seat booking is cancelled.
 - **Paying with a Voucher:** one code per Booking; covers all or part, rest by Simulated payment; remaining balance stays until expiry. Expired, used-up and unknown codes get one identical `voucher_invalid` and nothing is written. No response reveals balance or expiry.
 - **Concurrency proofs (100 runs):** opposite cross-Window moves and a move racing a new booking never deadlock or oversell; parallel Voucher spends never take `balance_ore` below 0.
 - **Accessibility and layout:** axe clean (A/AA) on Manage, confirming steps, result pages and Review with the Voucher field; keyboard only; no horizontal scroll at 1024/1366/1920 px; Pay stays in the first view at 1366×768.
@@ -44,7 +44,7 @@ Give every Seat booking a Manage link in its confirmation email that opens that 
 - Booking list: one history line per Change under the Booking and a Status column (Active/Cancelled); a Voucher line shows the value issued, never the code. Cancelled Bookings stay listed with cause "Guest" and remedy "Voucher", outside Seats booked.
 - Review (4.4): Voucher field (Text field plus Text link) between the Booking summary and the terms, always visible. A valid code shows the Voucher part and the Pay label becomes the card part; any invalid code gives one identical Field error and Error summary entry with the input kept. After a refusal the code stays in the draft and is quoted again.
 - Decided for 4.3 (Lisa, 2026-11-24; EXPERIENCE.md "Give up seats wording"): after all Seats are given up the Manage page shows the Booking as cancelled with no Changes; the step, result, email and Booking list copy are fixed there.
-- Still for Lisa to decide: the Pay and payment-note wording when a Voucher covers the whole total, the Text link label, and the confirmation wording for Voucher/card parts (4.4).
+- Decided for 4.4 (Lisa, 2026-11-24; EXPERIENCE.md "Pay with a voucher wording", Open Item 23): field "Voucher code" with Text link "Apply voucher"; one invalid-code message; Pay "Book with voucher" when the Voucher covers all, the payment note only with a card part; "Paid with voucher"/"Paid by card" rows on Confirmation and in the email.
 
 ## Cross-Story Dependencies
 

@@ -7,9 +7,9 @@
 //   available." (FR-20). Loading changes nothing. After the Cutoff the page shows the Cutoff text of Story 4.1.
 // - The question reuses the Seat picker (1 to the Booking's Seats; left out for a Booking of 1 Seat). Once a number is
 //   chosen, the shared ConfirmingStep states what will happen: the Seats given up, the Seats left (only when some
-//   remain), the Voucher value (Seats x the Booking's own price per Seat) and the last valid date (the Venue's
-//   `today` from `GET /api/windows` plus one year, 29 February -> 28 February); nothing changes until the Guest
-//   confirms.
+//   remain), the Voucher value (Seats x the Booking's own price per Seat) and the last valid date (the Booking's
+//   `voucher_last_valid_date`: one year ahead, or the date of a Voucher that paid the Booking, so giving up never
+//   renews a Voucher); nothing changes until the Guest confirms.
 // - The idempotency key lives in the slot `draft:change:<reference>:voucher` (lib/draft.js), with the move step's
 //   rules: made when the step opens, reused on a reload, deleted on success, on every refusal except `503 try_again`
 //   (and no answer at all), and when the Guest leaves the step.
@@ -34,22 +34,15 @@ import TextLink from './TextLink';
 import Wordmark from './Wordmark';
 import { ApiError, api } from '@/lib/api';
 import { MANAGE, VOUCHER, moveRefusal, seatsWord } from '@/lib/copy';
-import { clockTime, isoDate, longDate, parts } from '@/lib/dates';
+import { clockTime, longDate } from '@/lib/dates';
 import { changeKey, dropChangeKey } from '@/lib/draft';
 import { nok } from '@/lib/venue-format';
 
 const ACTION = 'voucher';
 
-/** The last valid date of a Voucher issued on the Venue date `today`: one year later; 29 February -> 28 February. */
-export function lastValidDate(today) {
-  const { year, month, day } = parts(today);
-  return isoDate(year + 1, month, month === 2 && day === 29 ? 28 : day);
-}
-
 export default function GiveUpSeats({ reference }) {
   const [load, setLoad] = useState({ status: 'loading', booking: null });
   const [reloadKey, setReloadKey] = useState(0);
-  const [today, setToday] = useState(null);
   const [seats, setSeats] = useState(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState(null); // {text, n}: a new `n` moves focus to the Notice
@@ -83,20 +76,6 @@ export default function GiveUpSeats({ reference }) {
     return () => controller.abort();
   }, [reference, reloadKey]);
 
-  // The Venue's today (AD-4), for the last valid date the step states.
-  useEffect(() => {
-    if (!open || today) return undefined;
-    const controller = new AbortController();
-    api('/api/windows', { signal: controller.signal })
-      .then((body) => {
-        if (!controller.signal.aborted) setToday(body.today);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setLoad((prev) => ({ ...prev, status: 'failed' }));
-      });
-    return () => controller.abort();
-  }, [open, today]);
-
   // Leaving the step deletes its key (a reload does not run this, so a reload reuses it).
   useEffect(() => () => dropChangeKey(reference, ACTION), [reference]);
 
@@ -110,7 +89,7 @@ export default function GiveUpSeats({ reference }) {
     if (result && resultHeading.current) resultHeading.current.focus();
   }, [result]);
 
-  const ready = open && Number.isInteger(seats) && seats >= 1 && seats <= b.seats && today;
+  const ready = open && Number.isInteger(seats) && seats >= 1 && seats <= b.seats;
 
   const confirm = async () => {
     if (sending.current || !ready) return;
@@ -217,7 +196,7 @@ export default function GiveUpSeats({ reference }) {
                 { label: VOUCHER.seatsGivenUp, value: seatsWord(seats) },
                 ...(some ? [{ label: VOUCHER.seatsLeftInBooking, value: seatsWord(b.seats - seats) }] : []),
                 { label: VOUCHER.value, value: nok(value) },
-                { label: VOUCHER.validUntil, value: longDate(lastValidDate(today)) },
+                { label: VOUCHER.validUntil, value: longDate(b.voucher_last_valid_date) },
               ]}
               confirmLabel={VOUCHER.confirm(seats)}
               onConfirm={confirm}

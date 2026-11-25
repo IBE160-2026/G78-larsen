@@ -65,3 +65,6 @@
 - source_spec: `.docs/implementation-artifacts/spec-4-3-give-up-seats-for-a-voucher.md`
   summary: The voucher step's own "Valid until" rule (29 February -> 28 February in `GiveUpSeats.js` `lastValidDate`) has no test; consider returning `last_valid_date` from the API instead of recomputing it in the browser.
   evidence: Backend rule is tested with a 29 Feb clock, but the e2e runs at the real clock and the frontend has no unit runner; settled by a test with the stack clock on 29 Feb or by removing the browser computation.
+- source_spec: `.docs/implementation-artifacts/spec-4-4-pay-with-a-voucher.md`
+  summary: Seats paid with a Voucher can be given up (Story 4.3) for a new Voucher at full value with a fresh one-year expiry, so a near-expiry Voucher can be renewed indefinitely by booking and giving up.
+  evidence: 4.3 values the give-up at the stored price per Seat and issues `app_now() + 1 year`; Lisa decides whether the voucher-paid share should keep the spent Voucher's expiry (FR-27/AD-30 policy).

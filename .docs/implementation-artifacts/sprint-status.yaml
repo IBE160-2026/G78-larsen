@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-19-2026 22:10
-last_updated: 11-24-2026 19:30
+last_updated: 11-24-2026 22:46
 project: Booking platform
 project_key: NOKEY
 tracking_system: file-system
@@ -59,7 +59,7 @@ development_status:
   4-1-the-manage-link-opens-the-booking: done
   4-2-move-all-or-some-seats-to-another-session: done
   4-3-give-up-seats-for-a-voucher: done
-  4-4-pay-with-a-voucher: backlog
+  4-4-pay-with-a-voucher: done
   epic-4-retrospective: optional
 
   epic-5: backlog

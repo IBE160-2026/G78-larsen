@@ -59,6 +59,10 @@ export const SUMMARY = Object.freeze({
   email: 'Email',
   venue: 'Venue',
   contact: 'Contact',
+  // Story 4.4 (Lisa, 2026-11-24): on Review after Total, only while a Voucher is applied; the card row left out when 0.
+  voucher: 'Voucher',
+  voucherPart: (amount) => `−${amount}`,
+  toPayByCard: 'To pay by card',
 });
 
 // Details (UX-DR23).
@@ -79,6 +83,8 @@ export const REVIEW = Object.freeze({
   termsHeading: 'Booking terms',
   accept: 'I accept the booking terms',
   pay: (amount) => `Pay ${amount}`,
+  // Story 4.4 (Lisa, 2026-11-24; EXPERIENCE.md Open Item 23): Pay when the Voucher covers the whole total.
+  bookWithVoucher: 'Book with voucher',
   processing: 'Processing',
   // Not in EXPERIENCE.md's wording tables (it says only "Error summary and Field error"): to be confirmed by Lisa.
   acceptTerms: 'Accept the booking terms',
@@ -100,10 +106,11 @@ export const REVIEW = Object.freeze({
  * - `closed`: the session cannot be had (Notice with Nearest sessions; Pay, the note and the checkbox removed)
  * - `failed`: the payment failed (Error summary; Pay kept)
  * - `paid`: the key is known elsewhere (Notice with a Book seats link; Pay removed)
+ * - `voucher`: the Voucher cannot be used (Field error and Error summary on the Voucher field; Pay kept)
  * - `retry`: anything else, including `payment_pending`, `try_again`, `no_session` and no answer (Notice; Pay kept)
  * @param {string} code the envelope's `error`
  * @param {object} facts the envelope's facts (`seats_left` for `no_seat_free`)
- * @returns {{kind: 'closed'|'failed'|'paid'|'retry', text: string}}
+ * @returns {{kind: 'closed'|'failed'|'paid'|'voucher'|'retry', text: string}}
  */
 export function reviewRefusal(code, facts = {}) {
   switch (code) {
@@ -118,10 +125,21 @@ export function reviewRefusal(code, facts = {}) {
       return { kind: 'failed', text: REVIEW.paymentFailed };
     case 'invalid_key':
       return { kind: 'paid', text: REVIEW.mayBePaid };
+    case 'voucher_invalid':
+      return { kind: 'voucher', text: VOUCHER_FIELD.invalid };
     default:
       return { kind: 'retry', text: REVIEW.tryAgain };
   }
 }
+
+// The Voucher field on Review (FR-28, Story 4.4). Verbatim from Lisa's decisions of 2026-11-24 (EXPERIENCE.md, Pay with
+// a voucher wording): one message for every invalid code, never saying which cause applies.
+export const VOUCHER_FIELD = Object.freeze({
+  label: 'Voucher code',
+  apply: 'Apply voucher',
+  invalid: 'This voucher code cannot be used. It may be mistyped, used up or expired. Check the code and try again.',
+  failed: 'The voucher could not be checked, please try again.',
+});
 
 // Confirmation (UX-DR27).
 export const CONFIRMATION = Object.freeze({
@@ -130,6 +148,9 @@ export const CONFIRMATION = Object.freeze({
   beforeYouCome: 'Before you come',
   sentByEmail: 'Sent by email:',
   loadFailed: 'The booking could not be loaded, please try again.',
+  // Story 4.4 (Lisa, 2026-11-24): after Total, a zero part left out; without a Voucher no new rows.
+  paidWithVoucher: 'Paid with voucher',
+  paidByCard: 'Paid by card',
 });
 
 // The Manage page (FR-25, Story 4.1). Approved by Lisa 2026-11-24. The dates and times come from the API's `cutoff_at`

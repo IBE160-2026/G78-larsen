@@ -23,10 +23,19 @@
 //   refusal Notice takes focus. The same key is used for every retry (AD-9).
 // - Nearest sessions are the draft date's other Sessions with room for the Seats, the three nearest in time to the
 //   refused one, in time order; when the date has none, the listing's `nearest` (FR-3). Frontend only.
+// - The Voucher field (FR-28, Story 4.4) sits above the booking terms in the same column, always visible: "Voucher
+//   code" with the Text link "Apply voucher" beside it (Enter in the field applies too). The typed code is kept in the
+//   draft (`voucher_code`); a successful `POST /api/vouchers/quote` keeps the parts in page state only, adds the
+//   "Voucher" and "To pay by card" rows after Total and makes Pay "Pay NOK {card}", or "Book with voucher" with no
+//   payment note when the Voucher covers the total. Editing the field removes the applied Voucher until it is applied
+//   again. `voucher_invalid` (on apply or at Pay) is one Field error and Error summary entry for every cause, the input
+//   kept; a quote that cannot be checked is a Field error only. A stored code is quoted again when Review opens and
+//   after a nearest Session is chosen. Pay sends only an applied code with its Voucher part.
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import BookingSummary from './BookingSummary';
 import ErrorSummary from './ErrorSummary';
+import FieldError from './FieldError';
 import GuestShell from './GuestShell';
 import NearestSessions from './NearestSessions';
 import Notice from './Notice';
@@ -37,7 +46,7 @@ import Wordmark from './Wordmark';
 import terms from '@/content/terms-seats.json';
 import { ApiError, api } from '@/lib/api';
 import { holdConfirmation } from '@/lib/confirmation';
-import { REVIEW, SIMULATED_PAYMENT, SUMMARY, reviewRefusal, seatsWord } from '@/lib/copy';
+import { REVIEW, SIMULATED_PAYMENT, SUMMARY, VOUCHER_FIELD, reviewRefusal, seatsWord } from '@/lib/copy';
 import { clockTime, longDate } from '@/lib/dates';
 import { newKey, paidReference, readDraft, replaceDraft, writeDraft } from '@/lib/draft';
 import { nok } from '@/lib/venue-format';
@@ -89,6 +98,14 @@ export default function Review({ venue }) {
   const [headingKey, setHeadingKey] = useState(0);
   const busy = useRef(false);
   const heading = useRef(null);
+  // The Voucher field: the text as typed, the applied Voucher ({code, voucher_part_ore, card_part_ore}) and the
+  // field's error ('invalid' or 'failed'). `quoteSeq` drops the answer of a quote the Guest has typed past.
+  const [voucherInput, setVoucherInput] = useState('');
+  const [applied, setApplied] = useState(null);
+  const [voucherError, setVoucherError] = useState(null);
+  const quoteSeq = useRef(0);
+  const quoting = useRef(false);
+  const requote = useRef(false);
 
   useEffect(() => {
     const stored = readDraft();
@@ -107,6 +124,9 @@ export default function Review({ venue }) {
     }
     const key = typeof stored.key === 'string' && stored.key ? stored.key : newKey();
     if (key !== stored.key) writeDraft({ key });
+    const code = typeof stored.voucher_code === 'string' ? stored.voucher_code : '';
+    setVoucherInput(code);
+    requote.current = code.trim() !== '';
     setDraft({ ...stored, key });
   }, [router]);
 
@@ -138,8 +158,59 @@ export default function Review({ venue }) {
     if (headingKey > 0 && heading.current) heading.current.focus();
   }, [headingKey]);
 
+  /** Quote `code` for the draft's Window and Seats; on success it is the applied Voucher. */
+  const quoteVoucher = async (code, d, moveFocus) => {
+    const seq = ++quoteSeq.current;
+    quoting.current = true;
+    setApplied(null);
+    setVoucherError(null);
+    let error = null;
+    let parts = null;
+    try {
+      parts = await api('/api/vouchers/quote', {
+        method: 'POST',
+        body: { code, kind: 'seats', window_id: d.window_id, seats: d.seats },
+      });
+    } catch (err) {
+      const c = err instanceof ApiError ? err.code : 'unavailable';
+      if (c === 'no_session') await api('/api/session', { method: 'POST', body: {} }).catch(() => {});
+      error = c === 'voucher_invalid' ? 'invalid' : 'failed';
+    }
+    if (seq !== quoteSeq.current) return; // the field changed meanwhile
+    quoting.current = false;
+    if (parts) {
+      setApplied({ code, voucher_part_ore: parts.voucher_part_ore, card_part_ore: parts.card_part_ore });
+      return;
+    }
+    setVoucherError(error);
+    if (error === 'invalid' && moveFocus) setFocusKey((k) => k + 1);
+  };
+
+  // A code kept in the draft is quoted again once the session is known: when Review opens, and after a nearest
+  // Session is chosen (UX-DR26).
+  useEffect(() => {
+    if (!draft || !session || !requote.current) return;
+    requote.current = false;
+    if (voucherInput.trim() !== '') quoteVoucher(voucherInput, draft, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, session]);
+
+  const applyVoucher = () => {
+    if (!draft || busy.current) return;
+    quoteVoucher(voucherInput, draft, true);
+  };
+
+  const editVoucher = (value) => {
+    quoteSeq.current += 1; // an answer still on its way no longer applies
+    quoting.current = false;
+    setVoucherInput(value);
+    setApplied(null);
+    setVoucherError(null);
+    writeDraft({ voucher_code: value });
+  };
+
   const pay = async () => {
-    if (busy.current) return; // no second press while paying
+    if (busy.current || quoting.current) return; // no second press while paying, and no Pay while a quote is out
     setRefusal(null);
     if (!accepted) {
       setShowErrors(true);
@@ -151,7 +222,13 @@ export default function Review({ venue }) {
     try {
       const body = await api('/api/bookings', {
         method: 'POST',
-        body: { window_id: draft.window_id, seats: draft.seats, name: draft.name, email: draft.email },
+        body: {
+          window_id: draft.window_id,
+          seats: draft.seats,
+          name: draft.name,
+          email: draft.email,
+          ...(applied ? { voucher_code: applied.code, voucher_part_ore: applied.voucher_part_ore } : {}),
+        },
         idempotencyKey: draft.key,
       });
       const reference = body.booking.reference;
@@ -171,6 +248,15 @@ export default function Review({ venue }) {
         await api('/api/session', { method: 'POST', body: {} }).catch(() => {});
       }
       const r = reviewRefusal(code, facts);
+      if (r.kind === 'voucher') {
+        // the Voucher cannot be used: the field says so, the input stays, and Pay is for the whole total again
+        setApplied(null);
+        setVoucherError('invalid');
+        setFocusKey((k) => k + 1);
+        busy.current = false;
+        setPaying(false);
+        return;
+      }
       const nearest = r.kind === 'closed' ? await nearestSessions(draft, session?.start) : [];
       setRefusal((prev) => ({ ...r, nearest, n: (prev?.n ?? 0) + 1 }));
       if (r.kind === 'failed') setFocusKey((k) => k + 1);
@@ -187,6 +273,11 @@ export default function Review({ venue }) {
     setRefusal(null);
     setAccepted(false);
     setShowErrors(false);
+    quoteSeq.current += 1; // the Voucher is quoted again for the new session
+    quoting.current = false;
+    setApplied(null);
+    setVoucherError(null);
+    requote.current = true;
     setHeadingKey((k) => k + 1);
   };
 
@@ -196,12 +287,18 @@ export default function Review({ venue }) {
   };
 
   const errors = [
+    ...(voucherError === 'invalid' ? [{ key: 'voucher-code', text: VOUCHER_FIELD.invalid, href: '#voucher-code' }] : []),
     ...(showErrors && !accepted ? [{ key: 'terms', text: REVIEW.acceptTerms, href: '#terms' }] : []),
     ...(refusal?.kind === 'failed' ? [{ key: 'payment', text: refusal.text }] : []),
   ];
   const price = venue?.price_per_seat_ore;
   const amount = draft && Number.isInteger(price) ? nok(draft.seats * price) : null;
   const payGone = refusal?.kind === 'closed' || refusal?.kind === 'paid';
+  const cardPart = applied ? applied.card_part_ore : null;
+  const payLabel = !applied ? REVIEW.pay(amount) : cardPart > 0 ? REVIEW.pay(nok(cardPart)) : REVIEW.bookWithVoucher;
+  const cardPaid = !applied || cardPart > 0; // the payment note only where a card payment is made
+  const voucherFieldError =
+    voucherError === 'invalid' ? VOUCHER_FIELD.invalid : voucherError === 'failed' ? VOUCHER_FIELD.failed : null;
 
   const rows = draft
     ? [
@@ -209,6 +306,8 @@ export default function Review({ venue }) {
         { label: SUMMARY.session, value: session ? `${clockTime(session.start)}–${clockTime(session.end)}` : '' },
         { label: SUMMARY.seats, value: seatsWord(draft.seats) },
         ...(amount ? [{ label: SUMMARY.total, value: `${amount} incl. VAT` }] : []),
+        ...(applied ? [{ label: SUMMARY.voucher, value: SUMMARY.voucherPart(nok(applied.voucher_part_ore)) }] : []),
+        ...(applied && cardPart > 0 ? [{ label: SUMMARY.toPayByCard, value: nok(cardPart) }] : []),
         { label: SUMMARY.name, value: draft.name },
         { label: SUMMARY.email, value: draft.email },
         ...venueRows(venue),
@@ -257,7 +356,7 @@ export default function Review({ venue }) {
           <TextLink href="/book-seats/details">{REVIEW.back}</TextLink>
         </p>
         {errors.length > 0 && (
-          <ErrorSummary errors={errors} focusKey={focusKey} onChoose={() => document.getElementById('terms')?.focus()} />
+          <ErrorSummary errors={errors} focusKey={focusKey} onChoose={(key) => document.getElementById(key)?.focus()} />
         )}
         {notice}
         {loadFailed && <Notice>{REVIEW.loadFailed}</Notice>}
@@ -265,6 +364,35 @@ export default function Review({ venue }) {
           <div className="review-cols">
             <BookingSummary rows={rows} />
             <div>
+              <div className="voucher-field">
+                <label className="field-label" htmlFor="voucher-code">
+                  {VOUCHER_FIELD.label}
+                </label>
+                <div className="voucher-row">
+                  <input
+                    id="voucher-code"
+                    className="text-field"
+                    type="text"
+                    value={voucherInput}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    onChange={(e) => editVoucher(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyVoucher();
+                      }
+                    }}
+                    aria-invalid={voucherFieldError ? 'true' : undefined}
+                    aria-describedby={voucherFieldError ? 'voucher-code-error' : undefined}
+                  />
+                  <button type="button" className="text-link text-button" onClick={applyVoucher}>
+                    {VOUCHER_FIELD.apply}
+                  </button>
+                </div>
+                <FieldError id="voucher-code-error">{voucherFieldError}</FieldError>
+              </div>
               <section className="terms-section" aria-labelledby="terms-heading">
                 <h2 className="heading-md" id="terms-heading">
                   {REVIEW.termsHeading}
@@ -286,9 +414,9 @@ export default function Review({ venue }) {
                   />
                   <div className="pay-row">
                     <PrimaryButton onClick={pay} aria-busy={paying ? 'true' : undefined}>
-                      {paying ? REVIEW.processing : REVIEW.pay(amount)}
+                      {paying ? REVIEW.processing : payLabel}
                     </PrimaryButton>
-                    <p className="pay-note">{SIMULATED_PAYMENT}</p>
+                    {cardPaid && <p className="pay-note">{SIMULATED_PAYMENT}</p>}
                   </div>
                 </>
               ) : (

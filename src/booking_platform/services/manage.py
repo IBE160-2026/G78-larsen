@@ -24,7 +24,7 @@ import psycopg
 
 from .. import config, db
 from ..db import manage as q
-from . import content, history, outbox, reference, sessions
+from . import content, history, outbox, reference, sessions, voucher
 from .errors import Refused
 
 MAX_TOKEN = 200  # a longer token is not one of ours; it is never hashed
@@ -108,14 +108,17 @@ def booking_now(c: psycopg.Connection, booking_id: int) -> dict:
         "cutoff_at": cutoff_at.astimezone(tz).isoformat(),
         "cancelled_at": None if cancelled_at is None else cancelled_at.astimezone(tz).isoformat(),
         "history": history.of_booking(c, booking_id, tz),
+        # what a Voucher issued from the Booking now would be valid through (the give-up step states it)
+        "voucher_last_valid_date": voucher.next_last_valid_date(c, booking_id).isoformat(),
     }
 
 
 def read(booking_id: int) -> dict:
     """The Booking as the Manage page shows it: the AD-23 serializer (`kind`, `seats`, `sauna`, `window`,
     `total_ore`, `status`) plus `reference`, `version`, `change_allowed` (the SQL predicate), `cutoff_at`,
-    `cancelled_at` (null while active, Story 4.3) and `history` (`services.history`). A cancelled Booking still reads;
-    its page offers no Change. Times are ISO strings in Venue time. Reads only."""
+    `cancelled_at` (null while active, Story 4.3), `history` (`services.history`) and `voucher_last_valid_date` (what a
+    Voucher issued from it now would be valid through, `services.voucher.next_last_valid_date`). A cancelled Booking
+    still reads; its page offers no Change. Times are ISO strings in Venue time. Reads only."""
     return db.run(lambda c: booking_now(c, booking_id))
 
 
