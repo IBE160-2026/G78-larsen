@@ -19,13 +19,13 @@ export const SAUNA_COPY = Object.freeze({
     image: '/images/sauna-kajo-kiulu.jpg',
     alt: 'A black sauna bucket with a curved wooden handle and a wooden-handled ladle, on a pale wooden bench.',
     line: 'Kajo means a soft glow of light.',
-    description: 'Kajo means a soft glow. Warm light, and a bucket and ladle for throwing water on the stones.',
+    description: 'Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones, as in all our saunas.',
   },
   4: {
     image: '/images/sauna-lumo-lauteet.jpg',
     alt: 'Empty wooden sauna benches along a wall, lit softly from behind the backrest.',
     line: 'Lumo means enchantment.',
-    description: 'Our largest sauna, with long benches lit softly from behind. Room for a big group.',
+    description: 'Our largest sauna, with long benches and a view of the open sea. Room for a big group.',
   },
 });
 

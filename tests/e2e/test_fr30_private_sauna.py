@@ -32,8 +32,8 @@ OPTIONS = ["Rauha, Holds 7, NOK 1850", "Löyly, Holds 10, NOK 2600", "Kajo, Hold
 NAMES = ["Rauha", "Löyly", "Kajo", "Lumo"]
 DESCRIPTIONS = ["Our smallest sauna. Rauha means peace: a quiet room for a small group.",
                 "Löyly is the steam that rises when water meets the hot stones. A sauna for a mid-sized group.",
-                "Kajo means a soft glow. Warm light, and a bucket and ladle for throwing water on the stones.",
-                "Our largest sauna, with long benches lit softly from behind. Room for a big group."]
+                "Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones, as in all our saunas.",
+                "Our largest sauna, with long benches and a view of the open sea. Room for a big group."]
 
 
 def _norm(text: str) -> str:
