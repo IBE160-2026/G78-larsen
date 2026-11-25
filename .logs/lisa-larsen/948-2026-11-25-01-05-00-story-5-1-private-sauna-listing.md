@@ -69,3 +69,22 @@ Lisa presiserte at alle badstuer skal være åpne for både helbadstu-booking og
 
 ### Åpne punkter
 - Hele e2e-laget må fortsatt kjøres, slik punktet i issues.md allerede sier.
+
+## 2026-11-25 kl. 01:55 — Lisa Larsen
+
+### Oppgave
+Begrense regelen som forbyr refusjon ved gjestekansellering til setebookinger, så en privat badstu kan refunderes (FR-33, AD-31). Før var dette satt til Story 5.3.
+
+### Plan
+- Rette CHECK-en i migrering 0013, som ikke er merget ennå, i stedet for å vente til 5.3.
+
+### Resultat
+- `migrations/0013_whole_sauna_bookings.sql`: `seat_guest_refund_forbidden` er gjenopprettet med samme navn som `CHECK (kind <> 'seats' OR NOT (cancel_cause = 'guest' AND cancel_remedy = 'refund'))`.
+- Ny test, `test_fr29_whole_store.py::test_a_whole_sauna_booking_may_be_cancelled_by_the_guest_with_a_refund`:
+  - En helbadstu-booking som avbestilles med refusjon, går gjennom.
+  - En setebooking med samme verdier avvises fortsatt.
+- Tester: `test_fr29_whole_store`, `test_fr27_voucher_for_seats` og `test_dr4_migrations` ga 69 passed.
+- Punktet er lukket i deferred-work.md og issues.md. Punktet om `ignore_booking` står fortsatt.
+
+### Åpne punkter
+Ingen nye.

@@ -131,6 +131,25 @@ def test_a_capacity_row_of_a_cancelled_booking_is_refused_at_commit(world, pg):
     assert whole_rows(pg) == (0, 1) and state(pg)["real_cap"] == 44
 
 
+def test_a_whole_sauna_booking_may_be_cancelled_by_the_guest_with_a_refund(world, pg):
+    """FR-33, AD-31: 0013 limits 0012's `seat_guest_refund_forbidden` to Seat bookings. In AD-23's order (status, then
+    the capacity row) a Guest's cancellation with remedy `refund` commits; a Seat booking with the same values is
+    still refused."""
+    bid = raw_whole(pg, 1, 4)
+    cancel = ("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', "
+              "cancel_remedy = 'refund' WHERE id = %s")
+    pg.execute(cancel, (bid,))
+    pg.execute("DELETE FROM whole_bookings WHERE booking_id = %s", (bid,))
+    pg.commit()
+    assert pg.execute("SELECT status, cancel_cause, cancel_remedy FROM bookings WHERE id = %s", (bid,)).fetchone() == (
+        "cancelled", "guest", "refund")
+    pg.rollback()
+    assert whole_rows(pg) == (0, 1) and state(pg)["real_cap"] == 44
+    seat = pg.execute(raw_booking(1, 2) + " RETURNING id").fetchone()[0]
+    pg.commit()
+    refused_at_commit(pg, [(cancel, (seat,))], "seat_guest_refund_forbidden")
+
+
 def test_a_capacity_row_of_a_seat_booking_is_refused_at_commit(world, pg):
     sid = pg.execute(raw_booking(2, 1) + " RETURNING id").fetchone()[0]
     pg.commit()

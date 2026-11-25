@@ -43,6 +43,12 @@ ALTER TABLE bookings
     OR (kind = 'whole' AND sauna_id IS NOT NULL AND seats IS NULL AND price_per_seat_ore IS NULL));
 CREATE INDEX bookings_sauna_id_idx ON bookings (sauna_id);
 
+-- 0012's ban on a Guest refund holds for Seat bookings only: a Whole-sauna booking may be refunded (FR-33, AD-31).
+ALTER TABLE bookings
+  DROP CONSTRAINT seat_guest_refund_forbidden,
+  ADD CONSTRAINT seat_guest_refund_forbidden
+    CHECK (kind <> 'seats' OR NOT (cancel_cause = 'guest' AND cancel_remedy = 'refund'));
+
 CREATE TRIGGER a_lock_bookings BEFORE INSERT OR DELETE OR UPDATE OF window_id, seats, status, kind, sauna_id
   ON bookings FOR EACH ROW EXECUTE FUNCTION trg_lock_win();
 CREATE TRIGGER t_bookings AFTER INSERT OR DELETE OR UPDATE OF window_id, seats, status, kind, sauna_id

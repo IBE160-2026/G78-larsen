@@ -78,5 +78,5 @@
   summary: Restore the whole-sauna cases removed with `/api/admin/whole-bookings` (retry in test_fr14, access/unknown Sauna in test_fr20, int4 bounds in test_fr2) against Story 5.2's `POST /api/bookings` with `kind = 'whole'`.
   evidence: The slice endpoint was removed in 5.1 as AD-23 requires; its retry, access and input checks have no whole-sauna write path until 5.2.
 - source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
-  summary: `seat_guest_refund_forbidden` (0012) applies to every Booking and will refuse a Whole-sauna cancel with refund; limit it to `kind = 'seats'` in Story 5.3's migration.
+  summary: `seat_guest_refund_forbidden` (0012) applies to every Booking and will refuse a Whole-sauna cancel with refund; limit it to `kind = 'seats'` in Story 5.3's migration. Resolved 2026-11-25 in 5.1's migration 0013 (Lisa's request).
   evidence: Reported by the 5.1 implementation; the CHECK predates `kind`.
