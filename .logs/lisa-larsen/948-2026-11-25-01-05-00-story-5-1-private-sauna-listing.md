@@ -410,3 +410,17 @@ Bruke «as in all our saunas» i stedet for «as for all saunas» i Kajo-beskriv
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:27 — Lisa Larsen
+
+### Oppgave
+Committe de nye beskrivelsene av badstuene.
+
+### Plan
+- Committe `sauna-copy.js`, `EXPERIENCE.md` og testen.
+
+### Resultat
+- `da4cc90` «FR-30: sea view in the Kajo and Lumo descriptions, no lighting» endret 3 filer. Den er ikke pushet.
+
+### Åpne punkter
+Ingen nye.
