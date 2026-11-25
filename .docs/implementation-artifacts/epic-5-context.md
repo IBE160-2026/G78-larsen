@@ -16,7 +16,7 @@ Let a group book one whole Sauna for one session (shown to Guests as "Private sa
 
 ## Requirements & Constraints
 
-- **Prices and Saunas (decided 2026-11-24):** Rauha (7) NOK 1,850 and Lumo (15) NOK 3,950 are offered whole; Löyly and Kajo have no `whole_price_ore` and are never offered whole. Basis: Oslo average about NOK 262 per place × Capacity. Tests that need other Saunas whole set prices on their own fixture rows; the seed values matter only to the running stack, README and e2e.
+- **Prices and Saunas (decided 2026-11-24, changed 2026-11-25):** every Sauna is open for Seats and for Private sauna booking unless marked otherwise (`bookable_whole = false` or no price). Rauha NOK 1,850, Löyly NOK 2,600, Kajo NOK 3,150, Lumo NOK 3,950 (Oslo average about NOK 262 per place × Capacity, rounded to 50).
 - **FR-29:** a Sauna can be booked whole in a Window only if it is bookable whole with a price, not Blocked, not already booked whole, the Seats booked plus held fit in the Saunas ahead of it in Fill order (unless it is marked Whole-booking-only and unreleased), and the Window has not started, or has no Seat booking, or the mark applies. The Sauna is not held while the Guest pays; a pair taken meanwhile is refused with nothing charged.
 - **FR-30:** for a date the Guest sees only valid pairs (inside the horizon, before the Booking deadline, FR-29), viewable by Sauna or by session, and always picks the Sauna. Confirmation names Sauna and session.
 - **FR-4 / AD-25:** no Seat-flow page, response or email names a Sauna or shows Placement. Sauna names appear only in the Venue facts, `kind = 'whole'` responses and `/api/admin/`.
@@ -46,6 +46,6 @@ Let a group book one whole Sauna for one session (shown to Guests as "Private sa
 ## Cross-Story Dependencies
 
 - 5.1 lays the schema (`kind`, `sauna_id`, pairing, `whole_bookable`, `cutoff_whole`, `whole_price_ore`) and the listing that 5.2 books from and 5.3 moves through.
-- 5.2 adds `sauna_unavailable` to `api/errors.py` and the frontend mirror; its e2e flow books Lumo (Kajo is not offered whole in the seed; epics.md updated 2026-11-25).
+- 5.2 adds `sauna_unavailable` to `api/errors.py` and the frontend mirror; its e2e flow books Kajo.
 - 5.3 depends on 5.2's payments ledger and Epic 4's Manage, Change, history and Voucher services. 5.4's INV checker and brute-force Placement are reused by 5.5.
 - Epic 4's race and model tests must keep passing as capacity counting changes.

@@ -134,7 +134,7 @@ Seeden legger også inn tolv eksempelbookinger (`seeds/bookings.json`), én gang
 
 En omstart, også en senere dag, lager ingen kopier.
 
-Seeden setter også prisen for å booke en hel badstue (`whole_price_ore` i `seeds/venue.json`, besluttet av Lisa 2026-11-24): Rauha (7 plasser) NOK 1850 og Lumo (15 plasser) NOK 3950. Löyly og Kajo har ingen pris og tilbys ikke hele. Prisen er snittet for sammenlignbare badstuer i Oslo, omtrent NOK 262 per plass, ganger antall plasser og rundet til nærmeste 50. Seeden fyller bare inn en pris som mangler i databasen, så en pris som er endret der, blir stående.
+Seeden setter også prisen for å booke en hel badstue (`whole_price_ore` i `seeds/venue.json`, besluttet av Lisa 2026-11-25): Rauha (7 plasser) NOK 1850, Löyly (10 plasser) NOK 2600, Kajo (12 plasser) NOK 3150 og Lumo (15 plasser) NOK 3950. Alle badstuene kan bookes både med plasser og hele, med mindre en badstue er merket som ikke tilgjengelig hel (`bookable_whole = false`) eller ikke har pris. Prisen er snittet for sammenlignbare badstuer i Oslo, omtrent NOK 262 per plass, ganger antall plasser og rundet til nærmeste 50. Seeden fyller bare inn en pris som mangler i databasen, så en pris som er endret der, blir stående.
 
 ## Outbox
 

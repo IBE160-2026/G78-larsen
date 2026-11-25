@@ -2,8 +2,8 @@
 
 Reached from Landing's "Private sauna" Text link with the keyboard, focus on the `h1` and the title "Private sauna –
 Saunalöyly". A date is typed or picked in the Date calendar of Book seats; the page then lists the seed's Saunas that
-can be booked whole (Rauha 7 at NOK 1850 and Lumo 15 at NOK 3950; Löyly and Kajo have no price) with their free
-sessions, by sauna or by session, both regrouped from the one `GET /api/private-saunas` response. Every choice is a
+can be booked whole (all four, Lisa 2026-11-25: Rauha 7 at NOK 1850, Löyly 10 at NOK 2600, Kajo 12 at NOK 3150, Lumo
+15 at NOK 3950) with their free sessions, by sauna or by session, both regrouped from the one `GET /api/private-saunas` response. Every choice is a
 radio group in a fieldset with a legend and one tab stop. An empty date says so plainly. axe finds no A or AA failure,
 nothing scrolls sideways at 1024, 1366 and 1920 px, every request stays on the stack's origin and no cookie is set.
 Booking and paying is Story 5.2.
@@ -24,7 +24,8 @@ from .admin import db_url
 
 PAGE = "/private-sauna"
 LEAD = "Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it."
-OPTIONS = ["Rauha, Holds 7, NOK 1850, 8 free sessions", "Lumo, Holds 15, NOK 3950, 8 free sessions"]
+OPTIONS = ["Rauha, Holds 7, NOK 1850, 8 free sessions", "Löyly, Holds 10, NOK 2600, 8 free sessions",
+           "Kajo, Holds 12, NOK 3150, 8 free sessions", "Lumo, Holds 15, NOK 3950, 8 free sessions"]
 
 
 def _norm(text: str) -> str:
@@ -44,7 +45,7 @@ def long_date(iso: str) -> str:
 @pytest.fixture(scope="module")
 def day(base_url) -> str:
     """A later date (never today, whose past sessions drop out) with no Booking at all, so all eight Sessions are
-    free in Rauha and Lumo: the latest such date before Book seats' no-room fixtures (the last three dates)."""
+    free in every Sauna: the latest such date before Book seats' no-room fixtures (the last three dates)."""
     get = lambda path, **params: httpx.get(base_url + path, params=params, timeout=30,  # noqa: E731
                                            verify=trust.context()).json()
     facts = get("/api/windows")
@@ -54,7 +55,7 @@ def day(base_url) -> str:
         ws = get("/api/windows", date=d)["windows"]
         if len(ws) != 8 or any(w["seats_left"] != 44 for w in ws):
             continue
-        if [len(s["windows"]) for s in get("/api/private-saunas", date=d)["saunas"]] == [8, 8]:
+        if [len(s["windows"]) for s in get("/api/private-saunas", date=d)["saunas"]] == [8, 8, 8, 8]:
             return d
     raise AssertionError("no later date without bookings")
 
@@ -113,7 +114,7 @@ def test_by_sauna_lists_each_sauna_with_size_price_and_free_sessions_and_then_it
                      verify=trust.context()).json()
     assert set(body) == {"saunas", "horizon_end", "horizon_days"}
     assert [(s["name"], s["capacity"], s["whole_price_ore"], len(s["windows"])) for s in body["saunas"]] == [
-        ("Rauha", 7, 185000, 8), ("Lumo", 15, 395000, 8)]
+        ("Rauha", 7, 185000, 8), ("Löyly", 10, 260000, 8), ("Kajo", 12, 315000, 8), ("Lumo", 15, 395000, 8)]
     open_page(page, base_url)
     type_date(page, day)
     assert page.locator("#view legend").inner_text() == "View"
@@ -122,7 +123,7 @@ def test_by_sauna_lists_each_sauna_with_size_price_and_free_sessions_and_then_it
     assert page.locator("#saunas legend").inner_text() == "2. Choose a sauna"
     assert labels(page, "#saunas") == OPTIONS
     rows = [_norm(t) for t in page.locator("#saunas .sauna-option").all_inner_texts()]
-    assert rows == ["Rauha Holds 7 NOK 1850 8 free sessions", "Lumo Holds 15 NOK 3950 8 free sessions"]
+    assert rows == [o.replace(",", "") for o in OPTIONS]
     assert page.locator("#sessions").count() == 0  # the second question comes with the first answer
 
     # one tab stop per group, arrow keys inside: View, then the Saunas, then the sessions of the chosen Sauna
@@ -130,7 +131,7 @@ def test_by_sauna_lists_each_sauna_with_size_price_and_free_sessions_and_then_it
     a11y.press(page, "Tab")
     assert page.evaluate("document.activeElement.id") == "sauna-1"
     a11y.press(page, "ArrowDown")
-    assert page.locator("#sauna-4").is_checked()
+    assert page.locator("#sauna-2").is_checked()
     page.wait_for_selector("#sessions")
     assert page.locator("#sessions legend").inner_text() == "3. Choose a session"
     sessions = labels(page, "#sessions")

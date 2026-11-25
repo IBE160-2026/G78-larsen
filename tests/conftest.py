@@ -37,9 +37,9 @@ client.DATABASE_URL = TEST_URL
 # Window k starts at WIN0 + k * 90 minutes (UTC); the Venue is Europe/Oslo (UTC+1 in December).
 WIN0 = dt.datetime(2026, 12, 1, 9, 0, tzinfo=dt.timezone.utc)
 SAUNAS = [(1, "Rauha", 7), (2, "Loyly", 10), (3, "Kajo", 12), (4, "Lumo", 15)]  # 44 Seats in Fill order 1..4
-# Every test Sauna has a Whole-sauna price, so the FR-29 catalogue tests judge all four (the seed offers only Rauha and
-# Lumo whole; a test that needs a Sauna without a price sets it to NULL itself).
-WHOLE_PRICES = {1: 185000, 2: 265000, 3: 315000, 4: 395000}
+# Every test Sauna has a Whole-sauna price, the seed's (Lisa, 2026-11-25), so the FR-29 catalogue tests judge all four;
+# a test that needs a Sauna without a price sets it to NULL itself.
+WHOLE_PRICES = {1: 185000, 2: 260000, 3: 315000, 4: 395000}
 EARLY = dt.datetime(2026, 12, 1, 3, 0, tzinfo=dt.timezone.utc)  # before the 06:00 Oslo (05:00Z) Release time
 
 

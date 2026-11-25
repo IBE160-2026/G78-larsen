@@ -281,7 +281,7 @@ Editing or emptying the field removes the applied Voucher; there is no separate 
 
 **Private sauna wording (Epic 5; Lisa 2026-11-24 for prices and Saunas, the rest decided in Story 5.1 on Lisa's instruction to settle Epic 5's open wording without asking)**
 
-Prices and Saunas (Open Item 27, PRD §12 Q3): Rauha (7) and Lumo (15) are offered whole; Löyly and Kajo are not (their `whole_price_ore` stays NULL). Prices follow the Oslo average and the size: the Oslo comparables in PRD addendum E and J (KOK NOK 1,360 for up to 8, Badstuvogna NOK 1,250 for 6, the top of the range NOK 2,900 for 6–8) average NOK 1,837 for about 7 places, NOK 262 per place. Rauha 7 × 262 = 1,837, rounded to **NOK 1,850**; Lumo 15 × 262 = 3,936, rounded to **NOK 3,950**. Both are a little above the same number of Seats (NOK 1,750 and 3,750), so a Private sauna never costs the Venue Seat income.
+Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every Sauna is open both for Seats and for Private sauna booking unless it is marked otherwise (`bookable_whole = false`, or no `whole_price_ore`). Prices follow the Oslo average and the size: the Oslo comparables in PRD addendum E and J (KOK NOK 1,360 for up to 8, Badstuvogna NOK 1,250 for 6, the top of the range NOK 2,900 for 6–8) average NOK 1,837 for about 7 places, NOK 262 per place. Capacity × 262, rounded to the nearest 50: Rauha (7) **NOK 1,850**, Löyly (10) **NOK 2,600**, Kajo (12) **NOK 3,150**, Lumo (15) **NOK 3,950**. Each is close to the same number of Seats at NOK 250 (1,750, 2,500, 3,000, 3,750), so a Private sauna does not cost the Venue Seat income.
 
 | Text | Where |
 |---|---|
@@ -685,7 +685,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 ### Other If-time gaps
 
-27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them. Closed by Lisa 2026-11-24 (Story 5.1): Rauha NOK 1,850 and Lumo NOK 3,950 are offered whole, Löyly and Kajo are not. See the Private sauna wording in Voice and Tone. In Flow 5, Olav's 10 relatives therefore book Lumo, not Kajo.
+27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them. Closed by Lisa 2026-11-24 (Story 5.1), changed 2026-11-25: all four Saunas are offered whole, Rauha NOK 1850, Löyly NOK 2600, Kajo NOK 3150, Lumo NOK 3950, unless marked otherwise. See the Private sauna wording in Voice and Tone.
 28. Hold resize: FR-35 says the Guest is told when extra Seats are not free, while no page may mention a Hold. Wording is needed that does both.
 29. How a Guest reaches their own Bookings once signed in, and where sign-in lives apart from the Sign-in choice.
 30. Which emails a Guest sees for Gift cards and account links (Step 2 and §4.12). FR-17 names no page.

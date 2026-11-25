@@ -35,8 +35,8 @@ EXPECTED = {
     "price_per_seat_ore": 25000,
     "saunas": [
         {"id": 1, "name": "Rauha", "capacity": 7, "whole_price_ore": 185000},
-        {"id": 2, "name": "Löyly", "capacity": 10, "whole_price_ore": None},
-        {"id": 3, "name": "Kajo", "capacity": 12, "whole_price_ore": None},
+        {"id": 2, "name": "Löyly", "capacity": 10, "whole_price_ore": 260000},
+        {"id": 3, "name": "Kajo", "capacity": 12, "whole_price_ore": 315000},
         {"id": 4, "name": "Lumo", "capacity": 15, "whole_price_ore": 395000},
     ],
 }
@@ -85,8 +85,8 @@ def test_the_seed_file_holds_the_venue_facts_of_the_story():
         "price_per_seat_ore": 25000}
     assert [(s["id"], s["name"], s["capacity"], s["fill_order"]) for s in SEED["saunas"]] == [
         (1, "Rauha", 7, 1), (2, "Löyly", 10, 2), (3, "Kajo", 12, 3), (4, "Lumo", 15, 4)]
-    # Story 5.1 (Lisa, 2026-11-24; EXPERIENCE.md Open Item 27): Rauha and Lumo are offered whole, Löyly and Kajo not
-    assert [s.get("whole_price_ore") for s in SEED["saunas"]] == [185000, None, None, 395000]
+    # Story 5.1 (Lisa, 2026-11-25; EXPERIENCE.md Open Item 27): every Sauna is offered whole, at its own price
+    assert [s.get("whole_price_ore") for s in SEED["saunas"]] == [185000, 260000, 315000, 395000]
 
 
 def test_the_migration_defaults_equal_the_seed(fresh_db):
@@ -125,8 +125,8 @@ def test_fresh_start_restart_and_a_value_the_store_owns(fresh_db, tmp_path):
     assert snapshot(fresh_db) == seeded
 
     # The store owns a value: a changed price survives a restart, and a deleted Sauna is seeded again. A Whole-sauna
-    # price is filled only where it is NULL (AD-18): Lumo's changed price stays, Rauha's emptied one comes back, and
-    # Kajo, which the seed does not offer whole, stays NULL.
+    # price is filled only where it is NULL (AD-18): Kajo's changed price stays, Rauha's emptied one comes back (as on an
+    # existing database where a Sauna has no price yet), and the deleted Lumo comes back with the seed's.
     with psycopg.connect(fresh_db) as c:
         c.execute("UPDATE settings SET price_per_seat_ore = 30000")
         c.execute("UPDATE saunas SET whole_price_ore = NULL WHERE id = 1")
@@ -145,7 +145,7 @@ def test_fresh_start_restart_and_a_value_the_store_owns(fresh_db, tmp_path):
     fourth = start_backend(fresh_db, tmp_path, name="venue-4", sample_bookings=False)
     try:
         body = httpx.get(fourth.base + "/api/venue", timeout=10).json()
-        assert [s["whole_price_ore"] for s in body["saunas"]] == [185000, None, None, 395000]
+        assert [s["whole_price_ore"] for s in body["saunas"]] == [185000, 260000, None, 395000]
     finally:
         fourth.stop()
     with psycopg.connect(fresh_db) as c:

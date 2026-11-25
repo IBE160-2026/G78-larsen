@@ -35,8 +35,9 @@ SAUNAS = [
     ("Kajo", "Holds 12", "Kajo means a soft glow of light.", "/images/sauna-kajo-kiulu.jpg"),
     ("Lumo", "Holds 15", "Lumo means enchantment.", "/images/sauna-lumo-lauteet.jpg"),
 ]
-# The price line under the size line, only for a Sauna offered whole (seed, Story 5.1)
-PRICES = {"Rauha": "Private sauna: NOK 1850", "Lumo": "Private sauna: NOK 3950"}
+# The price line under the size line, only for a Sauna offered whole: every seed Sauna (Lisa, 2026-11-25)
+PRICES = {"Rauha": "Private sauna: NOK 1850", "Löyly": "Private sauna: NOK 2600", "Kajo": "Private sauna: NOK 3150",
+          "Lumo": "Private sauna: NOK 3950"}
 NOTICE = "The venue details could not be loaded, please try again."
 
 
@@ -217,7 +218,7 @@ def test_venue_facts_through_caddy_need_no_session(base_url):
     body = r.json()
     assert body["name"] == "Saunalöyly" and body["price_per_seat_ore"] == 25000
     assert [s["name"] for s in body["saunas"]] == ["Rauha", "Löyly", "Kajo", "Lumo"]
-    assert [s["whole_price_ore"] for s in body["saunas"]] == [185000, None, None, 395000]
+    assert [s["whole_price_ore"] for s in body["saunas"]] == [185000, 260000, 315000, 395000]
 
 
 def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(stack, page: Page, base_url):
