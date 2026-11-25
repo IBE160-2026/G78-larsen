@@ -22,3 +22,24 @@ Starte Story 5.2 (bestille og betale en privat badstue) med `bmad-build`. Økten
 ### Åpne punkter
 - Implementere Story 5.2 etter specen (ny `bmad-build`-økt starter på steg 3).
 - Føre terms-whole-teksten inn i EXPERIENCE.md ("Private sauna wording") under implementeringen.
+
+## 2026-11-25 kl. 17:19 — Lisa Larsen
+
+### Oppgave
+Implementere Story 5.2 etter den godkjente specen (subagent i `bmad-build`, steg 3): booke og betale en Private sauna.
+
+### Plan
+- Spec: [spec-5-2-book-and-pay-for-a-private-sauna.md](../../.docs/implementation-artifacts/spec-5-2-book-and-pay-for-a-private-sauna.md); kontekst `epic-5-context.md`, Story 5.2 i `epics.md`, ARCHITECTURE-SPINE (AD-9, 12, 13, 16, 23, 24, 25, 30).
+- Backend først (db, services, api), så tester, så frontend, så e2e og docs.
+
+### Resultat
+- **Backend:** `services.whole.create` (samme rekkefølge som Seat-flyten: hash med `kind`/`sauna_id`, kortdel fra ulåst pris, `charge()`, `lock_windows`, nøkkel, `outside_horizon`, `deadline_passed`, pris på nytt, Booking via `services.reference`, `whole_bookings`-rad, Voucher og `payments`, Manage-token, e-post, nøkkel). `db.run(..., refusals=...)` mapper `whole_bookable`, `booked_within_capacity` og `(window_id, sauna_id)`-nøkkelen til `409 sauna_unavailable` bare for denne handlingen; globalt `MAP` uendret. `BookingIn` og `VoucherQuoteIn` er diskriminerte unioner på `kind` (tag `kind=…` filtreres bort fra `fields`). Én serializer med `kind`/`sauna`; e-post med «Sauna: {navn}» og `content/terms-whole.json`; Voucher-quote mot `whole_price_ore`; bookinglisten og Manage-lesingen har `kind`/`sauna`; Seat-endringene svarer `404 not_found` for en hel booking. Seed-eposten leser tidssonen fra riktig felt.
+- **Frontend:** `lib/draft.js` med slot, ny `lib/flows.js`, rutene `/private-sauna/details` og `/private-sauna/review`, Details/Review/Confirmation per flyt/kind, Continue i Private sauna-railen (åpner sesjon, leser `?date=`), Notice for `sauna_unavailable` med «Choose another sauna or session», Manage uten handlinger for hel booking, badstuenavn i Seats-kolonnen i bookinglisten, `sauna_unavailable` i `lib/api.js`.
+- **Tester:** ny `tests/test_fr29_whole_booking.py` (happy, e-post, ingen Hold, B7, tatt/blokkert/fyller ikke/uten pris, rekkefølge, C1 ×100, gjentak/`invalid_key`, input-tabell, Voucher delvis/hel, bookingliste, Manage). AD-25-walk utvidet; slice-oppføringer gjenopprettet i `test_fr14_retry.py`, `test_fr20_access.py`, `test_fr2_input.py`. e2e: Kajo med tastatur + axe, `sauna_unavailable` på Review, Continue uten valg (`test_fr30`), og personvern-sider for den nye flyten (`test_fr21`).
+- **Docs:** `content/terms-whole.json`, EXPERIENCE.md «Private sauna wording», README.
+- **Verifisert:** `uv run pytest -x -q tests --ignore=tests/e2e` → 610 passert. `npm --prefix frontend run build` → ok. e2e: stoppet av Claude Code ved ca. 88 % pga. lite minne (172 passert, 0 feil før stopp); `booking_e2e`-stacken ble tatt ned etterpå.
+- Ingenting committet.
+
+### Åpne punkter
+- e2e-kjøringen ble stoppet før de nye testene i `tests/e2e/test_fr30_private_sauna.py` kjørte; kjør `uv run pytest tests/e2e` på nytt.
+- Kodereview av Story 5.2 er ikke kjørt.
