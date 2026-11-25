@@ -297,3 +297,19 @@ FR-1.5 i PRD skulle endres, så kravet passer med de lengre beskrivelsene av bad
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:05 — Lisa Larsen
+
+### Oppgave
+Endre Kajo-beskrivelsen, så det ikke står «löyly» uten forklaring (PRD §6 Copy).
+
+### Plan
+- Bytte ut slutten av setningen i `sauna-copy.js`, `EXPERIENCE.md` og testen.
+
+### Resultat
+- Kajo-beskrivelsen er nå: «Kajo means a soft glow. Warm light, and a bucket and ladle for throwing water on the stones.»
+- Endret i `frontend/lib/sauna-copy.js`, i `EXPERIENCE.md` (Private sauna wording) og i `test_fr30_private_sauna.py`. Testene ga 5 passed etter at frontend ble bygget på nytt.
+- Ikke committet.
+
+### Åpne punkter
+- «A big stove gives soft, even heat» i Löyly-beskrivelsen er fortsatt ikke bekreftet.
