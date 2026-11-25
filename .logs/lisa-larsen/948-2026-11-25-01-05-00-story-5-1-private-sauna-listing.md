@@ -424,3 +424,19 @@ Committe de nye beskrivelsene av badstuene.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 10:28 — Lisa Larsen
+
+### Oppgave
+Lukke punktet i `issues.md` om å godkjenne beskrivelsene av badstuene.
+
+### Plan
+- Lukke punktet, og fjerne «draft» der beskrivelsene ennå ble kalt utkast.
+
+### Resultat
+- Punktet er lukket i `issues.md`.
+- `sauna-copy.js`, `EXPERIENCE.md` og spec-5-1 sier nå at Lisa godkjente beskrivelsene 2026-11-25.
+- Commit: «FR-30: the sauna descriptions are approved, no longer draft». Ikke pushet.
+
+### Åpne punkter
+Ingen nye.
