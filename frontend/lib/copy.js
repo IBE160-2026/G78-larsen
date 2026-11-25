@@ -251,6 +251,12 @@ export function moveRefusal(code, facts = {}) {
   }
 }
 
+// Landing's two Booking choices (UX-DR41, Lisa 2026-11-25). Verbatim from EXPERIENCE.md (Private sauna wording).
+export const LANDING_CHOICES = Object.freeze({
+  seats: 'Book seats',
+  private: 'Book private sauna',
+});
+
 // The Private sauna page (FR-29, FR-30, Story 5.1). Verbatim from EXPERIENCE.md (Private sauna wording). Booking and
 // paying for the chosen Sauna and session is Story 5.2.
 export const PRIVATE = Object.freeze({

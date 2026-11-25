@@ -447,7 +447,7 @@ Rendered in the key-screen mocks in `mockups/`. Each uses only existing tokens, 
 
 **If-time plug-ins (spine only, none built in Core)**
 
-- **Private sauna entry.** A Text link. Never a second Primary button.
+- **Private sauna entry.** Changed by Lisa 2026-11-25: Landing shows two equal **Booking choices**, Book seats and Book private sauna. Each is a full-width link in `{colors.primary}` with the 1.5 px `{colors.button-edge}`, at least 48 px high, the action centred in the button type and nothing else, both the same size; `{spacing.3}` between them. Landing then has no Primary button; every other page keeps one.
 - **Voucher field.** A Text field with a Text link beside it.
 - **Sign-in choice.** One Primary button for continuing without an account, with sign-in as a Text link.
 - **Sauna option.** Sauna name in `{typography.heading-md}`, size and price in `{typography.body-sm}`, then Session rows.

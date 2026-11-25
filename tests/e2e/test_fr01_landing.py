@@ -1,5 +1,5 @@
 """Landing (FR-1, FR-22, FR-23, UX-DR4, UX-DR5, UX-DR15, UX-DR16, UX-DR41): the rail with the Venue facts, Book seats
-and the "Private sauna" Text link under it in the first view at 1366 x 768 (Story 5.1), the main column's sections in order with the copy verbatim, the Venue facts from the
+and Book private sauna under it as an equal Booking choice (Lisa 2026-11-25) in the first view at 1366 x 768 (Story 5.1), the main column's sections in order with the copy verbatim, the Venue facts from the
 seed, the title, axe, keyboard reach of every link and the button (through `a11y.tab_to` and `a11y.press`), no
 horizontal scroll, `/#before-you-come` shown and focused, Book seats navigating, and the Notice while the backend
 is stopped."""
@@ -62,16 +62,18 @@ def test_rail_holds_the_wordmark_heading_the_facts_and_book_seats(page: Page, ba
     assert h1.inner_text() == "Saunalöyly"
     assert h1.locator("xpath=ancestor-or-self::a").count() == 0  # a heading, not a link
     assert _lines(rail) == ["Saunalöyly", "Open every day", "10:00–22:00", "Sessions last 1 h 30 min",
-                            "NOK 250 per seat", "incl. VAT", "Book seats", "Private sauna"]
+                            "NOK 250 per seat", "incl. VAT", "Book seats", "Book private sauna"]
     book = rail.get_by_role("link", name="Book seats", exact=True)
     assert book.get_attribute("href") == "/book-seats"
     assert page.locator(".notice").count() == 0
-    # Story 5.1: a Text link directly under Book seats, never a second Primary button
-    private = rail.get_by_role("link", name="Private sauna", exact=True)
+    # Lisa 2026-11-25 (UX-DR41): Book private sauna directly under Book seats, as an equal Booking choice
+    private = rail.get_by_role("link", name="Book private sauna", exact=True)
     assert private.get_attribute("href") == "/private-sauna"
-    assert private.get_attribute("class") == "text-link"
-    assert page.locator(".button-primary").count() == 1
-    assert private.evaluate("el => el.parentElement.previousElementSibling.classList.contains('button-primary')")
+    for choice in (book, private):
+        assert choice.get_attribute("class") == "booking-choice"
+    assert page.locator(".button-primary").count() == 0
+    b, p = book.bounding_box(), private.bounding_box()
+    assert (b["width"], b["height"]) == (p["width"], p["height"])  # the same size
     assert private.bounding_box()["y"] > book.bounding_box()["y"] + book.bounding_box()["height"]
 
 
@@ -80,7 +82,7 @@ def test_rail_is_in_the_first_view_at_1366x768(page: Page, base_url):
     page.goto(base_url + "/")
     for locator in (page.locator(".rail h1"), page.locator(".rail-fact").last,
                     page.get_by_role("link", name="Book seats", exact=True),
-                    page.get_by_role("link", name="Private sauna", exact=True)):
+                    page.get_by_role("link", name="Book private sauna", exact=True)):
         box = locator.bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 768, box
 
@@ -185,7 +187,7 @@ def test_every_link_and_the_button_can_be_reached_with_the_keyboard(page: Page, 
     page.goto(base_url + "/")
     links = page.locator("a")
     names = [_norm(n) for n in links.all_inner_texts()]
-    assert sorted(names) == sorted(["Terms", "Privacy notice", "Book seats", "Private sauna"])
+    assert sorted(names) == sorted(["Terms", "Privacy notice", "Book seats", "Book private sauna"])
     for name in names:
         page.goto(base_url + "/")
         a11y.tab_to(page, page.get_by_role("link", name=name, exact=True))
@@ -226,7 +228,7 @@ def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(
     try:
         page.goto(base_url + "/")
         rail = page.locator(".rail")
-        assert _lines(rail) == ["Saunalöyly", NOTICE, "Book seats", "Private sauna"]
+        assert _lines(rail) == ["Saunalöyly", NOTICE, "Book seats", "Book private sauna"]
         # the main column keeps its copy; no Venue fact is shown
         assert _norm(page.locator(".venue-description").inner_text()) == DESCRIPTION
         assert page.locator("#before-you-come .rule-list").count() == 3

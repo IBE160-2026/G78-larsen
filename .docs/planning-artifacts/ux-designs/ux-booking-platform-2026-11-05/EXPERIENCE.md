@@ -285,7 +285,8 @@ Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every
 
 | Text | Where |
 |---|---|
-| "Private sauna" | Text link on Landing directly under Book seats; the page title is "Private sauna – Saunalöyly" and its `h1` is "Private sauna" |
+| "Book seats", "Book private sauna" | Landing rail, two equal Booking choices of the same size, Book private sauna directly under Book seats, with no other text in them (Lisa 2026-11-25; replaces the Text link "Private sauna") |
+| "Private sauna" | The Private sauna page title is "Private sauna – Saunalöyly" and its `h1` is "Private sauna" |
 | "Private sauna: NOK 1850" | Sauna card on Landing, under the size line, only for a Sauna offered whole |
 | "A group that wants to stay together should book a private sauna." | After the Seat statement in "The saunas" on Landing, and in the Book seats rail |
 | "Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it." | Private sauna page, under the `h1` |
@@ -552,7 +553,7 @@ Core pages leave room for these and show none of them until built. None of them 
 
 | Feature | Where it plugs in | Behaviour |
 |---|---|---|
-| Private sauna entry (§4.9) | [ASSUMPTION] Landing rail, directly under Book seats, as a Text link, because the page keeps one main action (§4.1). On narrow screens it is in the page flow, not in the Fixed action bar | Opens the Private sauna page. Landing also gains the price per Sauna: [ASSUMPTION] on each Sauna card, under the size line |
+| Private sauna entry (§4.9) | Landing rail, directly under Book seats, as an equal Booking choice (Lisa 2026-11-25: the two ways to book look alike; this replaces the Text link and the one-main-action reasoning of §4.1 for Landing). On narrow screens it is in the page flow, not in the Fixed action bar | Opens the Private sauna page. Landing also gains the price per Sauna: [ASSUMPTION] on each Sauna card, under the size line |
 | Seat statement (§4.9) | Landing "The saunas" intro and Book seats rail | Gains the group sentence (FR-4) |
 | Voucher field (§4.8) | Review, between the Booking summary and the terms, always visible, because PRD §7 says "at payment" and the total must be settled before accepting (confirmed by Story 4.4) | Reduces the amount and updates the Pay label (FR-28). Expired, used-up and unknown codes get one identical refusal as a Field error. Rest paid by Simulated payment |
 | Sign-in choice (§4.12) | After Continue, before Details. Space reserved in the flow by keeping Details as its own page | Continuing without an account is the default and most prominent option, as the Primary button. Sign-in is a Text link (FR-37). A signed-in Guest books with the account's email |

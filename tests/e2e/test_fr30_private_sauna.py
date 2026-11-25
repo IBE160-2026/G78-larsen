@@ -1,6 +1,6 @@
 """The Private sauna page (FR-29, FR-30, FR-21, FR-22, FR-23, UX-DR17, UX-DR33, UX-DR35, UX-DR41; Story 5.1).
 
-Reached from Landing's "Private sauna" Text link with the keyboard, focus on the `h1` and the title "Private sauna –
+Reached from Landing's "Book private sauna" Booking choice with the keyboard, focus on the `h1` and the title "Private sauna –
 Saunalöyly". A date is typed or picked in the Date calendar of Book seats; the page then lists the seed's Saunas that
 can be booked whole (all four, Lisa 2026-11-25: Rauha 7 at NOK 1850, Löyly 10 at NOK 2600, Kajo 12 at NOK 3150, Lumo
 15 at NOK 3950) with their free sessions, by sauna or by session, both regrouped from the one `GET /api/private-saunas` response. Every choice is a
@@ -92,7 +92,7 @@ def labels(page: Page, group: str) -> list[str]:
 
 def test_landing_link_with_the_keyboard_reaches_the_page_with_focus_on_its_heading(page: Page, base_url):
     page.goto(base_url + "/")
-    a11y.tab_to(page, page.get_by_role("link", name="Private sauna", exact=True))
+    a11y.tab_to(page, page.get_by_role("link", name="Book private sauna", exact=True))
     a11y.press(page, "Enter")
     page.wait_for_url(base_url + PAGE)
     page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")

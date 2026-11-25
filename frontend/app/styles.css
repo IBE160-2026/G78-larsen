@@ -350,7 +350,9 @@ a {
 }
 
 .rail .rail-fact + .button-primary,
-.rail .notice + .button-primary {
+.rail .notice + .button-primary,
+.rail .rail-fact + .booking-choices,
+.rail .notice + .booking-choices {
   margin-top: var(--space-5);
 }
 
@@ -863,11 +865,30 @@ a {
 
 /* ------------------------------------------------------------------ Private sauna (UX-DR41, Story 5.1) */
 
-/* Landing: the "Private sauna" Text link directly under Book seats, never a second button. */
-.rail-private {
-  margin-top: var(--space-3);
-  font-size: var(--type-body-sm-size);
-  line-height: var(--type-body-sm-line);
+/* Landing: Book seats and Book private sauna as two equal Booking choices (Lisa 2026-11-25): the Primary button's
+   fill, edge, type and height, the label centred, both the full width of the rail and the same height. */
+.booking-choices {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.booking-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: var(--button-height);
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 1.5px solid var(--color-button-edge);
+  font-family: var(--font-text);
+  font-size: var(--type-button-size);
+  line-height: var(--type-button-line);
+  font-weight: var(--type-button-weight);
+  text-decoration: none;
 }
 
 /* Landing: a Sauna card's price line under the size line, for a Sauna offered whole. */
