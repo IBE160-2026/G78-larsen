@@ -237,4 +237,4 @@
 - [x] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — godta endringen i `tests/e2e/test_fr05_book_and_pay.py`: layoutsjekken måler nå hele høyrekolonnen i stedet for `.terms-section`, fordi voucher-feltet ligger over vilkårene. (løst 2026-11-24: Lisa testet flyten manuelt og godkjente endringen)
 - [x] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — gå gjennom endringen (`bmad-walkthrough`), åpne PR og sett 4.4 til `done` etter godkjenning. (delvis løst 2026-11-24: manuell test godkjent av Lisa og 4.4 satt til `done` i `5ec9cbc`; PR er ikke åpnet) (løst 2026-11-24: PR #17 åpnet)
 
-- [ ] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — merge PR #17 (Story 4.4)
+- [x] 2026-11-24 [story-4-4-pay-with-a-voucher](951-2026-11-24-19-48-01-story-4-4-pay-with-a-voucher.md) — merge PR #17 (Story 4.4) (løst 2026-11-24: merget med vanlig merge, `acf3397`)

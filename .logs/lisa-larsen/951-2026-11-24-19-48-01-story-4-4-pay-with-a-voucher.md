@@ -171,3 +171,19 @@ Pushe `story/4-4-pay-with-a-voucher` og opprette PR.
 
 ### Åpne punkter
 - Merge PR #17.
+
+## 2026-11-24 kl. 23:04 — Lisa Larsen
+
+### Oppgave
+Merge PR #17 (Story 4.4).
+
+### Plan
+- Sjekke PR-en og merge den med vanlig merge, som for PR #16. Deretter oppdatere lokal `main`.
+
+### Resultat
+- PR #17 er merget i `main` som `acf3397`. Repoet har ingen CI-sjekker på PR-en.
+- Lokal `main` er oppdatert, og arbeidskopien er ren.
+- Lukket i `issues.md`: «merge PR #17».
+
+### Åpne punkter
+Ingen nye.
