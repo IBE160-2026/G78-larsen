@@ -142,3 +142,17 @@ Midtstille teksten i Booking choice-knappene på landingssiden.
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:10 — Lisa Larsen
+
+### Oppgave
+Committe endringen av knappene på landingssiden.
+
+### Plan
+- Committe kode, tester og dokumenter på `story/5-1-private-sauna-listing`.
+
+### Resultat
+- Commit `7bdec8d` «FR-1, FR-30: Book seats and Book private sauna as two equal buttons on Landing» endret 11 filer. Den er ikke pushet.
+
+### Åpne punkter
+Ingen.
