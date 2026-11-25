@@ -187,3 +187,22 @@ Merge PR #17 (Story 4.4).
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-24 kl. 23:08 — Lisa Larsen
+
+### Oppgave
+Teste delvis betaling med voucher i nettleseren.
+
+### Plan
+- Et Playwright-skript i scratchpad kjørte synlig (headed, `slow_mo`) mot dev-stakken på `https://localhost:8443`:
+  1. Betale 2 plasser, åpne Manage-lenken og gi fra seg 1 plass for en voucher på NOK 250.
+  2. Legge inn koden på Review for en ny booking på 2 plasser, trykke «Apply voucher», godta vilkårene, trykke «Pay NOK 250» og vise Confirmation.
+
+### Resultat
+- Testen bestod.
+  - Review viste «Voucher −NOK 250» og «To pay by card NOK 250», og knappen «Pay NOK 250».
+  - Confirmation (`01EG31PN`, 19. desember 2026) og e-posten viste «Total: NOK 500 incl. VAT», «Paid with voucher: NOK 250» og «Paid by card: NOK 250», med betalingsnotatet.
+- Dev-databasen har fått to testbookinger (Kari Nordmann og Ingrid Hansen, 19. desember 2026) og én brukt voucher.
+
+### Åpne punkter
+Ingen.
