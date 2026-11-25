@@ -190,3 +190,19 @@ I «3. Choose a sauna» (visningen «Show by session») skulle «x free sessions
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-25 kl. 09:30 — Lisa Larsen
+
+### Oppgave
+Lisa ba om fem designforslag for Private sauna-siden der hver badstu vises med bilde og en kort beskrivelse.
+
+### Plan
+- Lage forslagene som en artifact med de fire badstubildene som allerede ligger i `frontend/public/images` (oppført i `ASSETS.md`), i høyre kolonne på `/private-sauna` med ekte bredde (ca. 490 px).
+
+### Resultat
+- Artifact: https://claude.ai/artifact/7SL79i3ixvUVXiMw1i3BFE
+- Forslagene er A rader med lite bilde, B 2×2-kort, C brede bildebannere, D dagens rader med forhåndsvisning av valgt badstu, og E stort bilde ved siden av teksten.
+- Beskrivelsene er utkast og ikke bekreftet av Lisa. Ingen kode er endret.
+
+### Åpne punkter
+- Lisa må velge et forslag og godkjenne beskrivelsene før bildene bygges inn på Private sauna-siden.
