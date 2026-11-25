@@ -454,3 +454,26 @@ Kjøre hele e2e-laget før Story 5.1 merges.
 
 ### Åpne punkter
 Ingen nye.
+
+## 2026-11-25 kl. 11:18 — Lisa Larsen
+
+### Oppgave
+Lisa kjørte `/ship` for PR #20 (Story 5.1). Claude Code pushet og opprettet PR-en. Deretter kjørte `code-review` på high mot `origin/main...HEAD`. Reelle funn skulle rettes i arbeidskopien, uten commit eller push.
+
+### Plan
+- Sjekke de 8 funnene mot koden og hensikten med PR-en, og rette de reelle.
+
+### Resultat
+- Rettet:
+  - `migrations/0013_whole_sauna_bookings.sql`: `trg_check_mark` nekter å markere en badstu uten pris (`mark_not_bookable`). `trg_booking_cancelled_frozen` fryser også `sauna_id`.
+  - `frontend/components/PrivateSauna.js` og `styles.css`: `role="status"` gjelder nå bare melding, Notice og tom-dato-setning, ikke kortene og knappene.
+  - `frontend/components/PrivateSauna.js`: kalenderen leser datoene på nytt etter `outside_horizon`.
+  - spec-5-1: «Never»-regelen «no second Primary button on Landing» er merket som erstattet av Lisas beslutning.
+- To nye tester i `test_fr29_whole_store.py`. API-laget ga 564 passed. `test_fr30` og `test_fr01` (e2e) ga 19 passed.
+- Ikke rettet:
+  - seed fyller pris der den er NULL. Det er bevisst (AD-18, Lisas prisendring 2026-11-25), og `bookable_whole = false` er måten å trekke en badstu på.
+  - `ignore_booking` i `room_ahead` og lesere som antar `kind = 'seats'` står allerede i `deferred-work.md` for Story 5.2 og 5.3.
+- Committet etterpå på Lisas beskjed som «FR-29, FR-30: review fixes for PR #20» og pushet til PR #20.
+
+### Åpne punkter
+- Den lokale databasen har den gamle 0013. Migreringsrunneren har ingen checksum, så de nye triggerne kommer først etter `docker compose down -v` og ny oppstart.
