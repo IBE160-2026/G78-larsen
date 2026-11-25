@@ -71,6 +71,11 @@ export const SUMMARY = Object.freeze({
 });
 
 // Details (UX-DR23).
+// Terms and the Privacy notice (Lisa 2026-11-25): Back under the heading (components/BackLink.js).
+export const LEGAL_PAGE = Object.freeze({
+  back: 'Back',
+});
+
 export const DETAILS = Object.freeze({
   heading: 'Your details',
   back: 'Back',

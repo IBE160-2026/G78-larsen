@@ -1,4 +1,5 @@
 // Booking terms (FR-5, UX-DR28): the text of mockups/key-terms.html, verbatim. Static: no API call.
+import BackLink from '@/components/BackLink';
 import GuestShell from '@/components/GuestShell';
 import TextLink from '@/components/TextLink';
 import Wordmark from '@/components/Wordmark';
@@ -12,6 +13,9 @@ export default function Terms() {
         <h1 className="heading-xl" tabIndex={-1}>
           Booking terms
         </h1>
+        <p className="back">
+          <BackLink />
+        </p>
         <section className="section">
           <h2 className="heading-md">Who we are</h2>
           <p>Saunalöyly, Badstubrygga 4, 0000 Havbukta. hello@saunaloyly.example, +47&nbsp;01&nbsp;23&nbsp;45&nbsp;67.</p>

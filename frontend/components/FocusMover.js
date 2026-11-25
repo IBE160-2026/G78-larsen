@@ -4,10 +4,12 @@
 //
 // - First document load: focus moves only when the URL fragment names an existing element, and then to it.
 // - After each client navigation: to the fragment's element if it exists, otherwise to the page's h1.
+// - Each client navigation is noted in lib/nav.js (Back on Terms and the Privacy notice).
 // - Targets carry tabindex="-1"; a fragment target without one gets it here.
 // - While an Error summary ([data-error-summary]) is on the page, the title starts with "Error: ".
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import { noteClientNavigation } from '@/lib/nav';
 
 const PREFIX = 'Error: ';
 
@@ -48,6 +50,7 @@ export default function FocusMover() {
       if (target) focus(target);
       return;
     }
+    noteClientNavigation(); // for Back on Terms and the Privacy notice (components/BackLink.js)
     const heading = target || document.querySelector('h1');
     if (heading) {
       focus(heading);
