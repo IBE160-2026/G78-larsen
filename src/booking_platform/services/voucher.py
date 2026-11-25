@@ -57,6 +57,13 @@ def issue(c: psycopg.Connection, booking_id: int, value_ore: int, *, last_valid_
     return voucher_id, code, last
 
 
+def next_last_valid_date(c: psycopg.Connection, booking_id: int) -> dt.date:
+    """The last valid date of a Voucher issued from the Booking now: when a Voucher paid the Booking (or the Booking it
+    was split from), that Voucher's last valid date, so a Voucher is never renewed by booking and giving up Seats
+    (Lisa, 2026-11-24); otherwise the Venue date of app_now() plus one year."""
+    return q.next_last_valid_date(c, booking_id)
+
+
 def facts(c: psycopg.Connection, voucher_id: int) -> dict:
     """`{value_ore, last_valid_date}` of a Voucher, as the Change response carries it. Never the code."""
     value_ore, last = q.read(c, voucher_id)

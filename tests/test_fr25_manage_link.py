@@ -319,6 +319,7 @@ def test_the_read_returns_the_booking_and_writes_nothing(before_cutoff, api, pg)
                        "end": "2026-12-01T13:00:00+01:00"},
             "total_ore": 50000, "status": "active", "version": 0, "change_allowed": True,
             "cutoff_at": "2026-11-30T23:30:00+01:00", "cancelled_at": None, "history": [],
+            "voucher_last_valid_date": "2027-11-30",  # one year ahead: no Voucher paid it
         }
         assert "set-cookie" not in r.headers
     assert stored(pg) == before and counts(pg) == count

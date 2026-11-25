@@ -26,9 +26,9 @@ from booking_platform.services import voucher as voucher_service
 from client import COOKIE, ApiClient, _TLS, api_client
 from conftest import clear, raw_booking, set_clock, start_backend
 from test_fr10_through_the_api import guests, parallel
-from test_fr25_manage_link import BEFORE, rows
-from test_fr26_move import DAY, before_cutoff, everything, fill, guest, left_in  # noqa: F401
-from test_fr27_voucher_for_seats import code_of, give_up, ledger, not_in_store, opened, walk
+from test_fr25_manage_link import BEFORE, TOKEN, open_link, rows
+from test_fr26_move import DAY, before_cutoff, everything, fill, guest, left_in, move  # noqa: F401
+from test_fr27_voucher_for_seats import LAST_VALID, code_of, give_up, ledger, not_in_store, opened, walk
 
 ROUNDS = 100  # FR-11 repetitions
 INVALID = {"detail": {"error": "voucher_invalid"}}
@@ -492,3 +492,59 @@ def test_the_window_lock_comes_before_the_voucher_update(guest, pg, database):
     t.join(30)
     assert result["r"].status_code == 201, result["r"].text
     assert balance(pg, code) == 0
+
+
+# ------------------------------------------------------------------ giving up never renews a Voucher (Lisa, 2026-11-24)
+
+
+def _short_lived(pg, code: str, days: int) -> str:
+    """Make the Voucher expire `days` after it was issued; returns its last valid date (ISO)."""
+    pg.execute("UPDATE vouchers SET expires_at = issued_at + make_interval(days => %s) WHERE id = %s",
+               (days, voucher_id(pg, code)))
+    pg.commit()
+    return rows(pg, "SELECT ((v.expires_at AT TIME ZONE st.venue_tz)::date - 1)::text FROM vouchers v "
+                    "CROSS JOIN settings st WHERE v.id = %s", (voucher_id(pg, code),))[0][0]
+
+
+def _paid_and_opened(guest, code: str, part: int, seats: int = 2) -> str:
+    r = pay(guest, 1, seats, code, part)
+    assert r.status_code == 201, r.text
+    m = TOKEN.search(r.json()["emails"][0]["body"])
+    assert m and open_link(guest, m.group(1)).status_code == 200
+    return r.json()["booking"]["reference"]
+
+
+def test_giving_up_seats_paid_with_a_voucher_keeps_its_last_valid_date(guest, pg):
+    code = voucher(guest)  # NOK 250, valid one year
+    last = _short_lived(pg, code, 30)
+    assert last < LAST_VALID
+    ref = _paid_and_opened(guest, code, 25000)  # half by Voucher, half by card
+    assert guest.get(f"/api/manage/{ref}").json()["voucher_last_valid_date"] == last
+    r = give_up(guest, ref, 2)
+    assert r.status_code == 200, r.text
+    assert r.json()["voucher"] == {"value_ore": 50000, "last_valid_date": last}
+    new_code = code_of(r.json()["emails"][0]["body"])
+    assert rows(pg, "SELECT ((v.expires_at AT TIME ZONE st.venue_tz)::date - 1)::text FROM vouchers v "
+                    "CROSS JOIN settings st WHERE v.id = %s", (voucher_id(pg, new_code),))[0][0] == last
+
+
+def test_a_booking_split_off_by_a_move_keeps_the_spent_vouchers_date(guest, pg):
+    code = voucher(guest)
+    last = _short_lived(pg, code, 60)
+    ref = _paid_and_opened(guest, code, 25000)
+    r = move(guest, ref, 3, 1)  # one Seat to another Window: a new Booking without payments rows
+    assert r.status_code == 200, r.text
+    new_ref = r.json()["new_booking"]["reference"]
+    assert rows(pg, "SELECT count(*) FROM payments p JOIN bookings b ON b.id = p.booking_id "
+                    "WHERE b.reference = %s", (new_ref,)) == [(0,)]
+    assert guest.get(f"/api/manage/{new_ref}").json()["voucher_last_valid_date"] == last
+    r = give_up(guest, new_ref, 1)
+    assert r.status_code == 200, r.text
+    assert r.json()["voucher"] == {"value_ore": 25000, "last_valid_date": last}
+
+
+def test_a_booking_paid_by_card_alone_gives_a_voucher_of_one_year(guest):
+    ref, _ = opened(guest, 2, 2)
+    assert guest.get(f"/api/manage/{ref}").json()["voucher_last_valid_date"] == LAST_VALID
+    r = give_up(guest, ref, 1)
+    assert r.json()["voucher"]["last_valid_date"] == LAST_VALID

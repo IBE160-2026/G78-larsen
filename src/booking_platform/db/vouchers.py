@@ -48,3 +48,21 @@ def spend(c: psycopg.Connection, code_hash: bytes, part_ore: int) -> int | None:
                     "AND balance_ore >= %(part)s AND expires_at > app_now() RETURNING id",
                     {"h": code_hash, "part": part_ore}).fetchone()
     return None if row is None else row[0]
+
+
+# The last valid date of a Voucher issued from this Booking (Lisa, 2026-11-24): the earliest last valid date of a
+# Voucher that paid the Booking or the Booking it was split from (`booking_changes.new_booking_id`, followed back to the
+# Booking that was paid), so giving up Seats never renews a Voucher; otherwise the Venue date of app_now() plus one year.
+_NEXT_LAST_VALID = (
+    "WITH RECURSIVE line(id) AS (SELECT %(b)s::bigint UNION "
+    "                            SELECT h.booking_id FROM booking_changes h JOIN line ON h.new_booking_id = line.id) "
+    "SELECT COALESCE((SELECT MIN((v.expires_at AT TIME ZONE st.venue_tz)::date - 1) "
+    "                 FROM payments p JOIN line ON p.booking_id = line.id JOIN vouchers v ON v.id = p.voucher_id "
+    "                 WHERE p.direction = 'charge' AND p.method = 'voucher'), "
+    "                ((app_now() AT TIME ZONE st.venue_tz)::date + interval '1 year')::date) "
+    "FROM settings st")
+
+
+def next_last_valid_date(c: psycopg.Connection, booking_id: int) -> dt.date:
+    """The last valid date a Voucher issued from the Booking now gets: the spent Voucher's, or one year ahead."""
+    return c.execute(_NEXT_LAST_VALID, {"b": booking_id}).fetchone()[0]
