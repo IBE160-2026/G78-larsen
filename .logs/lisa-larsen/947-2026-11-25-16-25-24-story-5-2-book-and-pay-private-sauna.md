@@ -39,7 +39,8 @@ Implementere Story 5.2 etter den godkjente specen (subagent i `bmad-build`, steg
 - **Docs:** `content/terms-whole.json`, EXPERIENCE.md «Private sauna wording», README.
 - **Verifisert:** `uv run pytest -x -q tests --ignore=tests/e2e` → 610 passert. `npm --prefix frontend run build` → ok. e2e: stoppet av Claude Code ved ca. 88 % pga. lite minne (172 passert, 0 feil før stopp); `booking_e2e`-stacken ble tatt ned etterpå.
 - Ingenting committet.
+- Review-runde: Sauna-cellen i bookinglisten uten `num`-klasse, README-statusdato 2026-11-25, og tre nye e2e-tester i `test_fr30_private_sauna.py` (Manage-side og bookingliste for hel booking, flytt/gi opp er ikke tilgjengelig, Voucher på Private sauna-Review). `uv run pytest tests/e2e/test_fr30_private_sauna.py` → 10 passert.
 
 ### Åpne punkter
-- e2e-kjøringen ble stoppet før de nye testene i `tests/e2e/test_fr30_private_sauna.py` kjørte; kjør `uv run pytest tests/e2e` på nytt.
+- Hele e2e-laget er ikke kjørt i ett etter endringene (bare `test_fr30` alene, 10 passert); `test_fr21`-tilleggene er kjørt før stoppet.
 - Kodereview av Story 5.2 er ikke kjørt.
