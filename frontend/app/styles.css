@@ -905,6 +905,11 @@ a {
   margin-top: var(--space-4);
 }
 
+/* The live region is always there (so it announces), and adds no space while it is empty. */
+.private-choices > .private-status:empty + * {
+  margin-top: 0;
+}
+
 /* The View group: two cells side by side, each as wide as its text. */
 .view-picker {
   display: flex;

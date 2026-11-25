@@ -150,6 +150,29 @@ def test_a_whole_sauna_booking_may_be_cancelled_by_the_guest_with_a_refund(world
     refused_at_commit(pg, [(cancel, (seat,))], "seat_guest_refund_forbidden")
 
 
+def test_a_cancelled_whole_sauna_booking_keeps_its_sauna(world, pg):
+    """AD-7: 0013 adds `sauna_id` to 0012's frozen columns, so a cancelled Whole-sauna booking keeps the Sauna it
+    named."""
+    bid = raw_whole(pg, 1, 4)
+    pg.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'block' "
+               "WHERE id = %s", (bid,))
+    pg.execute("DELETE FROM whole_bookings WHERE booking_id = %s", (bid,))
+    pg.commit()
+    refused_at_commit(pg, [("UPDATE bookings SET sauna_id = 1 WHERE id = %s", (bid,))], "booking_cancelled_frozen")
+    assert pg.execute("SELECT sauna_id FROM bookings WHERE id = %s", (bid,)).fetchone() == (4,)
+    pg.rollback()
+
+
+def test_a_sauna_with_no_price_cannot_be_marked_whole_booking_only(world, pg):
+    """FR-29: a Sauna with no price is never offered whole, so 0013's `trg_check_mark` refuses to mark it
+    (`mark_not_bookable`): the mark would close it to Seats while nobody can book it whole."""
+    pg.execute("UPDATE saunas SET whole_price_ore = NULL WHERE id = 4")
+    pg.commit()
+    refused_at_commit(pg, [("INSERT INTO marks (window_id, sauna_id) VALUES (1, 4)", None)], "mark_not_bookable")
+    assert pg.execute("SELECT count(*) FROM marks").fetchone() == (0,)
+    pg.rollback()
+
+
 def test_a_capacity_row_of_a_seat_booking_is_refused_at_commit(world, pg):
     sid = pg.execute(raw_booking(2, 1) + " RETURNING id").fetchone()[0]
     pg.commit()

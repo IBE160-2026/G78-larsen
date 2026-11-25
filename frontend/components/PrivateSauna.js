@@ -13,7 +13,7 @@
 //   accessible name says what its button shows, and a card's description is its accessible description. The
 //   photos are decorative here (alt=""); their alt texts are on Landing. An empty date says so plainly, with no
 //   urgency cue (NFR-9).
-// - The loading line, the result and the empty-date sentence sit in one polite live region (`role="status"`, as the
+// - The loading line, the failed-read Notice and the empty-date sentence sit in one polite live region (`role="status"`, as the
 //   Notices of Book seats), so a screen reader hears them. A date the API refuses as outside the horizon gets the
 //   date's Field error; after a failed read, picking the same date again reads it again.
 // - Booking and paying for the chosen pair is Story 5.2.
@@ -219,6 +219,7 @@ export default function PrivateSauna() {
   const [saunaId, setSaunaId] = useState(null);
   const [windowId, setWindowId] = useState(null);
   const [reload, setReload] = useState(0);
+  const [factsReload, setFactsReload] = useState(0);
 
   // The calendar facts: the bookable dates and the horizon, from the server (AD-4).
   useEffect(() => {
@@ -232,7 +233,7 @@ export default function PrivateSauna() {
         if (!controller.signal.aborted) setFactsFailed(true);
       });
     return () => controller.abort();
-  }, []);
+  }, [factsReload]);
 
   // The pairs of the chosen date.
   useEffect(() => {
@@ -248,8 +249,10 @@ export default function PrivateSauna() {
       .catch((err) => {
         if (controller.signal.aborted) return;
         if (err instanceof ApiError && err.code === 'outside_horizon') {
-          // the date has left the horizon: the date question asks again
+          // the date has left the horizon (the page was open across Venue midnight): the date question asks again,
+          // and the calendar reads its dates again, so it no longer offers the day that has left
           setDateError(BOOK.dateNotBookable);
+          setFactsReload((k) => k + 1);
           setDate(null);
           setStatus('idle');
           return;
@@ -320,13 +323,16 @@ export default function PrivateSauna() {
     else setSaunaId(null);
   };
 
+  // `message` sits in the polite live region; the choices do not, so a screen reader hears the loading line, the
+  // Notice or the empty-date sentence, not every card and session button of the listing.
+  let message = null;
   let result = null;
   if (date && status === 'loading') {
-    result = <p className="loading">{BOOK.loadingSessions}</p>;
+    message = <p className="loading">{BOOK.loadingSessions}</p>;
   } else if (date && status === 'failed') {
-    result = <Notice>{BOOK.sessionsUnavailable}</Notice>;
+    message = <Notice>{BOOK.sessionsUnavailable}</Notice>;
   } else if (date && status === 'ok' && saunas.length === 0) {
-    result = <p className="private-empty">{PRIVATE.noSauna(longDate(date))}</p>;
+    message = <p className="private-empty">{PRIVATE.noSauna(longDate(date))}</p>;
   } else if (date && status === 'ok') {
     result = (
       <>
@@ -377,7 +383,10 @@ export default function PrivateSauna() {
           readFailed={factsFailed}
           label={PRIVATE.dateQuestion}
         />
-        <div className="book-rest private-choices" role="status">
+        <div className="book-rest private-choices">
+          <div className="private-status" role="status">
+            {message}
+          </div>
           {result}
         </div>
       </div>

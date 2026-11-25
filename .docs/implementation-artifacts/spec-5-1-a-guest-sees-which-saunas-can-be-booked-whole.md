@@ -35,7 +35,7 @@ context:
 - Tests: `raw_whole(pg, wid, sid)` in `tests/conftest.py` inserts a paired whole Booking (reference, name, email, `total_ore` = price) and capacity row in one transaction; `world` gives all four test Saunas a price so catalogue tests are meaningful. `RAW_BOOKING` writes N Seats as `ceil(N/10)` rows of ≤10 in one statement so slice assertions keep their meaning.
 - Frontend uses only shared components and `app/styles.css`; draws Saunas and sessions only by regrouping one listing response; calendar facts (`today`, `dates`) come from `GET /api/windows` with no date.
 
-**Never:** no booking/pay for whole (5.2), no `sauna_unavailable` code yet, no Placement, no session cookie on the Private sauna page, no Sauna name in any Seat-flow page/response/email, no Capacity of a whole Booking shown, no second Primary button on Landing, no browser clock for a rule.
+**Never:** no booking/pay for whole (5.2), no `sauna_unavailable` code yet, no Placement, no session cookie on the Private sauna page, no Sauna name in any Seat-flow page/response/email, no Capacity of a whole Booking shown, no second Primary button on Landing (superseded by Lisa 2026-11-25: two equal Booking choices, see Implementation Notes; Landing has no `.button-primary`), no browser clock for a rule.
 
 ## I/O & Edge-Case Matrix
 

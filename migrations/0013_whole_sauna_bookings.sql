@@ -63,6 +63,18 @@ END $$;
 CREATE TRIGGER b_kind_fixed BEFORE UPDATE OF kind ON bookings
   FOR EACH ROW WHEN (OLD.kind IS DISTINCT FROM NEW.kind) EXECUTE FUNCTION trg_booking_kind_fixed();
 
+-- A cancelled Booking keeps its Sauna as well as its Window and Seats (0012, AD-7): `sauna_id` joins the frozen columns.
+CREATE OR REPLACE FUNCTION trg_booking_cancelled_frozen() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.status <> 'cancelled' OR NEW.window_id IS DISTINCT FROM OLD.window_id OR NEW.seats IS DISTINCT FROM OLD.seats
+     OR NEW.sauna_id IS DISTINCT FROM OLD.sauna_id
+  THEN
+    RAISE EXCEPTION 'Booking % is cancelled', OLD.id
+      USING ERRCODE = '23514', CONSTRAINT = 'booking_cancelled_frozen';
+  END IF;
+  RETURN NEW;
+END $$;
+
 -- Only active Seat bookings take Seats (AD-7, AD-23). Nothing else sums `bookings.seats`.
 CREATE OR REPLACE FUNCTION window_booked_seats(wid int) RETURNS int LANGUAGE sql STABLE AS $$
   SELECT COALESCE(SUM(seats), 0)::int FROM bookings WHERE window_id = wid AND status = 'active' AND kind = 'seats'
@@ -76,6 +88,24 @@ ALTER TABLE settings
 -- One price per Sauna (AD-23). Not in `t_saunas`' column list, so filling it recomputes nothing.
 ALTER TABLE saunas
   ADD COLUMN whole_price_ore int CONSTRAINT saunas_whole_price_positive CHECK (whole_price_ore > 0);
+
+-- A Sauna with no price is never offered whole (FR-29), so it cannot be marked Whole-booking-only either: the mark
+-- would close it to Seats while nobody can book it whole. `mark_not_bookable` covers both (0003's check, extended).
+CREATE OR REPLACE FUNCTION trg_check_mark() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT COALESCE((SELECT bookable_whole AND whole_price_ore IS NOT NULL FROM saunas WHERE id = NEW.sauna_id), false) THEN
+    RAISE EXCEPTION 'Sauna % cannot be marked: not bookable whole', NEW.sauna_id
+      USING ERRCODE = '23514', CONSTRAINT = 'mark_not_bookable';
+  END IF;
+  IF  NOT EXISTS (SELECT 1 FROM whole_bookings WHERE window_id = NEW.window_id AND sauna_id = NEW.sauna_id)
+     AND NOT EXISTS (SELECT 1 FROM blocks b, windows w WHERE w.id = NEW.window_id AND b.sauna_id = NEW.sauna_id AND b.during && w.during) THEN
+    IF window_booked_seats(NEW.window_id) + window_held_seats(NEW.window_id) > room_ahead(NEW.window_id, NEW.sauna_id) THEN
+      RAISE EXCEPTION 'Seats are placed in Sauna % in this Window', NEW.sauna_id
+        USING ERRCODE = '23514', CONSTRAINT = 'mark_seats_placed';
+    END IF;
+  END IF;
+  RETURN NULL;
+END $$;
 
 -- The capacity row names its Booking. The slice's rows have none, so they are deleted (the triggers recompute).
 ALTER TABLE whole_bookings ADD COLUMN booking_id bigint;
