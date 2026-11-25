@@ -313,3 +313,19 @@ Endre Kajo-beskrivelsen, så det ikke står «löyly» uten forklaring (PRD §6 
 
 ### Åpne punkter
 - «A big stove gives soft, even heat» i Löyly-beskrivelsen er fortsatt ikke bekreftet.
+
+## 2026-11-25 kl. 10:09 — Lisa Larsen
+
+### Oppgave
+Endre Löyly-beskrivelsen, så den ikke inneholder den ubekreftede påstanden «A big stove gives soft, even heat».
+
+### Plan
+- Bytte setningen i `sauna-copy.js`, `EXPERIENCE.md` og testen.
+
+### Resultat
+- Löyly-beskrivelsen er nå: «Löyly is the steam that rises when water meets the hot stones. A sauna for a mid-sized group.» Første setning forklarer ordet med samme formulering som beskrivelsen av anlegget på landingssiden.
+- Testene ga 5 passed etter at frontend ble bygget på nytt. Punktet er lukket i `issues.md`.
+- Ikke committet.
+
+### Åpne punkter
+Ingen nye.
