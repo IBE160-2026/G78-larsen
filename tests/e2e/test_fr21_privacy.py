@@ -10,7 +10,10 @@ a sign-in and a sign-out the compose logs hold neither the test password, nor a 
 (AD-19).
 
 Story 4.1 adds the Manage page: opening a Manage link keeps every request on the origin with one cookie and one
-stylesheet of ours, and the issued Manage token, opened in the browser, never reaches the compose logs (AD-19)."""
+stylesheet of ours, and the issued Manage token, opened in the browser, never reaches the compose logs (AD-19).
+
+Story 5.1 adds the Private sauna page to the pages that set no cookie; with a date chosen, every request stays on the
+origin too (tests/e2e/test_fr30_private_sauna.py)."""
 
 from __future__ import annotations
 
@@ -30,7 +33,7 @@ MANAGE_TOKEN = re.compile(r"/manage#t=([A-Za-z0-9_-]{43})$", re.M)
 
 SCRIPT_NAME = "<script>window.__pwned = 1</script><b>Bold</b>"
 
-PAGES = ["/", "/#before-you-come", "/terms", "/privacy", "/nope"]
+PAGES = ["/", "/#before-you-come", "/terms", "/privacy", "/nope", "/private-sauna"]  # Private sauna: Story 5.1
 BOOK_SEATS = "/book-seats"
 
 

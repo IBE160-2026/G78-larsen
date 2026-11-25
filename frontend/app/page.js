@@ -1,5 +1,5 @@
-// Landing (FR-1, UX-DR15, UX-DR16): the Venue, how to prepare, the Saunas, where it is, and Book seats in the
-// first view. The Venue facts (name, address, contact, hours, Session length, price, Saunas) come from
+// Landing (FR-1, UX-DR15, UX-DR16, UX-DR41): the Venue, how to prepare, the Saunas, where it is, and Book seats in the
+// first view, with the "Private sauna" Text link directly under it (Story 5.1: never a second Primary button). The Venue facts (name, address, contact, hours, Session length, price, Saunas) come from
 // `GET /api/venue` through server-api.js after `connection()`, so the page is rendered per request (AD-16, AD-17).
 // Only copy is written here. If the read fails, the rail shows a Notice and Book seats still works; no fact is
 // shown. No Landing load creates a session (AD-8).
@@ -11,7 +11,7 @@ import RuleList from '@/components/RuleList';
 import SaunaCard from '@/components/SaunaCard';
 import TextLink from '@/components/TextLink';
 import Wordmark from '@/components/Wordmark';
-import { CHANGING_TIME, SEAT_STATEMENT, VENUE_UNAVAILABLE } from '@/lib/copy';
+import { CHANGING_TIME, GROUP_SENTENCE, PRIVATE, SEAT_STATEMENT, VENUE_UNAVAILABLE } from '@/lib/copy';
 import { getPublic } from '@/lib/server-api';
 import { nok, openingHours, sessionLength } from '@/lib/venue-format';
 
@@ -19,6 +19,7 @@ import { nok, openingHours, sessionLength } from '@/lib/venue-format';
 export const metadata = { title: { absolute: 'Saunalöyly' } };
 
 const BOOK_SEATS = '/book-seats';
+const PRIVATE_SAUNA = '/private-sauna';
 
 // EXPERIENCE.md, Voice and Tone: Landing copy, verbatim.
 const RULES = [
@@ -82,6 +83,9 @@ export default async function Landing() {
       <Wordmark heading />
       {venue ? <RailFacts venue={venue} /> : <Notice>{VENUE_UNAVAILABLE}</Notice>}
       <PrimaryButton href={BOOK_SEATS}>Book seats</PrimaryButton>
+      <p className="rail-private">
+        <TextLink href={PRIVATE_SAUNA}>{PRIVATE.link}</TextLink>
+      </p>
     </>
   );
 
@@ -122,7 +126,9 @@ export default async function Landing() {
           <h2 id="saunas-heading" className="heading-xl">
             The saunas
           </h2>
-          <p>{SEAT_STATEMENT}</p>
+          <p>
+            {SEAT_STATEMENT} {GROUP_SENTENCE}
+          </p>
         </div>
         {venue && (
           <ul className="sauna-grid">

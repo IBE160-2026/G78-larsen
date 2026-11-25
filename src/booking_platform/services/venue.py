@@ -52,6 +52,8 @@ class Sauna(_Strict):
     name: Annotated[str, Field(min_length=1, max_length=60)]
     capacity: int = Field(gt=0, le=1000)
     fill_order: int = Field(ge=1, le=INT4_MAX)
+    # The Whole-sauna price (AD-23): absent or null means the Sauna is not offered whole.
+    whole_price_ore: int | None = Field(default=None, gt=0, le=INT4_MAX)
 
 
 class VenueSeed(_Strict):
@@ -82,7 +84,8 @@ def _hhmm(t: dt.time) -> str:
 
 
 def facts() -> dict:
-    """The Venue facts for `GET /api/venue`, with the Saunas in Fill order. Reads only."""
+    """The Venue facts for `GET /api/venue`, with the Saunas in Fill order and each one's Whole-sauna price (null when
+    it is not offered whole). Reads only."""
 
     def work(c):
         return q.venue_facts(c), q.saunas(c)
@@ -98,5 +101,5 @@ def facts() -> dict:
         "closing_time": _hhmm(closing),
         "session_minutes": session_minutes,
         "price_per_seat_ore": price,
-        "saunas": [{"id": i, "name": n, "capacity": cap} for i, n, cap in saunas],
+        "saunas": [{"id": i, "name": n, "capacity": cap, "whole_price_ore": price} for i, n, cap, price in saunas],
     }

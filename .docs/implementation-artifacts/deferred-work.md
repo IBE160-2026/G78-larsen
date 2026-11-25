@@ -68,3 +68,15 @@
 - source_spec: `.docs/implementation-artifacts/spec-4-4-pay-with-a-voucher.md`
   summary: Seats paid with a Voucher can be given up (Story 4.3) for a new Voucher at full value with a fresh one-year expiry, so a near-expiry Voucher can be renewed indefinitely by booking and giving up.
   evidence: 4.3 values the give-up at the stored price per Seat and issues `app_now() + 1 year`; Lisa decides whether the voucher-paid share should keep the spent Voucher's expiry (FR-27/AD-30 policy).
+- source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
+  summary: Add an e2e case for the Private sauna page where Saunas have different free sessions, checking both regroupings.
+  evidence: Every e2e date in Story 5.1 has Rauha and Lumo free in all eight sessions, so a wrong filter in `PrivateSauna.js` passes; nothing is bookable before 5.2.
+- source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
+  summary: `whole_bookable(wid, sid, ignore_booking)` must judge Room ahead as if the ignored capacity row did not exist (Story 5.3 move list).
+  evidence: Only the "not booked whole" clause skips the row; `room_ahead` uses `sauna_open_for_seats`, which still sees it, so a same-Window move to a later Sauna is understated. No 5.1 caller passes `ignore_booking` except the trigger, where the row already holds the new values.
+- source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
+  summary: Restore the whole-sauna cases removed with `/api/admin/whole-bookings` (retry in test_fr14, access/unknown Sauna in test_fr20, int4 bounds in test_fr2) against Story 5.2's `POST /api/bookings` with `kind = 'whole'`.
+  evidence: The slice endpoint was removed in 5.1 as AD-23 requires; its retry, access and input checks have no whole-sauna write path until 5.2.
+- source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
+  summary: `seat_guest_refund_forbidden` (0012) applies to every Booking and will refuse a Whole-sauna cancel with refund; limit it to `kind = 'seats'` in Story 5.3's migration.
+  evidence: Reported by the 5.1 implementation; the CHECK predates `kind`.

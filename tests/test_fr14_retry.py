@@ -17,11 +17,11 @@ from test_fr10_through_the_api import fill
 
 ALWAYS = 10**9
 
-# (path, body, table the request writes to); /api/admin/ paths are sent with the Administrator session
+# (path, body, table the request writes to); /api/admin/ paths are sent with the Administrator session. The slice's
+# `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1); the Whole-sauna booking of Story 5.2 adds its own.
 WRITES = [
     ("/api/bookings", booking_body(1, 3), "bookings"),
     ("/api/holds", dict(window_id=1, seats=3), "holds"),
-    ("/api/admin/whole-bookings", dict(window_id=1, sauna_id=4), "whole_bookings"),
 ]
 
 

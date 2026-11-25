@@ -1,5 +1,5 @@
-"""The public `/api` router: health, the Venue facts, Windows, the session, Holds, Seat bookings and the
-confirmation read."""
+"""The public `/api` router: health, the Venue facts, Windows, the Private sauna listing, the session, Holds, Seat
+bookings and the confirmation read."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Query, Request, Response
 
-from ..services import booking, holds, sessions, venue, voucher, windows
+from ..services import booking, holds, sessions, venue, voucher, whole, windows
 from .deps import COOKIE, current_session, require_session, set_session_cookie
-from .schemas import (BookingIn, BookingResult, HoldIn, SessionIn, VenueOut, VoucherQuoteIn, VoucherQuoteOut,
-                      WindowsQuery)
+from .schemas import (BookingIn, BookingResult, HoldIn, PrivateSaunasQuery, SessionIn, VenueOut, VoucherQuoteIn,
+                      VoucherQuoteOut, WindowsQuery)
 
 router = APIRouter(prefix="/api", redirect_slashes=False)
 
@@ -32,6 +32,14 @@ def list_windows(query: Annotated[WindowsQuery, Query()]):
     """The dated Window listing (FR-2, FR-3, AD-16). Needs no session and sets no cookie. The only write is
     `windows.ensure_generated()`; a refused listing (422, 409 `outside_horizon`) writes nothing."""
     return windows.listing(query.date, query.seats)
+
+
+@router.get("/private-saunas")
+def private_saunas(query: Annotated[PrivateSaunasQuery, Query()]):
+    """The Private sauna listing of one Venue date (FR-29, FR-30, AD-24): the Saunas that can be booked whole, in
+    Fill order, each with its free Windows. Needs no session, sets no cookie and takes no lock. The only write is
+    `windows.ensure_generated()`; a refused listing (422, 409 `outside_horizon`) writes nothing."""
+    return whole.listing(query.date)
 
 
 @router.get("/windows/{window_id}")

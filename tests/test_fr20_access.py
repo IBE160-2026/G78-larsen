@@ -19,7 +19,6 @@ NOT_FOUND = {"detail": {"error": "not_found"}}
 
 _st = win_start(1)
 ADMIN_CALLS = [
-    ("POST", "/api/admin/whole-bookings", dict(json=dict(window_id=1, sauna_id=4))),
     ("POST", "/api/admin/blocks", dict(json=dict(sauna_id=4, start=_st.isoformat(),
                                                  end=(_st + dt.timedelta(minutes=90)).isoformat()))),
     ("DELETE", "/api/admin/blocks/1", {}),
@@ -100,8 +99,8 @@ def test_an_unknown_window_is_not_found(api):
 
 def test_an_unknown_sauna_is_not_found(admin):
     st = win_start(1)
+    # the slice's `/api/admin/whole-bookings` entry went with its endpoint (Story 5.1)
     for path, body in [("/api/admin/blocks", dict(sauna_id=99, start=st.isoformat(),
-                                                   end=(st + dt.timedelta(minutes=90)).isoformat())),
-                       ("/api/admin/whole-bookings", dict(window_id=1, sauna_id=99))]:
+                                                   end=(st + dt.timedelta(minutes=90)).isoformat()))]:
         r = admin.post(path, json=body)
         assert r.status_code == 404 and r.json() == NOT_FOUND, (path, r.text)

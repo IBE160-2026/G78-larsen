@@ -10,7 +10,7 @@ import pytest
 from psycopg import errors
 
 from client import api_client, booking_body, new_key
-from conftest import EARLY, set_clock, win_start
+from conftest import EARLY, raw_whole, set_clock, win_start
 from test_fr10_through_the_api import fill, hold, left
 
 
@@ -31,24 +31,33 @@ def test_a_hold_ends_at_the_booking_deadline_when_that_comes_first(api, pg):
     assert dt.timedelta(minutes=2, seconds=59) <= got <= dt.timedelta(minutes=3), got
 
 
-def test_nothing_can_be_held_booked_or_booked_whole_after_the_booking_deadline(api, admin, pg):
+def private_pairs(api, date="2026-12-01") -> set[tuple[int, int]]:
+    """The (Sauna, Window) pairs `GET /api/private-saunas` lists for a date (Story 5.1, AD-24)."""
+    r = api.get("/api/private-saunas", params=dict(date=date))
+    assert r.status_code == 200, r.text
+    return {(s["id"], w["id"]) for s in r.json()["saunas"] for w in s["windows"]}
+
+
+def test_nothing_can_be_held_booked_or_booked_whole_after_the_booking_deadline(api, pg):
     set_clock(pg, win_start(0) + dt.timedelta(minutes=6))
-    for c, path, body in [(api, "/api/holds", dict(window_id=1, seats=1)),
-                          (api, "/api/bookings", booking_body(1, 1)),
-                          (admin, "/api/admin/whole-bookings", dict(window_id=1, sauna_id=4))]:
-        r = c.post(path, json=body, headers=new_key())
+    for path, body in [("/api/holds", dict(window_id=1, seats=1)), ("/api/bookings", booking_body(1, 1))]:
+        r = api.post(path, json=body, headers=new_key())
         assert r.status_code == 409 and r.json()["detail"]["error"] == "deadline_passed", (path, r.text)
+    # a Window past its Booking deadline is not offered whole (the slice's endpoint went in Story 5.1, AD-21)
+    pairs = private_pairs(api)
+    assert not {p for p in pairs if p[1] == 1} and (4, 2) in pairs
     assert api.book(2, 1).status_code == 201  # the next Window is open
 
 
-def test_nothing_can_be_held_booked_or_booked_whole_beyond_the_booking_horizon(api, admin, pg):
+def test_nothing_can_be_held_booked_or_booked_whole_beyond_the_booking_horizon(api, pg):
     """FR-18 IV-2, FR-29: a Window that starts after the end of the Booking horizon (28 days)."""
     set_clock(pg, win_start(0) - dt.timedelta(days=29))
-    for c, path, body in [(api, "/api/holds", dict(window_id=1, seats=1)),
-                          (api, "/api/bookings", booking_body(1, 1)),
-                          (admin, "/api/admin/whole-bookings", dict(window_id=1, sauna_id=4))]:
-        r = c.post(path, json=body, headers=new_key())
+    for path, body in [("/api/holds", dict(window_id=1, seats=1)), ("/api/bookings", booking_body(1, 1))]:
+        r = api.post(path, json=body, headers=new_key())
         assert r.status_code == 409 and r.json()["detail"]["error"] == "outside_horizon", (path, r.text)
+    # its date is outside the horizon, so the Private sauna listing offers no pair of it (Story 5.1)
+    r = api.get("/api/private-saunas", params=dict(date="2026-12-01"))
+    assert r.status_code == 409 and r.json()["detail"]["error"] == "outside_horizon", r.text
     written = pg.execute("SELECT (SELECT count(*) FROM holds), (SELECT count(*) FROM bookings), "
                          "(SELECT count(*) FROM whole_bookings), (SELECT count(*) FROM payments), "
                          "(SELECT count(*) FROM outbox_emails), (SELECT count(*) FROM idempotency_keys)").fetchone()
@@ -165,17 +174,30 @@ def _started_with_seat_bookings(api, admin, pg):
     set_clock(pg, win_start(0) + dt.timedelta(minutes=2))  # started, before the Booking deadline
 
 
-@pytest.mark.parametrize("setup,path,sauna", [
-    (_not_bookable_whole, "/api/admin/whole-bookings", 4),
-    (_blocked, "/api/admin/whole-bookings", 4),
-    (_seats_placed, "/api/admin/whole-bookings", 1),
-    (_started_with_seat_bookings, "/api/admin/whole-bookings", 4),
-    (_not_bookable_whole, "/api/admin/marks", 4),
-    (_seats_placed, "/api/admin/marks", 4),
-], ids=["whole_not_bookable", "whole_blocked", "whole_seats_placed", "whole_window_started",
-        "mark_not_bookable", "mark_seats_placed"])
-def test_each_named_store_refusal_is_rule_refused(api, admin, pg, setup, path, sauna):
+@pytest.mark.parametrize("setup,sauna", [
+    (_not_bookable_whole, 4),
+    (_seats_placed, 4),
+], ids=["mark_not_bookable", "mark_seats_placed"])
+def test_each_named_store_refusal_is_rule_refused(api, admin, pg, setup, sauna):
     """AD-1: the named trigger refusals of 0003 reach the API as 409 rule_refused."""
     setup(api, admin, pg)
-    r = admin.post(path, json=dict(window_id=1, sauna_id=sauna))
+    r = admin.post("/api/admin/marks", json=dict(window_id=1, sauna_id=sauna))
     assert r.status_code == 409 and r.json()["detail"]["error"] == "rule_refused", r.text
+
+
+@pytest.mark.parametrize("setup,sauna", [
+    (_not_bookable_whole, 4),
+    (_blocked, 4),
+    (_seats_placed, 1),
+    (_started_with_seat_bookings, 4),
+], ids=["not_bookable", "blocked", "seats_placed", "window_started"])
+def test_each_whole_sauna_refusal_is_the_one_name_whole_bookable(api, admin, pg, setup, sauna):
+    """AD-1, AD-24: the four whole-sauna names of 0003 are one, `whole_bookable` (0013). The slice's endpoint went in
+    Story 5.1, so a paired raw Whole-sauna booking (AD-21) meets the store; nothing is written."""
+    setup(api, admin, pg)
+    with pytest.raises(errors.CheckViolation) as e:
+        raw_whole(pg, 1, sauna)
+    assert e.value.diag.constraint_name == "whole_bookable"
+    assert pg.execute("SELECT (SELECT count(*) FROM whole_bookings), "
+                      "(SELECT count(*) FROM bookings WHERE kind = 'whole')").fetchone() == (0, 0)
+    pg.rollback()

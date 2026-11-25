@@ -861,6 +861,50 @@ a {
   gap: var(--space-1) var(--space-4);
 }
 
+/* ------------------------------------------------------------------ Private sauna (UX-DR41, Story 5.1) */
+
+/* Landing: the "Private sauna" Text link directly under Book seats, never a second button. */
+.rail-private {
+  margin-top: var(--space-3);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+/* Landing: a Sauna card's price line under the size line, for a Sauna offered whole. */
+.sauna-card .sauna-price {
+  color: var(--color-muted);
+}
+
+.private-lead {
+  max-width: var(--measure-text);
+  margin-top: var(--space-2);
+}
+
+.private-choices > * + * {
+  margin-top: var(--space-4);
+}
+
+/* The View group: two cells side by side, each as wide as its text. */
+.view-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.view-picker .cell span {
+  padding: 0 var(--space-4);
+}
+
+/* A Sauna option: the Session row look with name, size, price and free sessions. */
+.session-row.sauna-option {
+  grid-template-columns: 32px minmax(96px, max-content) minmax(72px, max-content) minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+}
+
+.sauna-free {
+  text-align: right;
+}
+
 /* ------------------------------------------------------------------ Details, Review, Confirmation (UX-DR9/10/14/23/24/27) */
 
 /* Back under the heading, in body-sm (Details and Review). */

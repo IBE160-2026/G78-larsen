@@ -25,6 +25,7 @@ from . import a11y, trust
 SLOTS = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00", "20:30"]
 SEAT_STATEMENT = ("A booking gives you seats in the shared saunas open during your session. On site you can move "
                   "freely between them.")
+GROUP_SENTENCE = "A group that wants to stay together should book a private sauna."
 
 
 def _norm(text: str) -> str:
@@ -95,7 +96,8 @@ def test_the_rail_draws_the_wordmark_first_and_holds_the_notes_and_links(page: P
     assert _norm(rail.locator(".total-note").inner_text()) == "NOK 250 per seat in every session"
     assert _norm(rail.locator(".total").inner_text()) == ""  # no total before a number is chosen
     notes = [_norm(t) for t in rail.locator(".rail-note").all_inner_texts()]
-    assert notes[:2] == [SEAT_STATEMENT, "Changing time is part of your session."]
+    # the Seat statement gains the group sentence (Story 5.1, FR-4); no Seat-flow page names a Sauna
+    assert notes[:2] == [f"{SEAT_STATEMENT} {GROUP_SENTENCE}", "Changing time is part of your session."]
     assert rail.get_by_role("link", name="Terms", exact=True).get_attribute("href") == "/terms"
     assert rail.get_by_role("link", name="Privacy notice", exact=True).get_attribute("href") == "/privacy"
     assert rail.get_by_role("button", name="Continue booking").is_enabled()
@@ -256,11 +258,13 @@ def test_landing_book_seats_with_the_keyboard_reaches_the_page_with_one_cookie(p
 # ------------------------------------------------------------------ the no-room paths, set up in the stack's database
 
 
-# A Seat booking written straight to the stack's database (with every NOT NULL column of Story 1.5), filling `seats`
-# of Window `wid`; its reference "E2E" + the Window id is unique among these rows. The fixture below removes them.
+# Seat bookings written straight to the stack's database (with every NOT NULL column of Story 1.5), filling `seats`
+# of Window `wid` in rows of at most 10 (a Seat booking holds 1 to 10, Story 5.1); each reference "E" + the row's
+# number + "E" + the Window id is unique among these rows. The fixture below removes them.
 RAW_FILL = ("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
-            "SELECT v.w, v.s, 'E2E' || lpad(v.w::text, 5, '0'), 'E2E fill', 'e2e@example.com', 25000, v.s * 25000 "
-            "FROM (VALUES (%s, %s)) AS v(w, s)")
+            "SELECT v.w, LEAST(10, v.s - 10 * g.i), 'E' || g.i || 'E' || lpad(v.w::text, 5, '0'), 'E2E fill', "
+            "'e2e@example.com', 25000, LEAST(10, v.s - 10 * g.i) * 25000 "
+            "FROM (VALUES (%s, %s)) AS v(w, s) CROSS JOIN LATERAL generate_series(0, (v.s - 1) / 10) AS g(i)")
 
 
 @pytest.fixture
@@ -328,9 +332,11 @@ def test_no_room_on_the_date_offers_the_nearest_sessions_and_choosing_one_select
 
 def test_no_room_anywhere_in_the_horizon_says_so_without_alternatives(page: Page, base_url, db, facts, late_day):
     # every Seat left is booked: a Block cannot be laid over the sample Bookings of the seed, so fill instead
-    db.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
-               "SELECT w.id, seats_left(w.id), 'E2E' || lpad(w.id::text, 5, '0'), 'E2E fill', 'e2e@example.com', "
-               "25000, seats_left(w.id) * 25000 FROM windows w WHERE seats_left(w.id) > 0")
+    db.execute("WITH x AS MATERIALIZED (SELECT w.id, seats_left(w.id) AS n FROM windows w WHERE seats_left(w.id) > 0) "
+               "INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+               "SELECT x.id, LEAST(10, x.n - 10 * g.i), 'E' || g.i || 'E' || lpad(x.id::text, 5, '0'), 'E2E fill', "
+               "'e2e@example.com', 25000, LEAST(10, x.n - 10 * g.i) * 25000 "
+               "FROM x CROSS JOIN LATERAL generate_series(0, (x.n - 1) / 10) AS g(i)")  # rows of at most 10
     db.commit()
     open_page(page, base_url)
     choose_by_typing(page, late_day[0], 2)

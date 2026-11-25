@@ -11,9 +11,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 
-from ..services import auth, blocks, booking_list, marks, outbox, sessions, settings, whole
+from ..services import auth, blocks, booking_list, marks, outbox, sessions, settings
 from .deps import clear_session_cookie, current_session, require_admin, set_session_cookie
-from .schemas import BlockIn, BookingListQuery, MarkIn, OutboxQuery, SettingsIn, SignInIn, WholeIn
+from .schemas import BlockIn, BookingListQuery, MarkIn, OutboxQuery, SettingsIn, SignInIn
 
 router = APIRouter(prefix="/api/admin", redirect_slashes=False, dependencies=[Depends(require_admin)])
 sign_in_router = APIRouter(prefix="/api/admin", redirect_slashes=False)
@@ -58,11 +58,6 @@ def outbox_emails(query: Annotated[OutboxQuery, Query()]):
     One SELECT (the Venue time zone included): no lock, no write. Recipient and body of an email whose Booking is due for retention
     read as '' (FR-21). Any query field is `422 invalid_input`."""
     return outbox.listing()
-
-
-@router.post("/whole-bookings", status_code=201)
-def book_whole(body: WholeIn):
-    return {"whole_booking_id": whole.book_whole(body.window_id, body.sauna_id)}
 
 
 @router.post("/blocks", status_code=201)

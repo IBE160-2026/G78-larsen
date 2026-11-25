@@ -279,6 +279,24 @@ Expired, used-up, unknown and mistyped codes get one identical message, which ne
 
 Editing or emptying the field removes the applied Voucher; there is no separate remove control. After a refusal (`no_seat_free`, `deadline_passed`, `try_again`) the Voucher has not been spent, and choosing a nearest session keeps the code and quotes it again.
 
+**Private sauna wording (Epic 5; Lisa 2026-11-24 for prices and Saunas, the rest decided in Story 5.1 on Lisa's instruction to settle Epic 5's open wording without asking)**
+
+Prices and Saunas (Open Item 27, PRD §12 Q3): Rauha (7) and Lumo (15) are offered whole; Löyly and Kajo are not (their `whole_price_ore` stays NULL). Prices follow the Oslo average and the size: the Oslo comparables in PRD addendum E and J (KOK NOK 1,360 for up to 8, Badstuvogna NOK 1,250 for 6, the top of the range NOK 2,900 for 6–8) average NOK 1,837 for about 7 places, NOK 262 per place. Rauha 7 × 262 = 1,837, rounded to **NOK 1,850**; Lumo 15 × 262 = 3,936, rounded to **NOK 3,950**. Both are a little above the same number of Seats (NOK 1,750 and 3,750), so a Private sauna never costs the Venue Seat income.
+
+| Text | Where |
+|---|---|
+| "Private sauna" | Text link on Landing directly under Book seats; the page title is "Private sauna – Saunalöyly" and its `h1` is "Private sauna" |
+| "Private sauna: NOK 1850" | Sauna card on Landing, under the size line, only for a Sauna offered whole |
+| "A group that wants to stay together should book a private sauna." | After the Seat statement in "The saunas" on Landing, and in the Book seats rail |
+| "Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it." | Private sauna page, under the `h1` |
+| "1. Choose a date" | Private sauna page, above the Date calendar |
+| "Show by sauna", "Show by session" | Private sauna page, a radio group named "View" that regroups the one listing; "Show by sauna" is chosen first |
+| "2. Choose a sauna", "3. Choose a session" (by sauna) / "2. Choose a session", "3. Choose a sauna" (by session) | The two radio groups; the second lists only what is free with the first choice |
+| Name, "Holds 7", "NOK 1850", "{N} free sessions" (or "1 free session") | Sauna option |
+| "No sauna can be booked whole on {long date}." | Private sauna page, empty result (no urgency cue, NFR-9) |
+| "This sauna can no longer be booked for this session. You have not been charged." with the Text link "Choose another sauna or session" (to the Private sauna page for the same date) | Notice on Review after `sauna_unavailable` (Story 5.2); Pay, the payment note and the Terms checkbox are removed and the Notice takes focus |
+| Table "Saunas" in each Session group, columns "Sauna" and "Seats counted"; cells "7 of 7", "Booked whole · {ref}", "Blocked", "Private sauna only" | Booking list, Placement (Story 5.4), Saunas in Fill order, tabular figures, never colour alone |
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.
@@ -667,7 +685,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 
 ### Other If-time gaps
 
-27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them.
+27. Private sauna prices are not set (Q3). Flow 5 and the Sauna option cannot be finished without them. Closed by Lisa 2026-11-24 (Story 5.1): Rauha NOK 1,850 and Lumo NOK 3,950 are offered whole, Löyly and Kajo are not. See the Private sauna wording in Voice and Tone. In Flow 5, Olav's 10 relatives therefore book Lumo, not Kajo.
 28. Hold resize: FR-35 says the Guest is told when extra Seats are not free, while no page may mention a Hold. Wording is needed that does both.
 29. How a Guest reaches their own Bookings once signed in, and where sign-in lives apart from the Sign-in choice.
 30. Which emails a Guest sees for Gift cards and account links (Step 2 and §4.12). FR-17 names no page.

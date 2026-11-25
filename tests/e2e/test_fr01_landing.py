@@ -1,5 +1,5 @@
-"""Landing (FR-1, FR-22, FR-23, UX-DR4, UX-DR5, UX-DR15, UX-DR16): the rail with the Venue facts and Book seats in
-the first view at 1366 x 768, the main column's sections in order with the copy verbatim, the Venue facts from the
+"""Landing (FR-1, FR-22, FR-23, UX-DR4, UX-DR5, UX-DR15, UX-DR16, UX-DR41): the rail with the Venue facts, Book seats
+and the "Private sauna" Text link under it in the first view at 1366 x 768 (Story 5.1), the main column's sections in order with the copy verbatim, the Venue facts from the
 seed, the title, axe, keyboard reach of every link and the button (through `a11y.tab_to` and `a11y.press`), no
 horizontal scroll, `/#before-you-come` shown and focused, Book seats navigating, and the Notice while the backend
 is stopped."""
@@ -17,6 +17,7 @@ DESCRIPTION = ("Löyly is the steam that rises when water meets the hot stones. 
                "saunas by the sea, where you can swim all year round.")
 SEAT_STATEMENT = ("A booking gives you seats in the shared saunas open during your session. On site you can move "
                   "freely between them.")
+GROUP_SENTENCE = "A group that wants to stay together should book a private sauna."  # Story 5.1 (FR-4)
 RULES = {
     "What to bring": ["Swimwear to wear at the venue.", "Two towels. One to sit on and one to dry yourself with.",
                       "A bottle for water."],
@@ -34,6 +35,8 @@ SAUNAS = [
     ("Kajo", "Holds 12", "Kajo means a soft glow of light.", "/images/sauna-kajo-kiulu.jpg"),
     ("Lumo", "Holds 15", "Lumo means enchantment.", "/images/sauna-lumo-lauteet.jpg"),
 ]
+# The price line under the size line, only for a Sauna offered whole (seed, Story 5.1)
+PRICES = {"Rauha": "Private sauna: NOK 1850", "Lumo": "Private sauna: NOK 3950"}
 NOTICE = "The venue details could not be loaded, please try again."
 
 
@@ -58,17 +61,25 @@ def test_rail_holds_the_wordmark_heading_the_facts_and_book_seats(page: Page, ba
     assert h1.inner_text() == "Saunalöyly"
     assert h1.locator("xpath=ancestor-or-self::a").count() == 0  # a heading, not a link
     assert _lines(rail) == ["Saunalöyly", "Open every day", "10:00–22:00", "Sessions last 1 h 30 min",
-                            "NOK 250 per seat", "incl. VAT", "Book seats"]
+                            "NOK 250 per seat", "incl. VAT", "Book seats", "Private sauna"]
     book = rail.get_by_role("link", name="Book seats", exact=True)
     assert book.get_attribute("href") == "/book-seats"
     assert page.locator(".notice").count() == 0
+    # Story 5.1: a Text link directly under Book seats, never a second Primary button
+    private = rail.get_by_role("link", name="Private sauna", exact=True)
+    assert private.get_attribute("href") == "/private-sauna"
+    assert private.get_attribute("class") == "text-link"
+    assert page.locator(".button-primary").count() == 1
+    assert private.evaluate("el => el.parentElement.previousElementSibling.classList.contains('button-primary')")
+    assert private.bounding_box()["y"] > book.bounding_box()["y"] + book.bounding_box()["height"]
 
 
 def test_rail_is_in_the_first_view_at_1366x768(page: Page, base_url):
     page.set_viewport_size({"width": 1366, "height": 768})
     page.goto(base_url + "/")
     for locator in (page.locator(".rail h1"), page.locator(".rail-fact").last,
-                    page.get_by_role("link", name="Book seats", exact=True)):
+                    page.get_by_role("link", name="Book seats", exact=True),
+                    page.get_by_role("link", name="Private sauna", exact=True)):
         box = locator.bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 768, box
 
@@ -115,19 +126,29 @@ def test_the_saunas_shows_the_seat_statement_and_four_cards(page: Page, base_url
     page.goto(base_url + "/")
     section = page.locator("section.saunas")
     assert section.locator("h2").inner_text() == "The saunas"
-    assert _norm(section.locator(".saunas-intro p").inner_text()) == SEAT_STATEMENT
+    assert _norm(section.locator(".saunas-intro p").inner_text()) == f"{SEAT_STATEMENT} {GROUP_SENTENCE}"
     cards = section.locator(".sauna-card")
     got = []
+    prices = {}
     for i in range(cards.count()):
         card = cards.nth(i)
         img = card.locator("img")
         assert img.count() == 1 and img.get_attribute("alt")
-        got.append((card.locator("h3").inner_text(), card.locator(".meta").inner_text(),
-                    card.locator("p:not(.meta)").inner_text(), img.get_attribute("src")))
+        name = card.locator("h3").inner_text()
+        got.append((name, card.locator(".meta").inner_text(),
+                    card.locator("p:not(.meta):not(.sauna-price)").inner_text(), img.get_attribute("src")))
+        price = card.locator(".sauna-price")
+        if price.count():
+            prices[name] = _norm(price.inner_text())
+            # under the size line, before the card's line of text
+            ys = [card.locator(sel).bounding_box()["y"] for sel in
+                  (".meta", ".sauna-price", "p:not(.meta):not(.sauna-price)")]
+            assert ys == sorted(ys)
         # not a link and not selectable
         assert card.locator("a, button, input, [tabindex]").count() == 0
         assert card.evaluate("el => !el.closest('a, button, label, [role=radio], [role=option]')")
     assert got == SAUNAS
+    assert prices == PRICES
 
 
 def test_find_us_shows_the_address_contact_and_the_two_links(page: Page, base_url):
@@ -163,7 +184,7 @@ def test_every_link_and_the_button_can_be_reached_with_the_keyboard(page: Page, 
     page.goto(base_url + "/")
     links = page.locator("a")
     names = [_norm(n) for n in links.all_inner_texts()]
-    assert sorted(names) == sorted(["Terms", "Privacy notice", "Book seats"])
+    assert sorted(names) == sorted(["Terms", "Privacy notice", "Book seats", "Private sauna"])
     for name in names:
         page.goto(base_url + "/")
         a11y.tab_to(page, page.get_by_role("link", name=name, exact=True))
@@ -196,6 +217,7 @@ def test_venue_facts_through_caddy_need_no_session(base_url):
     body = r.json()
     assert body["name"] == "Saunalöyly" and body["price_per_seat_ore"] == 25000
     assert [s["name"] for s in body["saunas"]] == ["Rauha", "Löyly", "Kajo", "Lumo"]
+    assert [s["whole_price_ore"] for s in body["saunas"]] == [185000, None, None, 395000]
 
 
 def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(stack, page: Page, base_url):
@@ -203,7 +225,7 @@ def test_with_the_backend_stopped_landing_shows_the_notice_and_book_seats_works(
     try:
         page.goto(base_url + "/")
         rail = page.locator(".rail")
-        assert _lines(rail) == ["Saunalöyly", NOTICE, "Book seats"]
+        assert _lines(rail) == ["Saunalöyly", NOTICE, "Book seats", "Private sauna"]
         # the main column keeps its copy; no Venue fact is shown
         assert _norm(page.locator(".venue-description").inner_text()) == DESCRIPTION
         assert page.locator("#before-you-come .rule-list").count() == 3

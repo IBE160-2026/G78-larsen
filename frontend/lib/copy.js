@@ -5,6 +5,9 @@
 export const SEAT_STATEMENT =
   'A booking gives you seats in the shared saunas open during your session. On site you can move freely between them.';
 
+// The group sentence (FR-4, Story 5.1): after the Seat statement on Landing ("The saunas") and in the Book seats rail.
+export const GROUP_SENTENCE = 'A group that wants to stay together should book a private sauna.';
+
 // The changing-time note: Landing ("Before you come", Practical) and the Book seats rail.
 export const CHANGING_TIME = 'Changing time is part of your session.';
 
@@ -247,6 +250,25 @@ export function moveRefusal(code, facts = {}) {
       return { kind: 'stay', text: MOVE.tryAgain };
   }
 }
+
+// The Private sauna page (FR-29, FR-30, Story 5.1). Verbatim from EXPERIENCE.md (Private sauna wording). Booking and
+// paying for the chosen Sauna and session is Story 5.2.
+export const PRIVATE = Object.freeze({
+  heading: 'Private sauna',
+  link: 'Private sauna',
+  lead: 'Book a whole sauna for your group for one session. Nobody else can book it, or a seat in it.',
+  dateQuestion: '1. Choose a date',
+  view: 'View',
+  bySauna: 'Show by sauna',
+  bySession: 'Show by session',
+  // "2. Choose a sauna", "3. Choose a session" by sauna; "2. Choose a session", "3. Choose a sauna" by session
+  saunaQuestion: (n) => `${n}. Choose a sauna`,
+  sessionQuestion: (n) => `${n}. Choose a session`,
+  // The Sauna card's price line on Landing, only for a Sauna offered whole.
+  cardPrice: (price) => `Private sauna: ${price}`,
+  freeSessions: (n) => (n === 1 ? '1 free session' : `${n} free sessions`),
+  noSauna: (longDate) => `No sauna can be booked whole on ${longDate}.`,
+});
 
 // The Administrator pages (UX-DR3, UX-DR30, EXPERIENCE.md). The copy never uses the word "session" for a sign-in.
 export const ADMIN = Object.freeze({
