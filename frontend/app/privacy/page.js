@@ -1,5 +1,6 @@
 // Privacy notice (FR-21, UX-DR28): the text of mockups/key-privacy.html, verbatim. Static: no API call, so it
 // renders with the backend stopped (it is also the frontend's healthcheck route, AD-27).
+import BackLink from '@/components/BackLink';
 import GuestShell from '@/components/GuestShell';
 import TextLink from '@/components/TextLink';
 import Wordmark from '@/components/Wordmark';
@@ -13,6 +14,9 @@ export default function Privacy() {
         <h1 className="heading-xl" tabIndex={-1}>
           Privacy notice
         </h1>
+        <p className="back">
+          <BackLink />
+        </p>
         <section className="section">
           <h2 className="heading-md">Who is responsible</h2>
           <p>

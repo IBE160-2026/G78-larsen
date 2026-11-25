@@ -60,6 +60,8 @@ Fullføre Story 5.2 med `bmad-build` fra specen som lå ukommittert på `story/5
 - Verifisert: `uv run pytest -x -q tests --ignore=tests/e2e` → 610 passert; `npm --prefix frontend run build` → ok; `uv run pytest -q tests/e2e` → **196 passert** i én kjøring; `booking_e2e`-stacken var nede etterpå.
 - Spec `done`, `sprint-status.yaml` 5-2 → `review`. Commit `7da6447` (feat: book and pay for a Private sauna (Story 5.2)). Ikke pushet, ingen PR.
 - Lukket i `issues.md`: hele e2e-laget og kodereview for Story 5.2.
+- Senere samme kveld: Lisa testet i nettleseren (ok); grenen pushet og PR #22 opprettet (https://github.com/IBE160-2026/G78-larsen/pull/22). `feat/terms-privacy-back` ligger oppå denne grenen og merges etter.
+- PR #22 merget med vanlig merge (`db5ddc3`), etter Lisas beskjed. Lokal `main` oppdatert.
 
 ### Åpne punkter
 - `.docs/sensorveiledning-kravsporing.md` rad 2 sier fortsatt «FR-29 og videre er ikke levert»; før inn FR-29/FR-30 (Story 5.1 og 5.2) med testfilene.

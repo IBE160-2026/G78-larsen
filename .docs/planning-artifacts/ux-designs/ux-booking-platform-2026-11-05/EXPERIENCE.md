@@ -114,7 +114,7 @@ Session length stays once on Landing so first-time Guests know how long a visit 
 | Details | Heading, Back, name, email, Privacy notice link, Continue |
 | Review | Heading and Back. Then two columns: Booking summary on the left, and on the right booking terms with the two required statements, Terms and Privacy notice links, Terms checkbox, Pay with the payment note beside it. Reading order follows that sequence |
 | Confirmation | "Booking confirmed" in `{colors.success}`, Reference display, the reception sentence directly under it with no heading, Booking summary, booking terms, link to "Before you come", Email as sent |
-| Terms, Privacy notice | Heading, text |
+| Terms, Privacy notice | Heading, Back, text |
 | Sign-in | Administrator bar, heading, email, password, Sign in |
 | Booking list | Administrator bar, heading, date, Session groups in time order |
 | Outbox | Administrator bar, heading, Outbox entries |
@@ -186,7 +186,7 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | "Processing" | Pay button during payment |
 | "No bookings" | Booking list, Session without Bookings |
 | `14.11.2026`, "Type it as dd.mm.yyyy, or pick a day below" | Date format and hint |
-| "Back" | Details and Review |
+| "Back" | Details and Review; Terms and Privacy notice, under the heading (Lisa 2026-11-25). On Terms and Privacy notice it goes back to the page the Guest came from when that is a page of the site, so Details and Review keep everything entered; opened directly (bookmark, new tab, a link in an email), it goes to Landing. It is a link to Landing, so it works without JavaScript |
 | "I accept the booking terms" | Terms checkbox |
 | "Booking confirmed" | Confirmation heading |
 | "Only 1 seat left in this session. You have not been charged." | Seats taken while typing |
