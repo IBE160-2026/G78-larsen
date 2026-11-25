@@ -363,3 +363,20 @@ Legge til utsikt over sjøen i beskrivelsene av Kajo og Lumo. Lisa viste også t
 
 ### Åpne punkter
 - Lisa må si hvor «inspirasjon bilde 1» ligger, eller lime det inn.
+
+## 2026-11-25 kl. 10:18 — Lisa Larsen
+
+### Oppgave
+Ta bort lys og belysning fra beskrivelsene, fordi det avhenger av tid på døgnet. Lisa presiserte at «inspirasjon bilde 1» er det første bildet på landingssiden (hero-bildet med badstua i stille vann og åpent hav).
+
+### Plan
+- Fjerne «Warm light» (Kajo) og «lit softly from behind» (Lumo), og bruke «open sea» som i bildeteksten til hero-bildet.
+
+### Resultat
+- Kajo: «Kajo means a soft glow. A view of the open sea, and a bucket and ladle for throwing water on the stones.»
+- Lumo: «Our largest sauna, with long benches and a view of the open sea. Room for a big group.»
+- Endret i `sauna-copy.js`, `EXPERIENCE.md` og testen. Testene ga 5 passed. Punktet om inspirasjonsbildet fra forrige seksjon er avklart.
+- Ikke committet.
+
+### Åpne punkter
+Ingen nye.
