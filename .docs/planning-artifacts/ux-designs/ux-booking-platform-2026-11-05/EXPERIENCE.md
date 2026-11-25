@@ -6,7 +6,7 @@ sources:
   - {planning_artifacts}/prds/prd-booking-platform-2026-10-29/addendum.md
   - {planning_artifacts}/architecture/architecture-booking-platform-2026-11-03/ARCHITECTURE-SPINE.md
   - {planning_artifacts}/briefs/brief-booking-platform-2026-09-20/brief.md
-updated: 2026-11-09
+updated: 2026-11-24
 ---
 
 # Saunalöyly Booking Platform: Experience Spine
@@ -163,7 +163,7 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | Statement | Wording | Source |
 |---|---|---|
 | No right of withdrawal for a fixed date | "A booking for a fixed date cannot be withdrawn." | FR-5 |
-| What can be changed, in Core | "A booking cannot be changed or refunded." | FR-5, Lisa |
+| What can be changed | "Up to 12 hours before the session starts, you can move some or all seats to another session, or give them up for a voucher. Money is not refunded." | FR-5, §4.8, Lisa (2026-11-24, Story 4.1) |
 | What happens next | "Keep your booking reference and give it at reception when you arrive." | FR-8, Lisa |
 | Private sauna is not held | "The sauna is not held while you pay." | FR-29 |
 
@@ -175,7 +175,7 @@ Microcopy. Brand voice lives in `DESIGN.md`, Brand & Style. Copy is short and co
 | "Your details" | Details heading |
 | "Review" | Review heading |
 | "Booking terms" | Heading on Review, Confirmation and Terms |
-| "A booking for a fixed date cannot be withdrawn." "A booking cannot be changed or refunded." "If Saunalöyly cancels your session, you choose a refund or a voucher." | Booking terms on Review and Confirmation, one shared text (AD-12). The full text is on Terms |
+| "A booking for a fixed date cannot be withdrawn." "Up to 12 hours before the session starts, you can move some or all seats to another session, or give them up for a voucher. Money is not refunded." "If Saunalöyly cancels your session, you choose a refund or a voucher." | Booking terms on Review, Confirmation and the confirmation email, one shared text (`content/terms-seats`, AD-12). The full text is on Terms, where the second statement is the section "Changes and refunds" |
 | "Date", "Session", "Seats", "Total", "Name", "Email", "Venue", "Contact" | Booking summary labels |
 | "The nearest sessions with room:" | Notice after a refusal on Review |
 | "Sent by email:" | Label above Email as sent |
@@ -555,7 +555,7 @@ Ingrid has tried a public sauna once and wants to take a friend. She is anonymou
 3. The Session list shows Saturday's eight Sessions. 16:00–17:30 shows "1 seat left, not enough for 2" and cannot be chosen. The rail shows Total NOK 500 incl. VAT.
 4. She picks 14:30–16:00 and presses "Continue booking".
 5. On Details she types her name and email and continues.
-6. Review shows Saturday 14:30–16:00, 2 seats, NOK 500 incl. VAT, the Venue's details, and the booking terms: a booking for a fixed date cannot be withdrawn, a booking cannot be changed or refunded, and if Saunalöyly cancels, she chooses a refund or a voucher.
+6. Review shows Saturday 14:30–16:00, 2 seats, NOK 500 incl. VAT, the Venue's details, and the booking terms: a booking for a fixed date cannot be withdrawn, up to 12 hours before the start she can move some or all seats or give them up for a voucher but gets no money back, and if Saunalöyly cancels, she chooses a refund or a voucher.
 7. She accepts the terms and presses **Pay NOK 500**, beside "Simulated payment: no money moves". The button shows "Processing".
 8. **Climax:** Confirmation shows her Booking reference, the Session, 2 seats, the total and her email, and tells her to give the reference at reception. The email is below, exactly as sent. She knows the seats are hers and what to do when she arrives.
 
@@ -639,7 +639,7 @@ The mock's bracketed text and flat image blocks are placeholders, not content. T
 ### Decisions for Core
 
 10. Closed by Lisa: all wording and the date format in Voice and Tone are accepted, and may be adjusted during the build.
-11. Closed by Lisa: "A booking cannot be changed or refunded." "Online" is dropped, because no other route exists. Decided 2026-11-06: the Terms text (item 5) must add what applies when Saunalöyly cancels (PRD §9). The route itself comes later, with FR-42.
+11. Closed by Lisa: "A booking cannot be changed or refunded." "Online" is dropped, because no other route exists. Decided 2026-11-06: the Terms text (item 5) must add what applies when Saunalöyly cancels (PRD §9). The route itself comes later, with FR-42. Superseded 2026-11-24 (Story 4.1, Lisa): with §4.8 built, the statement is "Up to 12 hours before the session starts, you can move some or all seats to another session, or give them up for a voucher. Money is not refunded." See Voice and Tone.
 12. Closed by Lisa, changed 2026-11-06: "Swim preferably with others, and never ice-bathe alone." replaces "Bathe with caution, and never alone", so that a Guest with 1 seat can follow the rule. The Venue text must say where Guests can swim and ice-bathe. Resolved 2026-11-07: Practical says "You can swim in the sea all year round.", and the sea is also where Guests ice-bathe (Lisa).
 13. Closed by Lisa: reception finds the Booking by name and email in the day's Booking list, and no new function is added. Confirmation asks the Guest to keep the reference.
 14. Keyboard order on Book seats: test against WCAG 2.4.3 (see Accessibility Floor).
@@ -674,7 +674,7 @@ Items 1 to 6, 8 to 12 and 15 were applied to the PRD on 2026-11-05. Item 7 neede
 2. **Reception is a new fact.** The Venue has a reception in Core, and the Guest gives the Booking reference there. Add to FR-8 ("what happens next") and to §3 or §2. Reception staff are not an actor in the PRD; the assumption is that they use the Administrator Booking list.
 3. **Session as the UI word.** Guest-facing word in all UI copy and emails, including Administrator pages. The PRD keeps Window, but it needs a line in §3 and §6. FR-1's "changing time is part of the Window" becomes "your session" in the UI, and the example wording in FR-3 and §7 needs the same reading.
 4. **FR-3 one total.** FR-3 reads as a total per Window. Agreed reading: one total, for the chosen number, visible for the chosen Window, in the rail. It holds while price is equal across Windows in v1, and needs to change if per-Window prices ever arrive.
-5. **Core change statement.** Terms and confirmation say "A booking cannot be changed or refunded." with no contact route. FR-5's "online" implies another route, so reword FR-5.
+5. **Core change statement.** Terms and confirmation say "A booking cannot be changed or refunded." with no contact route. FR-5's "online" implies another route, so reword FR-5. (Replaced by the §4.8 change statement in Story 4.1, 2026-11-24; see Open Item 11.)
 6. **Details and review are two pages.** PRD §7 lists one page, and FR-5 leaves it open. Record the choice.
 7. **Session schedule location.** FR-1's schedule is on Book seats, not Landing. FR-1 allows this, so no change is needed, but the §4.1 summary should not be read otherwise.
 8. **The Book action.** §4.11, FR-35 and FR-37 name a Book action. No Core page has one. It is the Continue action on Book seats, and the PRD should say so, or say "Continue".
