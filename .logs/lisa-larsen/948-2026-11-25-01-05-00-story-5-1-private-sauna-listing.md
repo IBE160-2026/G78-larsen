@@ -281,3 +281,19 @@ Sjekke endringene mot product brief og PRD. Deretter skulle PRD §4.1 rettes, fo
 ### Åpne punkter
 - FR-1.5 «one image and one line» mot de lengre beskrivelsene på Private sauna-siden: Lisa har ikke avgjort om beskrivelsene skal kortes ned eller om PRD-en skal utvides.
 - Kajo-beskrivelsen bruker «löyly» uten engelsk forklaring (§6 Copy), og «A big stove gives soft, even heat» er ikke bekreftet.
+
+## 2026-11-25 kl. 10:03 — Lisa Larsen
+
+### Oppgave
+FR-1.5 i PRD skulle endres, så kravet passer med de lengre beskrivelsene av badstuene på Private sauna-siden.
+
+### Plan
+- Utvide FR-1.5 og føre beslutningen i addendum M.3 og `.memlog.md`, som for §4.1.
+
+### Resultat
+- `prd.md` FR-1.5: «one image and one line» gjelder fortsatt landingssiden. På Private sauna-siden vises hver badstu med samme bilde og en beskrivelse på én eller to setninger, fordi gjesten der velger badstua (FR-30).
+- Raden er lagt i addendum M.3, og linjen i `.memlog.md`. Punktet om FR-1.5 i `issues.md` er lukket.
+- Ikke committet.
+
+### Åpne punkter
+Ingen nye.
