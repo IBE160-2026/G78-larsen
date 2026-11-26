@@ -2,7 +2,7 @@
 title: 'Story 5.3 (part 1): Cancel a Private sauna'
 type: 'feature'
 created: '2026-11-26'
-status: 'in-review'
+status: 'done'
 baseline_commit: '81c223467df47510c93171db705f587143e7b79e'
 route: 'dispatch'
 review_loop_iteration: 0
