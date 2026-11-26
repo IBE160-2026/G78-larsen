@@ -17,3 +17,22 @@ Få en kalender-picker (pop-up) i Administrators bookingliste, så datoen kan ve
 
 ### Åpne punkter
 - Implementer kalender-pickeren etter `spec-booking-list-date-picker.md` i en ny `bmad-build`-økt.
+
+## 2026-11-26 kl. 18:28 — Lisa Larsen
+
+### Oppgave
+Lage selve kalendervelgeren til admin-siden (bookinglisten) etter specen.
+
+### Plan
+- `bmad-build` fra steg 3 (specen var `ready-for-dev`): implementert direkte ut fra [`spec-booking-list-date-picker.md`](../../.docs/implementation-artifacts/spec-booking-list-date-picker.md), uten implementeringssubagent.
+- Review-steget med tre reviewer-subagenter (Blind Hunter, Edge Case Hunter, Verification Gap), godkjent av Lisa. Funnene er triagert i specens «Review Triage Log».
+
+### Resultat
+- Ny `frontend/components/DayPickerPopup.js`: knappen «Choose from calendar» ved datofeltet åpner en månedskalender med ubegrensede «Previous month»/«Next month». Alle dager er knapper med fullt datonavn, og den viste dagen har `aria-current="date"`. Ved åpning får den viste dagen fokus. Escape (uansett hvor fokus er) lukker og gir fokus tilbake til knappen, og det samme gjør klikk utenfor og Tab ut av kalenderen. Månedslinjen er en `aria-live`-region.
+- `BookingList.js`: `pickDay` fjerner feltfeil, setter teksten og kjører `router.replace(?date=…)` bare når dagen er en annen. Ellers er copy (`chooseFromCalendar`), CSS (`.date-bar-control`, `.date-pop`, `.cal-pick`), EXPERIENCE.md (antakelsen er erstattet med vedtatt oppførsel), DESIGN.md (ny komponentbullet) og README oppdatert.
+- Review: 21 funn. 14 er rettet som patcher: Tab ut, Safari-Escape, fokus når et skrevet dato-blur endrer datoen, live region, wrapping, DESIGN.md, kommentar og testhull. 7 er avvist med begrunnelse. Ingenting er utsatt.
+- Verifisert: `npm --prefix frontend run build` går gjennom, og `uv run pytest tests/e2e/test_fr16_booking_list.py tests/e2e/test_fr23_accessibility.py` gir 35 passed. Det inkluderer 10 nye tester: I/O-matrisen, tastatur, axe, 200 % zoom og ukedagkolonner.
+- Commit: `753d09070c7f18cac6b02e840ad871e7c88e0804` på `feat/booking-list-date-picker` (ikke pushet). Specen har status `done`.
+
+### Åpne punkter
+- Ingen.
