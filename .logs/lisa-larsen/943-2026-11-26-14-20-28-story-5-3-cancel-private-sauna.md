@@ -26,3 +26,25 @@ Starte neste story i Epic 5: 5.3 «Cancel or move a Private sauna». Lisa valgte
 ### Åpne punkter
 - Implementer Story 5.3 del 1 (kansellering) etter den godkjente specen `spec-5-3-cancel-a-private-sauna.md` (`ready-for-dev`) i en ny `bmad-build`-økt.
 - Story 5.3 del 2: flytting av en Private sauna (`…/whole/move`, `price_differs`, flytteliste med `ignore_booking`) trenger egen spec. Den står i `deferred-work.md`.
+
+## 2026-11-26 kl. 15:36 — Lisa Larsen
+
+### Oppgave
+Implementere Story 5.3 del 1 (kansellere en Private sauna) etter den godkjente specen; specen er eneste kilde.
+
+### Plan
+- Spec: [`spec-5-3-cancel-a-private-sauna.md`](../../.docs/implementation-artifacts/spec-5-3-cancel-a-private-sauna.md); konteksten fra frontmatter (epic-5-context, epics.md Story 5.3, AD-23/28/29/30/31) lest først.
+- Backend: migrasjon 0014, `db`, `services.payment.refund()`, `services.change.whole_cancel()`, Manage-lesingen og ruten `POST /api/manage/{ref}/whole/cancel`.
+- Frontend: Manage-sidens whole-gren, nytt steg `CancelPrivateSauna.js` på `/manage/[reference]/cancel`, kopi og historikklinjen i Booking list.
+- Tester: `tests/test_fr33_whole_change.py` og `tests/e2e/test_fr33_whole_cancel.py`; deretter EXPERIENCE.md og README.
+
+### Resultat
+- Ny: `migrations/0014_whole_cancel.sql` (action `cancel` + `booking_changes_cancel_shape`), `frontend/components/CancelPrivateSauna.js`, `frontend/app/manage/[reference]/cancel/page.js`, de to testfilene.
+- Endret: `db/{changes,whole,manage,vouchers}.py`, `services/{payment,change,manage}.py`, `api/{manage,schemas}.py`, `ManageBooking.js`, `BookingList.js`, `lib/copy.js` (`CANCEL_WHOLE`, `MANAGE.cutoffPassed(…, hours)`), `styles.css`, EXPERIENCE.md («Cancel private sauna wording»), README (status, «Ikke levert» nevner bare flytting for 5.3, prøv-avsnitt).
+- Eksisterende tester justert: `test_dr4_migrations` (0013-testen migrerer bare til 0013), `test_fr27` (`cancel` er nå lovlig action), `test_fr25` (`cancel_remedy` i Manage-lesingen).
+- Verifisert: API-laget 634 passert, e2e-laget 206 passert, `npm --prefix frontend run build` OK. Lokalt er port 55432 reservert av Windows (excludedportrange 55394–55493), så API-laget ble kjørt med `DB_PORT=56432` og `BP_DATABASE_URL` mot den porten.
+- Ikke committet (venter på review).
+
+### Åpne punkter
+- Kodereview av Story 5.3 del 1 er ikke kjørt.
+- Port 55432 (dev-databasen) ligger i Windows' reserverte portområde på denne maskinen; `docker compose up db` feiler uten `DB_PORT`-overstyring (eller `net stop winnat`/`net start winnat` som administrator).
