@@ -255,6 +255,15 @@ def assert_under_its_weekday(page: Page, d: dt.date) -> None:
     assert abs(head["x"] - cell["x"]) < 1, (d, head, cell)
 
 
+def assert_on_one_line(page: Page, locator) -> None:
+    """The month line's text is never broken over two lines in the pop-up."""
+    lines = locator.evaluate("""el => {
+        const r = document.createRange(); r.selectNodeContents(el);
+        return new Set([...r.getClientRects()].map(c => Math.round(c.top))).size;
+    }""")
+    assert lines == 1, (locator, lines)
+
+
 def focused(locator) -> bool:
     return locator.evaluate("el => el === document.activeElement")
 
@@ -279,6 +288,9 @@ def test_pick_a_day_from_the_calendar(page: Page, base_url):
     box = shown.bounding_box()
     assert box["width"] >= 24 and box["height"] >= 24
     assert_under_its_weekday(page, dt.date(2026, 11, 1))  # a Sunday
+    assert_on_one_line(page, popup(page).locator(".cal-month"))
+    assert_on_one_line(page, popup(page).get_by_role("button", name="Previous month"))
+    assert_on_one_line(page, popup(page).get_by_role("button", name="Next month"))
     assert_under_its_weekday(page, SHOWN)  # a Thursday
     a11y.check_axe(page)
     a11y.no_horizontal_scroll(page)

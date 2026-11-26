@@ -1540,8 +1540,18 @@ a {
   border: 1px solid var(--color-border);
 }
 
+/* The pop-up is narrower than the guest calendar: the month name on its own line, the month buttons under it, and
+   none of them broken over two lines. */
 .date-pop .cal-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
   margin-top: var(--space-2);
+}
+
+.date-pop .cal-month,
+.date-pop .cal-nav .link-button {
+  white-space: nowrap;
 }
 
 /* A day of the pop-up: a button with the look of a bookable Date calendar day; the shown date as Primary button. */
