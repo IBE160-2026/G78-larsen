@@ -36,3 +36,21 @@ Lage selve kalendervelgeren til admin-siden (bookinglisten) etter specen.
 
 ### Åpne punkter
 - Ingen.
+
+## 2026-11-26 kl. 18:40 — Lisa Larsen
+
+### Oppgave
+Vise kalenderen i nettleseren, og deretter rette den trange månedslinjen i pop-upen («November 2026» og «Previous month» brøt over to linjer).
+
+### Plan
+- Startet dev-stacken etter README og sjekket med Playwright (skjermbilde) før siden ble åpnet i Lisas nettleser.
+- I pop-upen står månedsnavnet nå på egen linje og månedsknappene under det, uten linjebrudd. Fikk en ny test.
+
+### Resultat
+- `docker compose up` feilet fordi Windows har reservert port 55432 (portområdet 55394–55493). Stacken ble startet med `DB_PORT=56432`, uten endringer i filer. Den kjører på https://localhost:8443.
+- `frontend/app/styles.css`: `.date-pop .cal-head` er en kolonne, og `.cal-month` og månedsknappene har `white-space: nowrap`. Verifisert visuelt med skjermbilde på 1366 px.
+- `tests/e2e/test_fr16_booking_list.py`: `assert_on_one_line` (teller linjene i tekstens client rects) brukes for månedsnavnet og begge månedsknappene. `npm --prefix frontend run build` går gjennom, og fr16 + fr23 gir 35 passed.
+- Kodeendringen er ikke committet (Lisa har ikke bedt om det).
+
+### Åpne punkter
+- Port 55432 er reservert av Windows på denne maskinen. Stacken må startes med `$env:DB_PORT=56432`, eller README/compose-standarden bør endres.
