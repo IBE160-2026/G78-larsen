@@ -387,7 +387,7 @@ Behavioural. Visual specs live in `DESIGN.md`, Components.
 | Booking table | Inside a Session group | Reference, name, email, Seats, total, time of booking (FR-16). [ASSUMPTION] Time of booking is `dd.mm.yyyy HH:MM`, oldest first. Read-only. Stored text is escaped (FR-18). Refreshes on page load only |
 | Outbox entry | Outbox | Time, recipient, subject, full body, links in plain text (FR-17), always open. [ASSUMPTION] Newest first, because the usual check is the email just sent |
 
-[ASSUMPTION] The date on the Booking list is a Text field defaulting to today, with "Previous day" and "Next day" Text links. UJ-3 opens on today, and the Date calendar's rules are about what Guests may book, which does not apply here.
+The date on the Booking list is a Text field defaulting to today, with "Previous day" and "Next day" Text links, and a "Choose from calendar" button beside the field that opens a pop-up month calendar (decided by Lisa, 2026-11-26: the site's own calendar, not the browser's date picker). Every day of every month can be picked, past and future, with "Previous month" and "Next month" never bounded: the Date calendar's rules are about what Guests may book, which does not apply here. A pick replaces the address as a typed date does and clears a Field error; picking the shown day, Escape or a click outside closes the pop-up without moving, and Escape returns focus to the button. The pop-up opens on the month of the date shown, focus on that day; it is a group named "Pick a day, <Month> <Year>" and each day a button with its full date. UJ-3 opens on today.
 
 **If-time plug-ins**
 

@@ -7,6 +7,8 @@
 //   the API answers for its own `today`; the browser clock is never read (AD-4, AD-16).
 // - "Previous day" and "Next day" are real Text links to the neighbouring dates. The date field commits on Enter or
 //   blur and replaces the address; a malformed date shows the Field error "Enter the date as dd.mm.yyyy".
+// - "Choose from calendar" beside the field opens a pop-up month calendar (DayPickerPopup) where every day, past and
+//   future, can be picked; a pick clears any Field error and replaces the address exactly as a typed date does.
 // - Each group: the time in session-time-selected (named "Session 10:00 to 11:30") and the figures on one line in
 //   tabular figures, with "No bookings" on that same line when the session is empty; otherwise the Booking table. A session with no Seats left has the unavailable header with
 //   "Seats left 0" and "Sold out" in weight 600, so the state is said in words.
@@ -21,6 +23,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Fragment, useEffect, useState } from 'react';
 import { SIGN_IN_PATH } from './AdminBar';
+import DayPickerPopup from './DayPickerPopup';
 import FieldError from './FieldError';
 import Notice from './Notice';
 import TextLink from './TextLink';
@@ -199,6 +202,12 @@ export default function BookingList() {
     if (iso !== shown) router.replace(dayHref(iso));
   };
 
+  const pickDay = (iso) => {
+    setError(null);
+    setText(dotted(iso));
+    if (iso !== shown) router.replace(dayHref(iso));
+  };
+
   return (
     <>
       {shown && (
@@ -207,24 +216,27 @@ export default function BookingList() {
             <label className="field-label" htmlFor="date">
               {BOOKING_LIST.date}
             </label>
-            <input
-              className="text-field"
-              id="date"
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              value={text}
-              aria-describedby={error ? 'date-error' : undefined}
-              aria-invalid={error ? true : undefined}
-              onChange={(e) => setText(e.target.value)}
-              onBlur={commit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  commit();
-                }
-              }}
-            />
+            <div className="date-bar-control">
+              <input
+                className="text-field"
+                id="date"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={text}
+                aria-describedby={error ? 'date-error' : undefined}
+                aria-invalid={error ? true : undefined}
+                onChange={(e) => setText(e.target.value)}
+                onBlur={commit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commit();
+                  }
+                }}
+              />
+              <DayPickerPopup date={shown} onPick={pickDay} />
+            </div>
             <FieldError id="date-error">{error}</FieldError>
           </div>
           <p className="date-bar-links">

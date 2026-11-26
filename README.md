@@ -121,7 +121,7 @@ Første gang backend starter, legger seeden inn én Administrator (`seeds/admin.
 |---|---|
 | `admin@saunaloyly.example` | `badstue-admin-test-2026` |
 
-Logg inn på `https://localhost:8443/admin/sign-in`. Etter innlogging åpnes **bookinglisten** på `https://localhost:8443/admin/bookings`, med gjestene per økt for valgt dato. Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
+Logg inn på `https://localhost:8443/admin/sign-in`. Etter innlogging åpnes **bookinglisten** på `https://localhost:8443/admin/bookings`, med gjestene per økt for valgt dato. Datoen kan skrives (dd.mm.åååå), flyttes med «Previous day» / «Next day», eller velges i en månedskalender bak «Choose from calendar» (alle dager, også tidligere måneder). Etter 5 feil på rad for én e-post er den sperret i 15 minutter.
 
 Seeden legger også inn tolv eksempelbookinger (`seeds/bookings.json`), én gang, regnet i dager fra datoen backend startet første gang:
 

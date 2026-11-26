@@ -1503,6 +1503,76 @@ a {
   max-width: 100%;
 }
 
+/* The field with "Choose from calendar" beside it; the pop-up opens under both (spec-booking-list-date-picker). */
+.date-bar-control {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap; /* with larger text the button goes under the field rather than out of the column */
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.date-bar-control .text-field {
+  flex: 1 1 8em;
+  min-width: 0;
+}
+
+.date-pick {
+  flex: none;
+}
+
+.date-pick-toggle {
+  min-height: 24px;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  white-space: nowrap;
+}
+
+.date-pop {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 10;
+  width: var(--date-column);
+  max-width: 100%;
+  padding: 0 var(--space-3) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.date-pop .cal-head {
+  margin-top: var(--space-2);
+}
+
+/* A day of the pop-up: a button with the look of a bookable Date calendar day; the shown date as Primary button. */
+.cal-pick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--calendar-cell-height);
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cal-pick-current {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 1.5px solid var(--color-button-edge);
+  font-weight: var(--type-calendar-day-selected-weight);
+}
+
+.cal-pick:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
 .date-bar-links {
   display: flex;
   gap: var(--space-4);
