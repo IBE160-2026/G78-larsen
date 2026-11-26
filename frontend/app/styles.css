@@ -1358,6 +1358,43 @@ a {
   margin-top: var(--space-5);
 }
 
+/* Cancel private sauna (Story 5.3): the remedy question, ruled rows like the Session list, each a label around its
+   native radio with the option's name and its hint. */
+.remedy-options {
+  border-bottom: 1px solid var(--color-border);
+  max-width: var(--measure-text);
+}
+
+.remedy-option {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--type-body-sm-size);
+  cursor: pointer;
+}
+
+.remedy-option input {
+  width: 16px;
+  height: 16px;
+  margin: 4px 0 0;
+  accent-color: var(--color-link);
+}
+
+.remedy-option.selected {
+  background: var(--color-surface);
+  box-shadow: inset 3px 0 0 var(--color-button-edge);
+}
+
+.remedy-option.selected .remedy-label {
+  font-weight: 600;
+}
+
+.remedy-text {
+  overflow-wrap: anywhere;
+}
+
 .move-result-back {
   margin-top: var(--space-5);
 }

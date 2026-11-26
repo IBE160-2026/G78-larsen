@@ -60,3 +60,10 @@ def insert_capacity(c: psycopg.Connection, booking_id: int, window_id: int, saun
     the `(window_id, sauna_id)` key refuses a second row for the pair."""
     c.execute("INSERT INTO whole_bookings (window_id, sauna_id, booking_id) VALUES (%s, %s, %s)",
               (window_id, sauna_id, booking_id))
+
+
+def delete_capacity(c: psycopg.Connection, booking_id: int) -> None:
+    """Delete the Booking's capacity row, after its status is set to `cancelled` (AD-23's write order; the pairing check
+    `check_whole_pair` is deferred to COMMIT). The capacity triggers recompute the Window, so Seats left rises by the
+    Sauna's Capacity at once."""
+    c.execute("DELETE FROM whole_bookings WHERE booking_id = %s", (booking_id,))

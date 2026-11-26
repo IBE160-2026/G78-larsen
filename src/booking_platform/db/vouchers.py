@@ -66,3 +66,26 @@ _NEXT_LAST_VALID = (
 def next_last_valid_date(c: psycopg.Connection, booking_id: int) -> dt.date:
     """The last valid date a Voucher issued from the Booking now gets: the spent Voucher's, or one year ahead."""
     return c.execute(_NEXT_LAST_VALID, {"b": booking_id}).fetchone()[0]
+
+
+# The last valid date of a Voucher returned by `services.payment.refund` (AD-31, Lisa 2026-11-19): the earliest last
+# valid date of the Vouchers that paid the Booking, but never less than the Venue date of app_now() plus 30 days. NULL
+# when no Voucher paid it.
+_REFUND_LAST_VALID = (
+    "SELECT GREATEST(MIN((v.expires_at AT TIME ZONE st.venue_tz)::date - 1), "
+    "                (app_now() AT TIME ZONE st.venue_tz)::date + 30) "
+    "FROM payments p JOIN vouchers v ON v.id = p.voucher_id CROSS JOIN settings st "
+    "WHERE p.booking_id = %s AND p.direction = 'charge' AND p.method = 'voucher' "
+    "GROUP BY st.venue_tz")
+
+
+def refund_last_valid_date(c: psycopg.Connection, booking_id: int) -> dt.date | None:
+    """The last valid date of the Voucher a refund of the Booking returns now, or None when no Voucher paid it."""
+    row = c.execute(_REFUND_LAST_VALID, (booking_id,)).fetchone()
+    return None if row is None else row[0]
+
+
+def a_year_ahead(c: psycopg.Connection) -> dt.date:
+    """The last valid date of a new Voucher issued now: the Venue date of app_now() plus one year (AD-30)."""
+    return c.execute("SELECT ((app_now() AT TIME ZONE venue_tz)::date + interval '1 year')::date FROM settings"
+                     ).fetchone()[0]

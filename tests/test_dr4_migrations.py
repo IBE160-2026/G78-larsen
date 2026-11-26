@@ -241,7 +241,7 @@ def test_0013_keeps_seat_bookings_and_drops_slice_whole_bookings(tmp_path, scrat
                   "(1, 2, 'BBBBBBBB', 'Bo', 'bo@example.com', 25000, 50000)")
         c.execute("INSERT INTO whole_bookings (window_id, sauna_id) VALUES (1, 2), (2, 2)")  # the slice's rows
         assert c.execute("SELECT seats_left(1), seats_left(2)").fetchone() == (8, 20)
-    assert migrations.migrate(scratch_db) == ["0013_whole_sauna_bookings.sql"]
+    assert migrations.migrate(scratch_db, upto(tmp_path, "0013")) == ["0013_whole_sauna_bookings.sql"]
     with psycopg.connect(scratch_db) as c:
         assert c.execute("SELECT id, kind, seats, sauna_id FROM bookings ORDER BY id").fetchall() == [
             (1, "seats", 10, None), (2, "seats", 2, None)]

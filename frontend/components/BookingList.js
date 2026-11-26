@@ -14,7 +14,8 @@
 //   per entry of its Change history: "Moved 1 seat on 24.11.2026 14:05 from 01.12.2026 10:00–11:30 to
 //   01.12.2026 11:30–13:00 · new booking ABCD1234" (Story 4.2, Lisa 2026-11-24), or "Gave up 1 seat on 24.11.2026
 //   14:05 for a voucher of NOK 250" (never the code). A cancelled Booking's Status is "Cancelled 24.11.2026 14:05 ·
-//   Guest · Voucher" (Story 4.3, Lisa 2026-11-24).
+//   Guest · Voucher" (Story 4.3, Lisa 2026-11-24). A cancelled Private sauna's line is "Cancelled on 24.11.2026 14:05
+//   for a refund" or "… for a voucher of NOK 3150" (Story 5.3, Lisa 2026-11-26).
 // - Stored text (name, email) is rendered as React text, never as HTML (IV-5).
 // - A 401 goes to Sign-in; any other failure shows the "please try again" Notice.
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -38,8 +39,13 @@ const COLUMNS = 7;
 /** "01.12.2026 10:00–11:30" of a Window `{start, end}` in Venue time. */
 const sessionText = (w) => `${dottedTime(w.start)}–${clockTime(w.end)}`;
 
-/** One history line of a Booking: a move (Story 4.2) or a Voucher Change (Story 4.3). */
+/** One history line of a Booking: a move (Story 4.2), a Voucher Change (Story 4.3) or a Private sauna's cancel
+ * (Story 5.3: for a refund, or for a voucher of its value). */
 function historyLine(entry) {
+  if (entry.action === 'cancel') {
+    return BOOKING_LIST.cancelledFor(dottedTime(entry.at),
+      entry.voucher_value_ore == null ? null : nok(entry.voucher_value_ore));
+  }
   if (entry.action === 'voucher') {
     return BOOKING_LIST.gaveUp(entry.seats, dottedTime(entry.at), nok(entry.voucher_value_ore));
   }
