@@ -302,6 +302,24 @@ Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every
 | "This sauna can no longer be booked for this session. You have not been charged." with the Text link "Choose another sauna or session" (to the Private sauna page for the same date) | Notice on Review after `sauna_unavailable` (Story 5.2); Pay, the payment note and the Terms checkbox are removed and the Notice takes focus. After `outside_horizon` or `deadline_passed` in the Private sauna flow the Notice says "This session can no longer be booked. You have not been charged." with the same Text link, and no Nearest sessions |
 | Table "Saunas" in each Session group, columns "Sauna" and "Seats counted"; cells "7 of 7", "Booked whole · {ref}", "Blocked", "Private sauna only" | Booking list, Placement (Story 5.4), Saunas in Fill order, tabular figures, never colour alone |
 
+**Cancel private sauna wording, accepted by Lisa as proposed (2026-11-26, Story 5.3, FR-33)**
+
+The cancel half of Story 5.3; the move of a Private sauna is a separate spec, so until then the Manage page of a Private sauna offers only "Cancel private sauna". Refusals reuse the move step's texts (Story 4.2). No page states a Voucher code: it is only in the email.
+
+| Text | Where |
+|---|---|
+| "Cancel private sauna" | Manage page of an active Private sauna before its Cutoff, the link to the cancel step (shown as a Primary button, as the Seat Changes); the step's title is "Cancel private sauna – Saunalöyly" and its `h1` "Cancel private sauna" |
+| "You can change this booking until {long date} at {HH:MM}." | Manage page of a Private sauna before its Cutoff (the existing text) |
+| "This booking can no longer be changed. Changes are possible until 72 hours before the session starts, and that was {long date} at {HH:MM}." | Manage page and cancel step of a Private sauna after its Cutoff, and the `cutoff_passed` reason |
+| "What do you want back?" with "A refund" (hint "Paid back the way you paid.") and "A voucher" (hint "A voucher for the full NOK {total}, valid for one year.") | Cancel step, a radio group in a fieldset with that legend; nothing is chosen first |
+| "What will happen": "Sauna" {name}, "Session" {long date}, {HH:MM}–{HH:MM}; for a refund "Refund to card" NOK {x} (only when above 0) and "New voucher" NOK {y} with "Valid until" {long date} (only when a Voucher paid part); for a voucher "Voucher value" NOK {total}, "Valid until" {long date} and "No money is paid back. The voucher can pay for a new booking until it expires." Then "Nothing changes until you confirm." | Cancel step, the confirming step once a remedy is chosen; the figures come from the API (`refund_split`, `voucher_last_valid_date`) |
+| "Cancel booking" | Cancel step, the Primary button |
+| "Booking cancelled", "Your booking has been cancelled.", then "Your refund is in the email below." or "Your voucher code is in the email below.", the email under "Sent by email:", "Back to your booking" | Result page of the cancel |
+| "This booking was cancelled on {long date} at {HH:MM}. You chose a refund, which was sent by email." / "… You chose a voucher, which was sent by email." | Manage page of a cancelled Private sauna (it shows the Sauna, date, session and total and offers no Change), and a Notice on the cancel step after a reload |
+| Subject "Booking cancelled: {ref}". Body "Booking cancelled", the Venue block, reference, date, session, "Sauna: {name}"; for a refund "Refunded to card: NOK {x}" and "Simulated payment: no money moves" (when a card part is returned) and the Voucher block (when a Voucher part is returned); for a voucher the Voucher block; last "The Manage link in your booking confirmation email still works." | Cancellation email; the Voucher block is the one of the Voucher email ("Voucher", "Code: …", "Value: …", "Valid until: …", "Use the code when you pay for a new booking. A voucher is never paid out in money.") |
+| "Cancelled on {dd.mm.yyyy HH:MM} for a refund" / "Cancelled on {dd.mm.yyyy HH:MM} for a voucher of NOK {value}" | Booking list, history line under a cancelled Private sauna; never the code |
+| "Cancelled {dd.mm.yyyy HH:MM} · Guest · Refund" / "… · Guest · Voucher" | Booking list, Status cell (as for Seat bookings); it stays listed and takes no Seats |
+
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 
 **Capitals.** Guest copy uses plain sentence case: seats, saunas and session are lower case. Only names such as Rauha and Before you come take capitals. Domain terms in this spine stay capitalised, as in the PRD.

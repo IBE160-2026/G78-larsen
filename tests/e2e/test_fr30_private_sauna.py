@@ -441,8 +441,8 @@ def sauna_window(base_url: str, date: str, name: str, start: str) -> tuple[dict,
 
 
 def test_a_whole_booking_on_the_manage_page_and_in_the_booking_list(page: Page, base_url, browser, booking_day):
-    """Before Story 5.3 the Manage link shows the Whole-sauna booking with no Changes, and the Seat Change pages are
-    not available for it; the Administrator's Booking list names its Sauna in the Seats column."""
+    """The Manage link shows the Whole-sauna booking with no Seat Change (its cancel is tested in
+    `test_fr33_whole_cancel.py`), and the Seat Change pages are not available for it; the Administrator's Booking list names its Sauna in the Seats column."""
     from .test_fr16_booking_list import group, open_day, sign_in
 
     loyly, window = sauna_window(base_url, booking_day, "Löyly", "16:00")

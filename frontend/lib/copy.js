@@ -167,13 +167,16 @@ export const CONFIRMATION = Object.freeze({
 });
 
 // The Manage page (FR-25, Story 4.1). Approved by Lisa 2026-11-24. The dates and times come from the API's `cutoff_at`
-// (Venue time); "12 hours" is fixed copy, as Administrators cannot change the Seat Cutoff in v1.
+// (Venue time); the hours are fixed copy, as Administrators cannot change a Cutoff in v1: 12 for a Seat booking, 72 for
+// a Private sauna (Story 5.3, Lisa 2026-11-26).
 export const MANAGE = Object.freeze({
   heading: 'Manage booking',
   untilText: (longDate, time) => `You can change this booking until ${longDate} at ${time}.`,
   // The reason for the refusal `cutoff_passed` (fact `cutoff_at`), and the page's text after the Cutoff.
-  cutoffPassed: (longDate, time) =>
-    `This booking can no longer be changed. Changes are possible until 12 hours before the session starts, and that was ${longDate} at ${time}.`,
+  cutoffPassed: (longDate, time, hours = 12) =>
+    `This booking can no longer be changed. Changes are possible until ${hours} hours before the session starts, and that was ${longDate} at ${time}.`,
+  // The Cutoff of a Private sauna, in hours (`cutoffPassed`'s third argument; a Seat booking's 12 is the default).
+  wholeHours: 72,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   loadFailed: 'The booking could not be loaded, please try again.',
   // Story 4.2 (Lisa, 2026-11-24): the Manage page's link to the move step.
@@ -182,6 +185,11 @@ export const MANAGE = Object.freeze({
   giveUpSeats: 'Give up seats for a voucher',
   cancelled: (longDate, time) =>
     `This booking was cancelled on ${longDate} at ${time}. You gave up all seats for a voucher, which was sent by email.`,
+  // Story 5.3 (Lisa, 2026-11-26, EXPERIENCE.md "Cancel private sauna wording"): the link to the cancel step of a Private
+  // sauna, and the page of a cancelled one.
+  cancelPrivateSauna: 'Cancel private sauna',
+  cancelledWhole: (longDate, time, remedy) =>
+    `This booking was cancelled on ${longDate} at ${time}. You chose ${remedy === 'refund' ? 'a refund' : 'a voucher'}, which was sent by email.`,
 });
 
 // Move seats (FR-26, Story 4.2): the confirming step and its result. Verbatim from Lisa's decisions of 2026-11-24.
@@ -227,6 +235,33 @@ export const VOUCHER = Object.freeze({
   resultHeading: 'Seats given up',
   resultChanged: 'Your booking has been changed.',
   resultCancelled: 'Your booking has been cancelled.',
+  codeInEmail: 'Your voucher code is in the email below.',
+  backToBooking: 'Back to your booking',
+});
+
+// Cancel private sauna (FR-33, Story 5.3): the confirming step and its result. Verbatim from Lisa's decisions of
+// 2026-11-26 (EXPERIENCE.md "Cancel private sauna wording"). Refusals reuse the move texts (`moveRefusal`).
+export const CANCEL_WHOLE = Object.freeze({
+  heading: 'Cancel private sauna',
+  back: 'Back',
+  remedyQuestion: 'What do you want back?',
+  refund: 'A refund',
+  refundHint: 'Paid back the way you paid.',
+  voucher: 'A voucher',
+  voucherHint: (total) => `A voucher for the full ${total}, valid for one year.`,
+  summaryHeading: 'What will happen',
+  sauna: 'Sauna',
+  session: 'Session',
+  refundToCard: 'Refund to card',
+  newVoucher: 'New voucher',
+  voucherValue: 'Voucher value',
+  validUntil: 'Valid until',
+  noMoney: 'No money is paid back. The voucher can pay for a new booking until it expires.',
+  nothingYet: 'Nothing changes until you confirm.',
+  confirm: 'Cancel booking',
+  resultHeading: 'Booking cancelled',
+  resultLine: 'Your booking has been cancelled.',
+  refundInEmail: 'Your refund is in the email below.',
   codeInEmail: 'Your voucher code is in the email below.',
   backToBooking: 'Back to your booking',
 });
@@ -336,6 +371,8 @@ export const BOOKING_LIST = Object.freeze({
   // Story 4.3 (Lisa, 2026-11-24): a Voucher Change (the value issued, never the code), and a cancelled Booking's Status
   // cell (time, cause, remedy).
   gaveUp: (seats, at, value) => `Gave up ${seatsWord(seats)} on ${at} for a voucher of ${value}`,
+  // Story 5.3 (Lisa, 2026-11-26): a Private sauna cancelled by the Guest (the Voucher's value, never the code).
+  cancelledFor: (at, value) => (value ? `Cancelled on ${at} for a voucher of ${value}` : `Cancelled on ${at} for a refund`),
   cancelledAt: (at, cause, remedy) => [`Cancelled ${at}`, cause, remedy].filter(Boolean).join(' · '),
   cause: Object.freeze({ guest: 'Guest', block: 'Block', overbooking: 'Overbooking' }),
   remedy: Object.freeze({ voucher: 'Voucher', refund: 'Refund' }),

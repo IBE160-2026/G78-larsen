@@ -9,8 +9,10 @@
 // seats for a voucher" (Story 4.3). A cancelled Booking (all Seats given up) shows its reference, date, session and
 // the Seats given up, when it was cancelled, and no Changes (Lisa, 2026-11-24, EXPERIENCE.md Open Item 19).
 // The two Changes are links shown as primary buttons, side by side (Lisa, 2026-11-24).
-// A Whole-sauna booking (Story 5.2) shows its Sauna, date, session and total and no Changes and no Cutoff text: its
-// cancel and move are Story 5.3, and the Seat Changes refuse it (`404 not_found`).
+// A Whole-sauna booking (Story 5.2) shows its Sauna, date, session and total. Story 5.3: before its 72-hour Cutoff it
+// shows until when it can be changed and offers "Cancel private sauna" (its move is a later spec); after the Cutoff the
+// 72-hour reason; once cancelled, when it was cancelled and the remedy chosen (Lisa, 2026-11-26). The Seat Changes
+// refuse it (`404 not_found`).
 //
 // As on Confirmation, the h1 appears only once the read has answered, so a browser without a grant never sees it
 // before "This page is not available."; FocusMover focuses it after the navigation from `/manage`.
@@ -72,7 +74,33 @@ export default function ManageBooking({ reference }) {
             )}
           </>
         )}
-        {b && b.kind === 'whole' && <ManageBookingSummary booking={b} />}
+        {b && b.kind === 'whole' && (
+          <>
+            <ManageBookingSummary booking={b} />
+            {b.status === 'cancelled' ? (
+              b.cancelled_at &&
+              b.cancel_remedy && (
+                <p className="manage-cancelled">
+                  {MANAGE.cancelledWhole(longDate(b.cancelled_at.slice(0, 10)), clockTime(b.cancelled_at),
+                    b.cancel_remedy)}
+                </p>
+              )
+            ) : b.change_allowed ? (
+              <>
+                <p className="manage-until">{MANAGE.untilText(cutoffDate, cutoffTime)}</p>
+                <ul className="manage-changes">
+                  <li>
+                    <Link className="button-primary" href={`/manage/${encodeURIComponent(b.reference)}/cancel`}>
+                      {MANAGE.cancelPrivateSauna}
+                    </Link>
+                  </li>
+                </ul>
+              </>
+            ) : (
+              <Notice>{MANAGE.cutoffPassed(cutoffDate, cutoffTime, MANAGE.wholeHours)}</Notice>
+            )}
+          </>
+        )}
         {b && b.kind !== 'whole' && b.status !== 'cancelled' && (
           <>
             <ManageBookingSummary booking={b} />

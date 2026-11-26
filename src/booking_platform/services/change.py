@@ -1,5 +1,5 @@
-"""Changes of a Seat booking through its Manage link (FR-26, FR-27, AD-9, AD-28, AD-29, AD-30, AD-31). Story 4.2: the
-Seat move; Story 4.3: the Voucher instead of Seats.
+"""Changes of a Booking through its Manage link (FR-26, FR-27, FR-33, AD-9, AD-28, AD-29, AD-30, AD-31). Story 4.2:
+the Seat move; Story 4.3: the Voucher instead of Seats; Story 5.3: the cancel of a Whole-sauna booking.
 
 Both Changes start with one shared prologue (`_locked`), in the order of AD-29:
 
@@ -35,10 +35,20 @@ Both Changes start with one shared prologue (`_locked`), in the order of AD-29:
    with `seats` and `voucher_id`, one `payments` row `refund`/`voucher` of the value with its `voucher_id` (AD-31; no
    `card` row), one email with the Voucher code through `outbox.send` with the Change's id, and last the key row.
 
-The response is the one Change serializer: `{booking, new_booking?, voucher?: {value_ore, last_valid_date}, emails:
-[{id, subject, body}]}`, each Booking in the Manage read's shape. It holds no name, email, token, Voucher code or
-Sauna; the emails are what the Guest was sent, and the Voucher code is only in an email body. No email of a Change
-carries the original's Manage link, and none names a Sauna (FR-4).
+`whole_cancel` is one `db.run` (FR-33, AD-23, AD-31), through the same prologue for `kind = 'whole'`:
+
+1. refuse, in this order: `booking_cancelled`; `booking_changed`; `cutoff_passed` (the Booking's own 72-hour Cutoff);
+2. in AD-23's write order: one UPDATE cancels the Booking (`guest`, the remedy, `version + 1`), then its capacity row is
+   deleted (Seats left rises by the Sauna's Capacity at once). Remedy `refund`: one `cancel` history row without a
+   Voucher, then `services.payment.refund` (the card part as a `refund`/`card` row, the Voucher part as one new Voucher
+   and a `refund`/`voucher` row). Remedy `voucher`: one Voucher of the full `total_ore` valid one year, the `cancel`
+   history row pointing to it and one `refund`/`voucher` row, no card row;
+3. one cancellation email through `outbox.send` with the Change's id, and last the key row.
+
+The response is the one Change serializer: `{booking, new_booking?, voucher?: {value_ore, last_valid_date}, refund?:
+{card_ore}, emails: [{id, subject, body}]}`, each Booking in the Manage read's shape. It holds no name, email, token or
+Voucher code, and names a Sauna only for a Whole-sauna booking; the emails are what the Guest was sent, and the Voucher code is only in
+an email body. No email of a Change carries the original's Manage link, and no Seat Change email names a Sauna (FR-4).
 """
 
 from __future__ import annotations
@@ -57,13 +67,15 @@ from ..db import changes as q
 from ..db import seats as sq
 from ..db import venue as vq
 from . import booking as booking_service
-from . import history, manage, outbox, reference
+from ..db import whole as wq
+from . import history, manage, outbox, payment, reference
 from . import voucher as vouchers
 from .errors import Refused
 from .windows import ensure_open_for_booking
 
 MOVE_ENDPOINT = "POST /api/manage/seats/move"
 VOUCHER_ENDPOINT = "POST /api/manage/seats/voucher"
+WHOLE_CANCEL_ENDPOINT = "POST /api/manage/whole/cancel"
 MANAGE_LINK_STILL_WORKS = "The Manage link in your booking confirmation email still works."
 OWN_CONFIRMATION = "The moved seats have their own confirmation email."
 NEVER_PAID_OUT = "Use the code when you pay for a new booking. A voucher is never paid out in money."
@@ -83,16 +95,30 @@ def voucher_hash(reference_: str, seats: int, version: int) -> bytes:
     return hashlib.sha256(canonical.encode("utf-8")).digest()
 
 
+def whole_cancel_hash(reference_: str, remedy: str, version: int) -> bytes:
+    """SHA-256 of the canonical outcome-defining fields of a Whole-sauna cancel (AD-9)."""
+    canonical = json.dumps({"action": "cancel", "reference": reference_, "remedy": remedy, "version": version},
+                           sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).digest()
+
+
 # ------------------------------------------------------------------ the response (one serializer)
 
 
 def outcome(c: psycopg.Connection, change_id: int) -> dict:
     """The Change serializer: the Booking (and the split-off Booking) as they are now, the Voucher the Change issued
-    (value and last valid date, never the code) and the emails the Change sent, read by the Change's id (AD-9)."""
-    booking_id, new_booking_id, voucher_id = q.change(c, change_id)
-    out = {"booking": manage.booking_now(c, booking_id)}
+    (value and last valid date, never the code) and the emails the Change sent, read by the Change's id (AD-9). For a
+    Whole-sauna cancel the Voucher is the one it returned or issued (either remedy), and `refund` (remedy `refund`
+    only) is rebuilt from the Booking's `refund`/`card` row (0 without one)."""
+    booking_id, new_booking_id, voucher_id, action = q.change(c, change_id)
+    booking = manage.booking_now(c, booking_id)
+    out = {"booking": booking}
     if new_booking_id is not None:
         out["new_booking"] = manage.booking_now(c, new_booking_id)
+    if action == "cancel":
+        card_ore, voucher_id = q.returns(c, booking_id)
+        if booking["cancel_remedy"] == "refund":
+            out["refund"] = {"card_ore": card_ore or 0}
     if voucher_id is not None:
         out["voucher"] = vouchers.facts(c, voucher_id)
     out["emails"] = outbox.of_change(c, change_id)
@@ -163,22 +189,37 @@ def voucher_email(booking: dict, venue: tuple, given_up: int, code: str, value_o
     return f"Booking cancelled: {booking['reference']}", "\n".join(lines)
 
 
+def cancellation_email(booking: dict, venue: tuple, card_ore: int, voucher: tuple[str, int, dt.date] | None
+                       ) -> tuple[str, str]:
+    """(subject, body) of a Whole-sauna cancellation (Lisa, 2026-11-26): "Booking cancelled", the Venue block,
+    reference, date, session and "Sauna: {name}"; then the card refund with the payment note (when a card part is
+    returned) and the Voucher block (code, value, last valid date) of a returned or issued Voucher; last the Manage
+    link line. No Manage link."""
+    lines = [*_head("Booking cancelled", booking, venue), f"Sauna: {booking['sauna']['name']}", ""]
+    if card_ore > 0:
+        lines += [f"Refunded to card: {booking_service.nok(card_ore)}", booking_service.SIMULATED, ""]
+    if voucher is not None:
+        lines += voucher_block(*voucher)
+    lines.append(MANAGE_LINK_STILL_WORKS)
+    return f"Booking cancelled: {booking['reference']}", "\n".join(lines)
+
+
 # ------------------------------------------------------------------ the shared prologue and refusals (AD-29)
 
 
 def _locked(c: psycopg.Connection, session_id: int, booking_id: int, extra_windows: list[int], key: uuid.UUID,
-            endpoint: str, h: bytes) -> q.Locked | dict:
+            endpoint: str, h: bytes, kind: str = "seats") -> q.Locked | dict:
     """The prologue of every Change: the unlocked read of `window_id`, `lock_windows` with it and `extra_windows`, the
-    locked re-read (`db.Retry` when `window_id` moved; a Booking that is not a Seat booking is `404 not_found`, as a
-    route of the other kind, AD-28), the grant re-check by join and the key read. Returns the locked
+    locked re-read (`db.Retry` when `window_id` moved; a Booking of another kind than the route's `kind` is `404
+    not_found`, as a route of the other kind, AD-28), the grant re-check by join and the key read. Returns the locked
     Booking, or the first outcome (a dict) when the key is a repeat of this request from this session."""
     current = q.window_of(c, booking_id)  # unlocked (AD-29)
     if current is None:
         raise Refused("not_found")
     db.lock_windows(c, [current, *extra_windows])
     b = q.lock_booking(c, booking_id)
-    if b is None or b.kind != "seats":
-        raise Refused("not_found")  # a Seat Change of a Whole-sauna booking: a route of the other kind (AD-28)
+    if b is None or b.kind != kind:
+        raise Refused("not_found")  # a route of the other kind (AD-28)
     if b.window_id != current:
         raise db.Retry()  # moved in between: lock the new Windows
     if not q.grant_valid(c, session_id, booking_id):
@@ -192,13 +233,15 @@ def _locked(c: psycopg.Connection, session_id: int, booking_id: int, extra_windo
     return b
 
 
-def _refuse_unless_current(c: psycopg.Connection, b: q.Locked, booking_id: int, seats: int, version: int) -> None:
-    """The first refusals of AD-29: `booking_cancelled`, `booking_changed`, `change_invalid` `seats_exceed`."""
+def _refuse_unless_current(c: psycopg.Connection, b: q.Locked, booking_id: int, seats: int | None, version: int
+                           ) -> None:
+    """The first refusals of AD-29: `booking_cancelled`, `booking_changed`, `change_invalid` `seats_exceed` (a Seat
+    Change only; `seats` is None for a Whole-sauna booking)."""
     if b.status == "cancelled":
         raise Refused("booking_cancelled")
     if b.version != version:
         raise Refused("booking_changed", booking=manage.booking_now(c, booking_id))
-    if not 1 <= seats <= b.seats:
+    if seats is not None and not 1 <= seats <= b.seats:
         raise Refused("change_invalid", reason="seats_exceed")
 
 
@@ -280,7 +323,7 @@ def voucher(session_id: int, booking_id: int, reference_: str, seats: int, versi
 
         value_ore = seats * b.price_per_seat_ore  # the price paid, never the current setting (AD-13)
         if seats == b.seats:
-            q.cancel_for_voucher(c, booking_id)
+            q.cancel_by_guest(c, booking_id, "voucher")
         else:
             q.give_up_for_voucher(c, booking_id, seats)
         voucher_id, code, last_valid_date = vouchers.issue(
@@ -291,6 +334,42 @@ def voucher(session_id: int, booking_id: int, reference_: str, seats: int, versi
                                       last_valid_date)
         outbox.send(c, b.email, subject, body, booking_id=booking_id, change_id=change_id)
         q.insert_key(c, key, session_id, VOUCHER_ENDPOINT, h, change_id)
+        return outcome(c, change_id)
+
+    return db.run(work)
+
+
+# ------------------------------------------------------------------ cancel a Whole-sauna booking (FR-33)
+
+
+def whole_cancel(session_id: int, booking_id: int, reference_: str, remedy: str, version: int, key: uuid.UUID) -> dict:
+    """Cancel a Whole-sauna booking for a `refund` (each part back the way it was paid) or a `voucher` (one Voucher of
+    the full total, valid one year). Returns the Change serializer; a repeat of a known key returns the first outcome
+    and writes nothing (no second refund or Voucher)."""
+    h = whole_cancel_hash(reference_, remedy, version)
+
+    def work(c):
+        b = _locked(c, session_id, booking_id, [], key, WHOLE_CANCEL_ENDPOINT, h, kind="whole")
+        if isinstance(b, dict):
+            return b  # a repeat: the first outcome
+        _refuse_unless_current(c, b, booking_id, None, version)
+        _refuse_after_cutoff(c, b)
+
+        q.cancel_by_guest(c, booking_id, remedy)  # AD-23's write order: the status first,
+        wq.delete_capacity(c, booking_id)  # then the capacity row
+        if remedy == "refund":
+            change_id = history.record(c, booking_id, "cancel")  # no Voucher: the remedy is a refund
+            returned = payment.refund(c, booking_id)
+            card_ore, v = returned["card_ore"], returned["voucher"]
+            voucher = None if v is None else (v["code"], v["value_ore"], v["last_valid_date"])
+        else:
+            voucher_id, code, last = vouchers.issue(c, booking_id, b.total_ore)  # one year (AD-30)
+            change_id = history.record(c, booking_id, "cancel", voucher_id=voucher_id)
+            bq.insert_payment(c, booking_id, "refund", "voucher", b.total_ore, voucher_id)  # no card row (AD-31)
+            card_ore, voucher = 0, (code, b.total_ore, last)
+        subject, body = cancellation_email(booking_service.facts(c, booking_id), vq.venue_facts(c), card_ore, voucher)
+        outbox.send(c, b.email, subject, body, booking_id=booking_id, change_id=change_id)
+        q.insert_key(c, key, session_id, WHOLE_CANCEL_ENDPOINT, h, change_id)
         return outcome(c, change_id)
 
     return db.run(work)

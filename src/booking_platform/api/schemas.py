@@ -99,6 +99,15 @@ class VoucherIn(Strict):
     version: Int4
 
 
+class WholeCancelIn(Strict):
+    """`POST /api/manage/{reference}/whole/cancel` (FR-33, AD-28, AD-31): the remedy (`refund` or `voucher`) and the
+    Booking's `version` as the page read it. A missing or unknown remedy is a shape error (`422 invalid_input`);
+    another version is `409 booking_changed`."""
+
+    remedy: Literal["refund", "voucher"]
+    version: Int4
+
+
 # A typed Voucher code: any JSON string up to 1024 characters for the shape; whether it is a code is
 # `services.voucher`'s question (`409 voucher_invalid`), never a shape error (AD-30). It is never stripped (also
 # inside `BookingIn`), so input longer than 32 characters stays too long however much of it is spaces.

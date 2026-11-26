@@ -23,7 +23,9 @@ from zoneinfo import ZoneInfo
 import psycopg
 
 from .. import config, db
+from ..db import bookings as bq
 from ..db import manage as q
+from ..db import vouchers as vq
 from . import content, history, outbox, reference, sessions, voucher
 from .errors import Refused
 
@@ -93,9 +95,10 @@ def booking_now(c: psycopg.Connection, booking_id: int) -> dict:
     if row is None:
         raise Refused("not_found")
     (ref, seats, window_id, date, start, end, total, status, version, allowed, cutoff_at, cancelled_at, tz_name, kind,
-     sauna_id, sauna_name) = row
+     sauna_id, sauna_name, cancel_remedy) = row
     tz = ZoneInfo(tz_name)
-    return {
+    whole = kind == "whole"
+    out = {
         "reference": ref,
         "kind": kind,
         "seats": seats,
@@ -108,17 +111,34 @@ def booking_now(c: psycopg.Connection, booking_id: int) -> dict:
         "change_allowed": allowed,
         "cutoff_at": cutoff_at.astimezone(tz).isoformat(),
         "cancelled_at": None if cancelled_at is None else cancelled_at.astimezone(tz).isoformat(),
+        "cancel_remedy": cancel_remedy,
         "history": history.of_booking(c, booking_id, tz),
-        # what a Voucher issued from the Booking now would be valid through (the give-up step states it)
-        "voucher_last_valid_date": voucher.next_last_valid_date(c, booking_id).isoformat(),
+        # what a Voucher issued from the Booking now would be valid through (the give-up step and the Whole-sauna
+        # cancel step state it): a Whole-sauna booking's Voucher remedy is always one year (AD-31)
+        "voucher_last_valid_date": (vq.a_year_ahead(c) if whole
+                                    else voucher.next_last_valid_date(c, booking_id)).isoformat(),
     }
+    if whole and status == "active":
+        out["refund_split"] = refund_split(c, booking_id)
+    return out
+
+
+def refund_split(c: psycopg.Connection, booking_id: int) -> dict:
+    """What a refund of the active Whole-sauna booking would return now (AD-31), computed here so no browser clock
+    decides it: `{card_ore, voucher_ore, voucher_last_valid_date}` (the date null without a Voucher part). No code."""
+    voucher_ore, card_ore = bq.charges(c, booking_id)
+    last = vq.refund_last_valid_date(c, booking_id) if voucher_ore > 0 else None
+    return {"card_ore": card_ore, "voucher_ore": voucher_ore,
+            "voucher_last_valid_date": None if last is None else last.isoformat()}
 
 
 def read(booking_id: int) -> dict:
     """The Booking as the Manage page shows it: the AD-23 serializer (`kind`, `seats`, `sauna`, `window`,
     `total_ore`, `status`) plus `reference`, `version`, `change_allowed` (the SQL predicate), `cutoff_at`,
-    `cancelled_at` (null while active, Story 4.3), `history` (`services.history`) and `voucher_last_valid_date` (what a
-    Voucher issued from it now would be valid through, `services.voucher.next_last_valid_date`). A cancelled Booking
+    `cancelled_at` (null while active, Story 4.3), `cancel_remedy` (Story 5.3), `history` (`services.history`) and
+    `voucher_last_valid_date` (what a Voucher issued from it now would be valid through,
+    `services.voucher.next_last_valid_date`; one year for a Whole-sauna booking); an active Whole-sauna booking also
+    has `refund_split` (Story 5.3). A cancelled Booking
     still reads; its page offers no Change. Times are ISO strings in Venue time. Reads only."""
     return db.run(lambda c: booking_now(c, booking_id))
 

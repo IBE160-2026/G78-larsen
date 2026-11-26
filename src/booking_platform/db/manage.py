@@ -76,12 +76,12 @@ def purge(c: psycopg.Connection) -> int:
 
 def booking(c: psycopg.Connection, booking_id: int) -> tuple | None:
     """(reference, seats, window id, venue date, start, end, total_ore, status, version, change_allowed, cutoff_at,
-    cancelled_at, venue_tz, kind, sauna_id, sauna name) of a Booking as it is now. Times are timestamptz; the date is
+    cancelled_at, venue_tz, kind, sauna_id, sauna name, cancel_remedy) of a Booking as it is now. Times are timestamptz; the date is
     the Venue date the Window starts on. The Sauna id and name are NULL for a Seat booking (AD-23, AD-25)."""
     return c.execute(
         "SELECT b.reference, b.seats, w.id, venue_date(w.id), lower(w.during), upper(w.during), b.total_ore, "
         "b.status, b.version, change_allowed(b.id), lower(w.during) - b.cutoff, b.cancelled_at, st.venue_tz, "
-        "b.kind, s.id, s.name "
+        "b.kind, s.id, s.name, b.cancel_remedy "
         "FROM bookings b JOIN windows w ON w.id = b.window_id CROSS JOIN settings st "
         "LEFT JOIN saunas s ON s.id = b.sauna_id WHERE b.id = %s",
         (booking_id,)).fetchone()

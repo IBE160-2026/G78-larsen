@@ -177,7 +177,7 @@ def test_the_history_and_payment_shapes_of_a_voucher(before_cutoff, pg):
                   (1, None, 2, vid, None), (1, None, None, vid, other)):
         _refused_by(pg, "booking_changes_voucher_shape", ins, (bid, "voucher", *shape))
     _refused_by(pg, "booking_changes_move_shape", ins, (bid, "move", 1, 1, 2, vid, None))
-    _refused_by(pg, "booking_changes_action_known", ins, (bid, "cancel", None, None, None, vid, None))
+    _refused_by(pg, "booking_changes_action_known", ins, (bid, "gift", None, None, None, vid, None))  # 0014 adds `cancel`
     pg.execute(ins, (bid, "voucher", 1, None, None, vid, None))
     pg.execute(ins, (bid, "move", 1, 1, 2, None, None))
     pg.commit()

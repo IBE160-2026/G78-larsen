@@ -6,7 +6,9 @@
 - `router`: every route reached through a grant lives under `/api/manage/{reference}`, behind the one dependency
   `require_grant`. No grant, no session, another Booking and an unknown reference are all `404 not_found`; a Manage
   route never answers `401`. `POST …/seats/move` is the Seat move (FR-26, AD-29) and `POST …/seats/voucher` the
-  Voucher instead of Seats (FR-27, AD-29, AD-30); both need an `Idempotency-Key` (AD-9).
+  Voucher instead of Seats (FR-27, AD-29, AD-30); `POST …/whole/cancel` cancels a Whole-sauna booking for a refund
+  or a Voucher (FR-33, AD-31). Each needs an `Idempotency-Key` (AD-9); a route of the other kind of Booking is `404
+  not_found` (AD-28).
 """
 
 from __future__ import annotations
@@ -18,7 +20,7 @@ from fastapi import APIRouter, Depends, Header, Request, Response
 
 from ..services import change, manage, sessions
 from .deps import COOKIE, current_session, set_session_cookie
-from .schemas import ManageOpenIn, MoveIn, VoucherIn
+from .schemas import ManageOpenIn, MoveIn, VoucherIn, WholeCancelIn
 
 open_router = APIRouter(prefix="/api/manage", redirect_slashes=False)
 
@@ -62,3 +64,13 @@ def give_up_seats(reference: str, body: VoucherIn,
     """Give up some or all Seats for a Voucher (FR-27); all Seats cancel the Booking. The grant is checked again inside
     the transaction. A repeat with the same key from the same session returns the first outcome (no second Voucher)."""
     return change.voucher(s.id, booking_id, reference, body.seats, body.version, idempotency_key)
+
+
+@router.post("/whole/cancel")
+def cancel_whole(reference: str, body: WholeCancelIn,
+                 idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
+                 booking_id: int = Depends(require_grant), s: sessions.Session | None = Depends(current_session)):
+    """Cancel a Whole-sauna booking for a refund or a Voucher (FR-33). The grant is checked again inside the
+    transaction. A repeat with the same key from the same session returns the first outcome (no second refund or
+    Voucher)."""
+    return change.whole_cancel(s.id, booking_id, reference, body.remedy, body.version, idempotency_key)
