@@ -266,3 +266,4 @@
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — `booking-platform dev` oppretter ikke `booking_dev` når `BP_DATABASE_URL` er overstyrt (DB_PORT=56432); må opprettes for hånd
 - [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — implementer kalender-pickeren i bookinglisten etter `spec-booking-list-date-picker.md` (ready-for-dev) (løst 2026-11-26)
 - [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — avgjør om `frontend/AGENTS.md` (skrevet av `next dev`) skal committes (løst 2026-11-26)
+- [ ] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — merge PR #27 (Story 5.3 del 1) før PR #28 (kalenderen, stablet på #27)

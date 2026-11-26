@@ -54,3 +54,20 @@ Vise kalenderen i nettleseren, og deretter rette den trange månedslinjen i pop-
 
 ### Åpne punkter
 - Port 55432 er reservert av Windows på denne maskinen. Stacken må startes med `$env:DB_PORT=56432`, eller README/compose-standarden bør endres.
+
+## 2026-11-26 kl. 18:45 — Lisa Larsen
+
+### Oppgave
+Pushe branchen og lage PR.
+
+### Plan
+- `feat/booking-list-date-picker` ble laget fra `feat/5-3-cancel-private-sauna`, og Story 5.3 del 1 var verken på origin eller i main. Lisa valgte to stablede PR-er.
+
+### Resultat
+- Pushet `feat/5-3-cancel-private-sauna` og `feat/booking-list-date-picker` til origin.
+- PR #27: https://github.com/IBE160-2026/G78-larsen/pull/27 – Story 5.3 del 1 mot `main`.
+- PR #28: https://github.com/IBE160-2026/G78-larsen/pull/28 – kalenderen, base `feat/5-3-cancel-private-sauna`. Når #27 merges, flytter GitHub basen til `main`.
+
+### Åpne punkter
+- PR #27 (Story 5.3 del 1): kodereview er ikke kjørt, og specen står som `in-review`. Punktet finnes alt i `issues.md`.
+- Merge #27 før #28.
