@@ -94,3 +94,31 @@ Kjøre kodereviewen av Story 5.3 del 1, som var oppført som åpent punkt.
 
 ### Åpne punkter
 - Ingen nye. Story 5.3 del 2 (flytting) står alt i `deferred-work.md` og `issues.md`.
+
+## 2026-11-26 kl. 19:12 — Lisa Larsen
+
+### Oppgave
+Fortsette med Story 5.3 del 2 (flytte en Private sauna), og avgjøre om arbeidet skal starte fra `feat/5-3-cancel-private-sauna` eller fra en ny gren fra `main`. Lisa valgte å godkjenne specen og stoppe før implementering.
+
+### Plan
+- Valg av gren: `feat/5-3-cancel-private-sauna` var allerede merget gjennom PR #27 og hadde ingen egne commits, mens `main` også hadde PR #28. Ny gren `feat/5-3-move-private-sauna` ble derfor laget fra `main`, sammen med de to lokale logg-commitene fra `chore/logg-2026-11-26` (`2d2dde8`, `ecbe9e7`).
+- `bmad-build` steg 1–2 og sjekkpunkt 1, deretter «Godkjenn og stopp». Lisa tillot subagenter for hele kjøringen.
+- `epic-5-context.md` var utdatert fordi EXPERIENCE.md og DESIGN.md var nyere, og ble kompilert på nytt av en subagent. En annen subagent undersøkte koden.
+- Spec: [`spec-5-3-move-a-private-sauna.md`](../../.docs/implementation-artifacts/spec-5-3-move-a-private-sauna.md).
+
+### Resultat
+- `spec-5-3-move-a-private-sauna.md` har status `ready-for-dev` og rute `dispatch`. Den er på omtrent 2800 tokens, og Lisa valgte å beholde den samlet. Den dekker:
+  - `POST /api/manage/{ref}/whole/move` og flyttelisten `GET …/whole/move-list?date=` (med `ignore_booking`);
+  - `price_differs`;
+  - migrasjon 0015, med `move`-formen for en hel badstue og Room-ahead som respekterer `ignore_booking`;
+  - badstuer i historikken (bare for bookinger av hel badstue), endrings-e-posten og flyttesteget på `/manage/[reference]/move-sauna`;
+  - historikklinjen i Booking list og testene.
+- Funn i undersøkelsen: dagens `booking_changes_move_shape` (0012) avviser en flytting av en hel badstue. Epic-konteksten sa feilaktig at ingen migrasjon trengs, og det er rettet i `epic-5-context.md`.
+- Lisas beslutninger (2026-11-26), lagt inn i specens frosne blokk:
+  - Badstuer med en annen pris vises med pris og begrunnelse, men kan ikke velges (alternativ A). Alle fire prisene er ulike, så et badstuebytte gir ellers alltid `price_differs`.
+  - Ordlyden for «Move private sauna» godkjent som foreslått. Den skal føres inn i EXPERIENCE.md under implementeringen.
+  - Specen beholdes samlet.
+- Specen og `epic-5-context.md` er ukommittert på grenen.
+
+### Åpne punkter
+- Implementer Story 5.3 del 2 (flytting) etter den godkjente specen `spec-5-3-move-a-private-sauna.md` (`ready-for-dev`) i en ny `bmad-build`-økt på `feat/5-3-move-private-sauna`.
