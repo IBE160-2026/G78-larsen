@@ -347,6 +347,7 @@ export const BOOKING_LIST = Object.freeze({
   date: 'Date',
   previousDay: 'Previous day',
   nextDay: 'Next day',
+  chooseFromCalendar: 'Choose from calendar', // spec-booking-list-date-picker, Lisa 2026-11-26
   noSessions: 'No sessions on this day', // Lisa, 2026-11-21
   noBookings: 'No bookings',
   soldOut: 'Sold out',

@@ -264,3 +264,7 @@
 - [x] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — kodereview av Story 5.3 del 1 (kansellering) er ikke kjørt (løst 2026-11-26: reviewen var allerede triagert i specen; spec satt til done)
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — port 55432 er i Windows' reserverte portområde (55394–55493); `docker compose up db` feiler uten `DB_PORT`-overstyring eller omstart av winnat
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — `booking-platform dev` oppretter ikke `booking_dev` når `BP_DATABASE_URL` er overstyrt (DB_PORT=56432); må opprettes for hånd
+- [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — implementer kalender-pickeren i bookinglisten etter `spec-booking-list-date-picker.md` (ready-for-dev) (løst 2026-11-26)
+- [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — avgjør om `frontend/AGENTS.md` (skrevet av `next dev`) skal committes (løst 2026-11-26)
+- [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — merge PR #27 (Story 5.3 del 1) før PR #28 (kalenderen, stablet på #27) (løst 2026-11-26: #27 merget, #28 peker mot main)
+- [ ] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — PR #28 (kalendervelgeren i bookinglisten) venter på merge
