@@ -20,3 +20,21 @@ Implementere `spec-5-3-move-a-private-sauna.md` (flytting av en Private sauna gj
 - Kjør hele e2e-suiten på nytt etter at opprydningen i `test_fr33_whole_move.py` ble rettet.
 - Kodereview av Story 5.3 del 2 er ikke kjørt; sett 5-3 til `done` i `sprint-status.yaml` etter review og merge.
 - Flyttelisten kan mangle bookingens egen badstue på egen dato når den badstuen ikke har noen ledig økt (`whole_bookable` vurderer også eget par opp mot Room ahead); steget legger bare til eget par når badstuen er listet.
+
+## 2026-11-26 kl. 21:10 — Lisa Larsen
+
+### Oppgave
+Rette funnene fra koordinatorens review av Story 5.3 del 2.
+
+### Plan
+- Minste endring per funn; kjøre bare testene som dekker de endrede filene.
+
+### Resultat
+- `db/whole.py` `pairs_on`: med `ignore_booking` listes også bookingens eget par, innenfor tidsreglene; ny API-test med Kajo W1 + 18 plasser. Docstringene i `services/{whole,manage}.py` og `ordered()` i `MovePrivateSauna.js` er rettet.
+- `MovePrivateSauna.js`: listen leses på nytt også etter `outside_horizon`/`deadline_passed`; ny dato eller nytt par fjerner en gammel avvisningsmelding. `BookingList.js historyLine` krever `action === 'move'`.
+- e2e: nye tester for `sauna_unavailable`, utdatert versjon (ny nøkkel) og 72-timersgrensen på `/move-sauna`.
+- `epic-5-context.md`: flyttingen er merket som ferdig, og ordlyden står i EXPERIENCE.md.
+- Verifisert: `test_fr33_whole_change.py` + `test_fr29_whole_sauna.py` 65 passert, `test_fr33_whole_move.py` (e2e) 5 passert, frontend-builden er OK.
+
+### Åpne punkter
+- Kjør hele e2e-suiten på nytt (står allerede i `issues.md`).
