@@ -267,4 +267,4 @@
 - [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — implementer kalender-pickeren i bookinglisten etter `spec-booking-list-date-picker.md` (ready-for-dev) (løst 2026-11-26)
 - [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — avgjør om `frontend/AGENTS.md` (skrevet av `next dev`) skal committes (løst 2026-11-26)
 - [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — merge PR #27 (Story 5.3 del 1) før PR #28 (kalenderen, stablet på #27) (løst 2026-11-26: #27 merget, #28 peker mot main)
-- [ ] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — PR #28 (kalendervelgeren i bookinglisten) venter på merge
+- [x] 2026-11-26 [booking-list-date-picker](942-2026-11-26-17-58-57-booking-list-date-picker.md) — PR #28 (kalendervelgeren i bookinglisten) venter på merge (løst 2026-11-26: merget som 442cd02)
