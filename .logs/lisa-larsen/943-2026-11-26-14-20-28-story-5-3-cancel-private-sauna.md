@@ -48,3 +48,18 @@ Implementere Story 5.3 del 1 (kansellere en Private sauna) etter den godkjente s
 ### Åpne punkter
 - Kodereview av Story 5.3 del 1 er ikke kjørt.
 - Port 55432 (dev-databasen) ligger i Windows' reserverte portområde på denne maskinen; `docker compose up db` feiler uten `DB_PORT`-overstyring (eller `net stop winnat`/`net start winnat` som administrator).
+
+## 2026-11-26 kl. 17:35 — Lisa Larsen
+
+### Oppgave
+Kjøre hele e2e-suiten (`uv run pytest tests/e2e`) på `feat/5-3-cancel-private-sauna`, og finne testen som eventuelt henger.
+
+### Plan
+- Kjøre suiten; stoppe og kjøre `test_fr23_keyboard_and_zoom.py` alene med `-x -v` hvis den ble stående.
+
+### Resultat
+- 207 passert på 23:48 (exit 0). `test_fr33_whole_cancel.py` (4) og `test_fr30_private_sauna.py` (11) grønne.
+- `test_fr23_keyboard_and_zoom.py` var treg, men hang ikke (5 passert), så det var ikke nødvendig å stoppe kjøringen og kjøre den alene.
+
+### Åpne punkter
+Ingen.
