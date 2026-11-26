@@ -13,7 +13,7 @@ Få en kalender-picker (pop-up) i Administrators bookingliste, så datoen kan ve
 - Story 5.3 del 1 committet: `49b04632f9861d6385229b0aa4f84a24ba6501f2` (28 filer). `frontend/AGENTS.md`, som `next dev` skrev, ble holdt utenfor og er fortsatt utracket.
 - Spec skrevet og godkjent (`ready-for-dev`, ukommittert på `feat/booking-list-date-picker`). Beslutning (Lisa): sidens egen pop-up-kalender, ikke nettleserens native datovelger. Knappen «Choose from calendar» ved datofeltet; alle dager valgbare, også bakover; valget går via `?date=` som en skrevet dato; ny komponent `DayPickerPopup.js`; ingen API-endring, ingen markering av dager med bookinger.
 - Backend (8001) og frontend (3000) fra forrige del av økten kjører fortsatt i bakgrunnen.
+- Kl. 18:03: Lisa valgte å committe `frontend/AGENTS.md` (Next.js-agentregler; `next dev` lager den på nytt om den slettes) sammen med specen: commit `12cbb65`. Åpent punkt om AGENTS.md lukket i `issues.md`.
 
 ### Åpne punkter
 - Implementer kalender-pickeren etter `spec-booking-list-date-picker.md` i en ny `bmad-build`-økt.
-- Avgjør om `frontend/AGENTS.md` (skrevet av `next dev`) skal committes.
