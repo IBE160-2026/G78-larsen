@@ -263,3 +263,4 @@
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — Story 5.3 del 2: spec og implementering av flytting av en Private sauna (`…/whole/move`, `price_differs`, flytteliste med `ignore_booking`); står i `deferred-work.md`
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — kodereview av Story 5.3 del 1 (kansellering) er ikke kjørt
 - [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — port 55432 er i Windows' reserverte portområde (55394–55493); `docker compose up db` feiler uten `DB_PORT`-overstyring eller omstart av winnat
+- [ ] 2026-11-26 [story-5-3-cancel-private-sauna](943-2026-11-26-14-20-28-story-5-3-cancel-private-sauna.md) — `booking-platform dev` oppretter ikke `booking_dev` når `BP_DATABASE_URL` er overstyrt (DB_PORT=56432); må opprettes for hånd

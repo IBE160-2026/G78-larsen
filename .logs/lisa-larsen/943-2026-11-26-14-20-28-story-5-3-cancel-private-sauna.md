@@ -63,3 +63,18 @@ Kjøre hele e2e-suiten (`uv run pytest tests/e2e`) på `feat/5-3-cancel-private-
 
 ### Åpne punkter
 Ingen.
+
+## 2026-11-26 kl. 17:50 — Lisa Larsen
+
+### Oppgave
+Starte appen lokalt (backend + frontend) så Lisa kan teste kansellering av en Private sauna i nettleseren.
+
+### Plan
+- Utviklingsoppsettet fra README («Utvikling uten Docker for backend og frontend»), med databasen på port 56432 fordi 55432 er reservert av Windows.
+
+### Resultat
+- `db`-containeren kjørte allerede på `127.0.0.1:56432`. `booking_dev` fantes ikke der og blir bare opprettet automatisk med standard-URL-en, så den ble opprettet manuelt (`CREATE DATABASE booking_dev`). Deretter migrerte og seedet `uv run booking-platform dev` den.
+- Backend på `http://127.0.0.1:8001` (`BP_DATABASE_URL=…@127.0.0.1:56432/booking_dev`), frontend på `http://127.0.0.1:3000`. `/api/health` svarer 200 både direkte og gjennom Next.js.
+
+### Åpne punkter
+- `booking-platform dev` oppretter ikke `booking_dev` når `BP_DATABASE_URL` er overstyrt (f.eks. til port 56432 på grunn av Windows' reserverte portområde); da må databasen opprettes for hånd.
