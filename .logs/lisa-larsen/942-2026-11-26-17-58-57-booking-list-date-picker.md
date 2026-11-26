@@ -50,7 +50,7 @@ Vise kalenderen i nettleseren, og deretter rette den trange månedslinjen i pop-
 - `docker compose up` feilet fordi Windows har reservert port 55432 (portområdet 55394–55493). Stacken ble startet med `DB_PORT=56432`, uten endringer i filer. Den kjører på https://localhost:8443.
 - `frontend/app/styles.css`: `.date-pop .cal-head` er en kolonne, og `.cal-month` og månedsknappene har `white-space: nowrap`. Verifisert visuelt med skjermbilde på 1366 px.
 - `tests/e2e/test_fr16_booking_list.py`: `assert_on_one_line` (teller linjene i tekstens client rects) brukes for månedsnavnet og begge månedsknappene. `npm --prefix frontend run build` går gjennom, og fr16 + fr23 gir 35 passed.
-- Kodeendringen er ikke committet (Lisa har ikke bedt om det).
+- Lisa testet i nettleseren og godkjente. Committet som `c29af86` (ikke pushet).
 
 ### Åpne punkter
 - Port 55432 er reservert av Windows på denne maskinen. Stacken må startes med `$env:DB_PORT=56432`, eller README/compose-standarden bør endres.
