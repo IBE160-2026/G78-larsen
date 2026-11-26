@@ -78,3 +78,19 @@ Starte appen lokalt (backend + frontend) så Lisa kan teste kansellering av en P
 
 ### Åpne punkter
 - `booking-platform dev` oppretter ikke `booking_dev` når `BP_DATABASE_URL` er overstyrt (f.eks. til port 56432 på grunn av Windows' reserverte portområde); da må databasen opprettes for hånd.
+
+## 2026-11-26 kl. 18:48 — Lisa Larsen
+
+### Oppgave
+Kjøre kodereviewen av Story 5.3 del 1, som var oppført som åpent punkt.
+
+### Plan
+- Sjekket først specen. Review Triage Log var allerede fylt ut med 15 funn (4 rettet, 11 avvist), og rettelsene ligger i `49b0463`: `test_after_the_72_hour_cutoff_the_pages_give_the_reason` finnes, og `cancel_for_voucher` og `MANAGE.seatHours` er fjernet. Reviewen ble altså kjørt før commit, men loggen og `issues.md` ble ikke oppdatert.
+- Lisa valgte å avslutte den eksisterende reviewen i stedet for å kjøre en ny.
+
+### Resultat
+- `spec-5-3-cancel-a-private-sauna.md` er satt til `done` (commit `53e12ef`). `sprint-status.yaml` står fortsatt på `in-progress` for 5.3, fordi del 2 (flytting) gjenstår.
+- Det åpne punktet om kodereview er lukket i `issues.md`.
+
+### Åpne punkter
+- Ingen nye. Story 5.3 del 2 (flytting) står alt i `deferred-work.md` og `issues.md`.
