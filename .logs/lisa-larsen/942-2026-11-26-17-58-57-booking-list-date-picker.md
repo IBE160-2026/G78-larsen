@@ -71,3 +71,19 @@ Pushe branchen og lage PR.
 ### Åpne punkter
 - PR #27 (Story 5.3 del 1): kodereview er ikke kjørt, og specen står som `in-review`. Punktet finnes alt i `issues.md`.
 - Merge #27 før #28.
+
+## 2026-11-26 kl. 18:51 — Lisa Larsen
+
+### Oppgave
+Merge PR #27 (Story 5.3 del 1).
+
+### Plan
+- Sjekket først at PR-en kunne merges: `MERGEABLE`/`CLEAN`, ingen CI-sjekker. Merget med merge-commit som de tidligere PR-ene og beholdt branchen.
+
+### Resultat
+- PR #27 er merget til `main`: `82331533b1e24c975e3cfbe571f9ec0fe5e31b0a`.
+- PR #28 har fått basen flyttet til `main` (`gh pr edit 28 --base main`). Status `MERGEABLE`/`CLEAN`, 12 filer: kalenderen pluss logger.
+- Punktet om merge-rekkefølgen er lukket i `issues.md`.
+
+### Åpne punkter
+- PR #28 (kalenderen) er åpen og venter på merge.
