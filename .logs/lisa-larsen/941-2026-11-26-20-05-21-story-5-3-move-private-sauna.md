@@ -105,3 +105,20 @@ Kjøre full e2e på main med en underagent, for å avgjøre om fr30-feilene fant
 
 ### Åpne punkter
 - Gjør datoutvalget i e2e robust (står allerede i `issues.md`, nå bekreftet på main).
+
+## 2026-11-26 kl. 22:58 — Lisa Larsen
+
+### Oppgave
+Endre Cutoff-teksten på Manage booking-siden til «This booking can no longer be changed. Changes are only possible until 72 hours before the session starts.» og ta bort «, and that was {dato} at {tid}», som kunne misforstås.
+
+### Plan
+- Endre den felles funksjonen `MANAGE.cutoffPassed` i `lib/copy.js` på 5.3-grenen (PR #29), fordi flyttesteget der også bruker den.
+
+### Resultat
+- Teksten har ikke lenger dato og klokkeslett, og har fått «only». Endringen gjelder både setebookinger (12 timer) og Private sauna (72 timer), på Manage-siden, i alle Change-stegene og i avvisningen `cutoff_passed`.
+- Kallene i `ManageBooking`, `MoveSeats`, `GiveUpSeats`, `CancelPrivateSauna` og `MovePrivateSauna` er oppdatert. e2e-mønstrene (fr25, `CUTOFF_72`), EXPERIENCE.md og `epic-5-context.md` er oppdatert.
+- Verifisert: frontend-builden er OK. e2e fr25, fr26, fr27 og fr33 (cancel og move) ga 21 passert. Dev-stakken er bygget på nytt.
+- Committet som `c93abf1` (ikke pushet).
+
+### Åpne punkter
+- Ingen nye.
