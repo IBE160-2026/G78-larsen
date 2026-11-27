@@ -3,7 +3,7 @@
 // Booking gets it.
 import CancelPrivateSauna from '@/components/CancelPrivateSauna';
 
-export const metadata = { title: 'Cancel private sauna' };
+export const metadata = { title: 'Cancel booking' };
 
 export default async function CancelPrivateSaunaPage({ params }) {
   const { reference } = await params;

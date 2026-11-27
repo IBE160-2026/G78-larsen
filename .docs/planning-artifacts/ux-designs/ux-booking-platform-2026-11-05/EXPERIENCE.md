@@ -304,11 +304,11 @@ Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every
 
 **Cancel private sauna wording, accepted by Lisa as proposed (2026-11-26, Story 5.3, FR-33)**
 
-The cancel half of Story 5.3; the move has its own wording below, and the Manage page of a Private sauna offers "Move private sauna" beside "Cancel private sauna". Refusals reuse the move step's texts (Story 4.2). No page states a Voucher code: it is only in the email.
+The cancel half of Story 5.3; the move has its own wording below, and the Manage page of a Private sauna offers "Move booking" beside "Cancel booking" (Lisa changed both from "… private sauna" on 2026-11-26: the page already names the Sauna, and the repeated words made the two buttons hard to tell apart). Refusals reuse the move step's texts (Story 4.2). No page states a Voucher code: it is only in the email.
 
 | Text | Where |
 |---|---|
-| "Cancel private sauna" | Manage page of an active Private sauna before its Cutoff, the link to the cancel step (shown as a Primary button, as the Seat Changes); the step's title is "Cancel private sauna – Saunalöyly" and its `h1` "Cancel private sauna" |
+| "Cancel booking" | Manage page of an active Private sauna before its Cutoff, the link to the cancel step (shown as a Primary button, as the Seat Changes); the step's title is "Cancel booking – Saunalöyly" and its `h1` "Cancel booking" (the confirm button has the same text) |
 | "You can change this booking until {long date} at {HH:MM}." | Manage page of a Private sauna before its Cutoff (the existing text) |
 | "This booking can no longer be changed. Changes are possible until 72 hours before the session starts, and that was {long date} at {HH:MM}." | Manage page and cancel step of a Private sauna after its Cutoff, and the `cutoff_passed` reason |
 | "What do you want back?" with "A refund" (hint "Paid back the way you paid.") and "A voucher" (hint "A voucher for the full NOK {total}, valid for one year.") | Cancel step, a radio group in a fieldset with that legend; nothing is chosen first |
@@ -326,7 +326,7 @@ The move half of Story 5.3, built like Move seats (Story 4.2) and the cancel abo
 
 | Text | Where |
 |---|---|
-| "Move private sauna" | Manage page of an active Private sauna before its Cutoff, the link to the move step (a Primary button beside "Cancel private sauna"); the step's title is "Move private sauna – Saunalöyly" and its `h1` "Move private sauna" |
+| "Move booking" | Manage page of an active Private sauna before its Cutoff, the link to the move step (a Primary button beside "Cancel booking"); the step's title is "Move booking – Saunalöyly" and its `h1` "Move booking" (the confirm button has the same text) |
 | "1. Choose a date" | Move step, the Date calendar |
 | "2. Choose a sauna and a session" | Move step, the legend of the one radio group of Sauna cards; the Booking's own Sauna first |
 | "Your sauna" | Move step, the label on the Booking's own Sauna card |

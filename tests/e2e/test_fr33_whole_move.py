@@ -1,7 +1,7 @@
 """FR-33 / AD-24 / AD-29 (Story 5.3, part 2) in the compose stack, over HTTPS: a Guest moves a Private sauna through the
 Manage page with the keyboard alone (every key through `a11y.press` / `a11y.tab_to`).
 
-The Manage page of a Whole-sauna booking offers "Move private sauna" beside "Cancel private sauna". The step asks
+The Manage page of a Whole-sauna booking offers "Move booking" beside "Cancel booking". The step asks
 "1. Choose a date" and "2. Choose a sauna and a session": the Booking's own Sauna comes first as "Your sauna", its own
 pair a disabled button "Your current session"; a Sauna at another price (all four seeded prices differ) shows its
 price and why it cannot be chosen, with no session buttons. Once a pair is chosen, "What will happen" states From, To
@@ -78,13 +78,13 @@ def _when(sauna: str, w: dict) -> str:
 
 
 def _open_step_by_keyboard(page: Page, base_url: str, reference: str) -> None:
-    link = page.get_by_role("link", name="Move private sauna")
+    link = page.get_by_role("link", name="Move booking")
     link.wait_for()  # the Manage page has read the Booking
     page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")
     a11y.tab_to(page, link)
     a11y.press(page, "Enter")
     page.wait_for_url(f"{base_url}/manage/{reference}/move-sauna")
-    page.get_by_role("heading", level=1, name="Move private sauna").wait_for()
+    page.get_by_role("heading", level=1, name="Move booking").wait_for()
     page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")
 
 
@@ -116,12 +116,12 @@ def test_a_guest_moves_a_private_sauna_with_the_keyboard_alone(page: Page, brows
     before = _state(db, reference)
     assert before[:4] == ("active", 0, current["id"], kajo["id"])
     # the Manage page offers both Changes
-    assert page.get_by_role("link", name="Cancel private sauna").count() == 1
-    assert page.get_by_role("link", name="Move private sauna").count() == 1
+    assert page.get_by_role("link", name="Cancel booking").count() == 1
+    assert page.get_by_role("link", name="Move booking").count() == 1
     a11y.check_axe(page)
 
     _open_step_by_keyboard(page, base_url, reference)
-    assert page.title() == "Move private sauna – Saunalöyly"
+    assert page.title() == "Move booking – Saunalöyly"
     key = _slot(page, reference)
     assert key and re.fullmatch(r"[0-9a-f-]{36}", key)
     assert "1. Choose a date" in _norm(page.locator("main").inner_text())
@@ -333,9 +333,9 @@ def test_after_the_72_hour_cutoff_the_move_step_gives_the_reason(page: Page, bas
         try:
             _open_manage(page, base_url, paid)  # the link again: the grant was idle across the shift
             page.locator(".notice").wait_for()
-            assert page.get_by_role("link", name="Move private sauna").count() == 0
+            assert page.get_by_role("link", name="Move booking").count() == 0
             page.goto(f"{base_url}/manage/{reference}/move-sauna")
-            page.get_by_role("heading", level=1, name="Move private sauna").wait_for()
+            page.get_by_role("heading", level=1, name="Move booking").wait_for()
             notice = page.locator(".notice", has_text="can no longer be changed")
             notice.wait_for()
             assert CUTOFF_72.fullmatch(_norm(notice.inner_text())), notice.inner_text()

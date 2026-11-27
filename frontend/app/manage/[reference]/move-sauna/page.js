@@ -3,7 +3,7 @@
 // Booking gets it.
 import MovePrivateSauna from '@/components/MovePrivateSauna';
 
-export const metadata = { title: 'Move private sauna' };
+export const metadata = { title: 'Move booking' };
 
 export default async function MovePrivateSaunaPage({ params }) {
   const { reference } = await params;

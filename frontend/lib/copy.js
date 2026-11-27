@@ -187,9 +187,9 @@ export const MANAGE = Object.freeze({
     `This booking was cancelled on ${longDate} at ${time}. You gave up all seats for a voucher, which was sent by email.`,
   // Story 5.3 (Lisa, 2026-11-26, EXPERIENCE.md "Cancel private sauna wording"): the link to the cancel step of a Private
   // sauna, and the page of a cancelled one.
-  cancelPrivateSauna: 'Cancel private sauna',
+  cancelPrivateSauna: 'Cancel booking',
   // Story 5.3 part 2 (Lisa, 2026-11-26, EXPERIENCE.md "Move private sauna wording"): the link to the move step.
-  movePrivateSauna: 'Move private sauna',
+  movePrivateSauna: 'Move booking',
   cancelledWhole: (longDate, time, remedy) =>
     `This booking was cancelled on ${longDate} at ${time}. You chose ${remedy === 'refund' ? 'a refund' : 'a voucher'}, which was sent by email.`,
 });
@@ -244,7 +244,7 @@ export const VOUCHER = Object.freeze({
 // Cancel private sauna (FR-33, Story 5.3): the confirming step and its result. Verbatim from Lisa's decisions of
 // 2026-11-26 (EXPERIENCE.md "Cancel private sauna wording"). Refusals reuse the move texts (`moveRefusal`).
 export const CANCEL_WHOLE = Object.freeze({
-  heading: 'Cancel private sauna',
+  heading: 'Cancel booking',
   back: 'Back',
   remedyQuestion: 'What do you want back?',
   refund: 'A refund',
@@ -271,7 +271,7 @@ export const CANCEL_WHOLE = Object.freeze({
 // Move private sauna (FR-33, Story 5.3 part 2): the confirming step and its result. Verbatim from Lisa's decisions of
 // 2026-11-26 (EXPERIENCE.md "Move private sauna wording"). Refusals: `wholeMoveRefusal`.
 export const MOVE_WHOLE = Object.freeze({
-  heading: 'Move private sauna',
+  heading: 'Move booking',
   back: 'Back',
   dateQuestion: '1. Choose a date',
   pairQuestion: '2. Choose a sauna and a session',
