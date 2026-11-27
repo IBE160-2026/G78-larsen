@@ -172,9 +172,10 @@ export const CONFIRMATION = Object.freeze({
 export const MANAGE = Object.freeze({
   heading: 'Manage booking',
   untilText: (longDate, time) => `You can change this booking until ${longDate} at ${time}.`,
-  // The reason for the refusal `cutoff_passed` (fact `cutoff_at`), and the page's text after the Cutoff.
-  cutoffPassed: (longDate, time, hours = 12) =>
-    `This booking can no longer be changed. Changes are possible until ${hours} hours before the session starts, and that was ${longDate} at ${time}.`,
+  // The reason for the refusal `cutoff_passed`, and the page's text after the Cutoff. It states no date: "and that was
+  // {date} at {time}" was dropped because it could be misread (Lisa, 2026-11-26).
+  cutoffPassed: (hours = 12) =>
+    `This booking can no longer be changed. Changes are only possible until ${hours} hours before the session starts.`,
   // The Cutoff of a Private sauna, in hours (`cutoffPassed`'s third argument; a Seat booking's 12 is the default).
   wholeHours: 72,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".

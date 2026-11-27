@@ -87,10 +87,9 @@ def test_after_the_cutoff_the_page_gives_the_approved_reason(page: Page, base_ur
         try:
             open_manage_link(page, base_url, link)
             notice = page.locator(".notice")
-            assert re.fullmatch(
-                r"This booking can no longer be changed\. Changes are possible until 12 hours before the session "
-                r"starts, and that was \w+day \d{1,2} \w+ \d{4} at \d\d:\d\d\.", notice.inner_text().strip()), (
-                notice.inner_text())
+            assert notice.inner_text().strip() == (
+                "This booking can no longer be changed. Changes are only possible until 12 hours before the session "
+                "starts."), notice.inner_text()
             assert page.locator(".manage-until").count() == 0
             assert page.get_by_role("link", name="Move seats").count() == 0  # no Change offered (Story 4.2)
             a11y.check_axe(page)

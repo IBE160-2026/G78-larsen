@@ -335,8 +335,8 @@ def test_a_stale_version_renews_the_step_with_a_new_key(page: Page, base_url, db
     assert _state(db, reference) == ("cancelled", 2, 0, 1, 0)
 
 
-CUTOFF_72 = re.compile(r"This booking can no longer be changed\. Changes are possible until 72 hours before the "
-                       r"session starts, and that was \w+day \d{1,2} \w+ \d{4} at \d\d:\d\d\.")
+CUTOFF_72 = re.compile(r"This booking can no longer be changed\. Changes are only possible until 72 hours before the "
+                       r"session starts\.")
 
 
 def test_after_the_72_hour_cutoff_the_pages_give_the_reason(page: Page, base_url, stack):

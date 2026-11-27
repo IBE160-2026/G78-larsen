@@ -102,7 +102,7 @@ export default function ManageBooking({ reference }) {
                 </ul>
               </>
             ) : (
-              <Notice>{MANAGE.cutoffPassed(cutoffDate, cutoffTime, MANAGE.wholeHours)}</Notice>
+              <Notice>{MANAGE.cutoffPassed(MANAGE.wholeHours)}</Notice>
             )}
           </>
         )}
@@ -128,7 +128,7 @@ export default function ManageBooking({ reference }) {
                 )}
               </>
             ) : (
-              <Notice>{MANAGE.cutoffPassed(cutoffDate, cutoffTime)}</Notice>
+              <Notice>{MANAGE.cutoffPassed()}</Notice>
             )}
           </>
         )}

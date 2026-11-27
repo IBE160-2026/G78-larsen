@@ -234,7 +234,7 @@ export default function MoveSeats({ reference }) {
     );
   }
 
-  const cutoffText = (at) => MANAGE.cutoffPassed(longDate(at.slice(0, 10)), clockTime(at));
+  const cutoffText = () => MANAGE.cutoffPassed();
   const shownCutoff = cutoffAt || (b && b.status === 'active' && !b.change_allowed ? b.cutoff_at : null);
   // "Seats left in this booking" only for a split; a full move takes the whole Booking along (Lisa, 2026-11-24)
   const split = b && Number.isInteger(seats) && seats < b.seats;
@@ -255,7 +255,7 @@ export default function MoveSeats({ reference }) {
         </div>
       )}
       {load.status === 'failed' && <div className="move-notice"><Notice>{MANAGE.loadFailed}</Notice></div>}
-      {shownCutoff && <div className="move-notice"><Notice>{cutoffText(shownCutoff)}</Notice></div>}
+      {shownCutoff && <div className="move-notice"><Notice>{cutoffText()}</Notice></div>}
       {open && (
         <>
           {!oneSeat && (

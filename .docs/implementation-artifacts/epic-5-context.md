@@ -68,7 +68,7 @@ Let a group book one whole Sauna for one session (called "Private sauna" in gues
 ## UX & Interaction Patterns
 
 - **Done in 5.1/5.2:** Landing shows two equal Booking choices, "Book seats" and "Book private sauna". The Private sauna page has a date calendar, a "View" toggle ("Show by sauna" / "Show by session") and Sauna cards whose session buttons choose both the Sauna and the session. Review and Confirmation use the summary label "Sauna" (the name only, never the Capacity).
-- **Manage page of a Private sauna (decided):** "Sauna" comes first in the summary. Before the Cutoff the page says "You can change this booking until {long date} at {HH:MM}." After the Cutoff, both the page and the `cutoff_passed` reason say "This booking can no longer be changed. Changes are possible until 72 hours before the session starts, and that was {long date} at {HH:MM}."
+- **Manage page of a Private sauna (decided):** "Sauna" comes first in the summary. Before the Cutoff the page says "You can change this booking until {long date} at {HH:MM}." After the Cutoff, both the page and the `cutoff_passed` reason say "This booking can no longer be changed. Changes are only possible until 72 hours before the session starts." (no date since Lisa's change of 2026-11-26)
 - **Cancel wording (accepted by Lisa, 2026-11-26), for reference:**
   - The link and `h1` are "Cancel booking" (changed from "Cancel private sauna", Lisa 2026-11-26), with the question "What do you want back?" and the options "A refund" or "A voucher".
   - "What will happen" lists Sauna and Session, followed by "Nothing changes until you confirm." and the button "Cancel booking".
