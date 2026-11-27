@@ -79,7 +79,7 @@ def test_a_day_with_bookings_lists_every_window_in_order_and_bookings_oldest_fir
     assert all(w["start"].startswith(DAY) for w in ws)
     assert ws[0]["start"] == "2026-12-01T10:00:00+01:00" and ws[0]["end"] == "2026-12-01T11:30:00+01:00"
     w2 = ws[1]
-    assert set(w2) == {"id", "start", "end", "seat_capacity", "seats_booked", "seats_left", "bookings"}
+    assert set(w2) == {"id", "start", "end", "seat_capacity", "seats_booked", "seats_left", "bookings", "placement"}
     assert (w2["seat_capacity"], w2["seats_booked"], w2["seats_left"]) == (44, 6, 38)
     assert [b["reference"] for b in w2["bookings"]] == [first, raw, second]
     b = w2["bookings"][0]

@@ -471,7 +471,7 @@ def test_a_whole_booking_on_the_manage_page_and_in_the_booking_list(page: Page, 
     try:
         sign_in(admin, base_url)
         open_day(admin, base_url, dt.date.fromisoformat(booking_day))
-        row = group(admin, "16:00", "17:30").locator("tbody tr").filter(has_text=reference)
+        row = group(admin, "16:00", "17:30").locator("tr.booking-row").filter(has_text=reference)
         cells = row.locator("td")
         assert _norm(cells.nth(3).inner_text()) == "Löyly"  # the Seats column names the Sauna
         assert "num" not in (cells.nth(3).get_attribute("class") or "")

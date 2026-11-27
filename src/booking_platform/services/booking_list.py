@@ -2,7 +2,8 @@
 
 `ensure_generated()` runs first (the only write); then one `db.run` of SELECTs reads `today`, every Window of the date
 (bookable or not, past dates and dates after the horizon included) and its Bookings, active and cancelled, each with its
-`status` and its Change history (`services.history`, FR-16). No Window is locked. A Booking due for retention reads
+`status` and its Change history (`services.history`, FR-16), and each Window's Placement from the SQL `placement()`
+as given (FR-31, AD-25: only `/api/admin/` carries it). No Window is locked. A Booking due for retention reads
 with the anonymised name and email (`db.booking_list`); nothing is written for it.
 """
 
@@ -22,7 +23,9 @@ def day(date: dt.date | None = None) -> dict:
     """`{"today", "date", "windows"}`: without a date, the Venue date of app_now(). Each Window has `id`, `start`,
     `end` (Venue time), `seat_capacity`, `seats_booked`, `seats_left` and `bookings` (oldest first, each with `kind`,
     `seats` (null for a Whole-sauna booking), `sauna` (`{id, name}` for a Whole-sauna booking, else null), `status`,
-    `cancelled_at`, `cancel_cause`, `cancel_remedy` (null while active) and `history`)."""
+    `cancelled_at`, `cancel_cause`, `cancel_remedy` (null while active) and `history`), and `placement`: one entry per
+    Sauna in Fill order, `{sauna: {id, name}, capacity, state, seats, reference}` (`state` `open`, `whole`, `blocked`
+    or `marked`; `reference` the Whole-sauna booking's when `whole`, else null)."""
     ensure_generated()
 
     def work(c):
@@ -40,10 +43,15 @@ def day(date: dt.date | None = None) -> dict:
                  "created_at": created_at.astimezone(tz).isoformat(), "status": status,
                  "cancelled_at": None if cancelled_at is None else cancelled_at.astimezone(tz).isoformat(),
                  "cancel_cause": cause, "cancel_remedy": remedy, "history": changes[bid]})
+        placement: dict[int, list[dict]] = {}
+        for wid, sauna_id, sauna_name, capacity, state, seats, reference in q.placement_on(c, chosen):
+            placement.setdefault(wid, []).append(
+                {"sauna": {"id": sauna_id, "name": sauna_name}, "capacity": capacity, "state": state,
+                 "seats": seats, "reference": reference})
         windows = [
             {"id": wid, "start": start.astimezone(tz).isoformat(), "end": end.astimezone(tz).isoformat(),
              "seat_capacity": capacity, "seats_booked": booked, "seats_left": left,
-             "bookings": per_window.get(wid, [])}
+             "bookings": per_window.get(wid, []), "placement": placement.get(wid, [])}
             for wid, start, end, capacity, booked, left in q.windows_on(c, chosen)]
         return {"today": today.isoformat(), "date": chosen.isoformat(), "windows": windows}
 

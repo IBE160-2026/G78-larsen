@@ -10,6 +10,10 @@
 - A failed read shows the "please try again" Notice; a malformed typed date shows the Field error.
 - The title is "Booking list – Saunalöyly", axe reports no A or AA failure, and nothing scrolls sideways at 1024,
   1366 or 1920 px.
+- Story 5.4 (FR-31): every Session group has the "Saunas" table; one with a Private sauna (Löyly) and 9 Seats lists
+  the Saunas in Fill order as "7 of 7", "Booked whole · {ref}", "2 of 12" and "0 of 15", in words, passes axe, adds
+  no tab stop (the keyboard still reaches "Next day") and does not scroll sideways at 1024 px.
+  A raw Block on Kajo and an unreleased raw mark on Lumo read "Blocked" and "Private sauna only".
 - "Choose from calendar" opens a pop-up month calendar (spec-booking-list-date-picker): a pick, in this month, the
   next or a past one, replaces the address as a typed date does and clears a Field error; the shown day, Escape and
   a click outside close it without navigating; it works with the keyboard alone, passes axe and fits at 200 % zoom.
@@ -22,6 +26,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 import secrets
+import uuid
 
 import httpx
 import psycopg
@@ -102,6 +107,77 @@ def test_a_guest_flow_booking_is_in_the_right_group(page: Page, base_url, browse
     assert page.get_by_text("No bookings", exact=True).count() == 7
     a11y.check_axe(page)
     a11y.no_horizontal_scroll(page)
+
+
+LOYLY, KAJO, LUMO = 2, 3, 4  # the seed's Sauna ids
+
+
+def _book_whole(page: Page, window: dict, sauna_id: int) -> dict:
+    """A Private sauna paid through the API from the page, with its session cookie. Returns the response body."""
+    status, body = page.evaluate(
+        """async ({body, key}) => {
+             const r = await fetch('/api/bookings', {method: 'POST', credentials: 'same-origin',
+               headers: {'Content-Type': 'application/json', 'Idempotency-Key': key}, body: JSON.stringify(body)});
+             return [r.status, await r.json()];
+           }""",
+        {"body": {"kind": "whole", "window_id": window["id"], "sauna_id": sauna_id, "name": "Olav Group",
+                  "email": "olav@example.com"}, "key": str(uuid.uuid4())})
+    assert status == 201, body
+    return body
+
+
+def test_each_session_group_shows_where_seats_are_counted(page: Page, base_url, browser):
+    """Story 5.4: Löyly booked whole and 9 Seats booked in one session read [7, —, 2, 0] (catalogue B5)."""
+    window = free_windows(base_url)[2]
+    guest = browser.new_context(base_url=base_url, ignore_https_errors=True).new_page()
+    try:
+        open_session(guest, base_url)
+        reference = _book_whole(guest, window, LOYLY)["booking"]["reference"]
+        book_in_browser(guest, window, 9, "Marit Solberg")
+    finally:
+        guest.context.close()
+    sign_in(page, base_url)
+    open_day(page, base_url, dt.date.fromisoformat(window["date"]))
+    start, end = window["start"][11:16], window["end"][11:16]
+    g = group(page, start, end)
+    table = g.get_by_role("table", name=f"Saunas in the session {start} to {end}")
+    expect(table).to_have_count(1)
+    assert [_norm(t) for t in table.get_by_role("columnheader").all_inner_texts()] == ["Sauna", "Seats counted"]
+    assert [_norm(t) for t in table.get_by_role("rowheader").all_inner_texts()] == ["Rauha", "Löyly", "Kajo", "Lumo"]
+    assert [_norm(t) for t in table.locator("tbody td").all_inner_texts()] == [
+        "7 of 7", f"Booked whole · {reference}", "2 of 12", "0 of 15"]
+    assert _norm(g.locator(".session-group-figures").inner_text()) == (
+        "Seat capacity 34 · Seats booked 9 · Seats left 25")
+    # the table sits after the figures line and before the Booking table
+    order = g.evaluate("""el => [...el.querySelectorAll('.session-group-figures, table')].map(
+        n => n.classList.contains('placement-table') ? 'saunas' : n.tagName === 'TABLE' ? 'bookings' : 'figures')""")
+    assert order == ["figures", "saunas", "bookings"]
+    # every Session group of the day has it, an empty one too
+    assert page.locator("section.session-group").count() == 8
+    assert page.locator("section.session-group table.placement-table").count() == 8
+    empty = page.locator("section.session-group").filter(has=page.locator(".session-group-none")).first
+    assert [_norm(t) for t in empty.locator("table.placement-table tbody td").all_inner_texts()] ==         ["0 of 7", "0 of 10", "0 of 12", "0 of 15"]
+    assert table.locator("a, button, input, [tabindex]").count() == 0  # no new tab stop
+    a11y.check_axe(page)
+    page.locator("#date").focus()
+    a11y.tab_to(page, page.get_by_role("link", name="Next day"))
+    a11y.no_horizontal_scroll(page)
+
+
+def test_blocked_and_private_sauna_only_are_said_in_words(page: Page, base_url, stack):
+    """Story 5.4: a raw Block on Kajo and an unreleased raw mark on Lumo (the module cleanup deletes both)."""
+    window = free_windows(base_url)[3]
+    with psycopg.connect(db_url(stack)) as c:
+        c.execute("INSERT INTO blocks (sauna_id, during) SELECT %s, during FROM windows WHERE id = %s",
+                  (KAJO, window["id"]))
+        c.execute("INSERT INTO marks (window_id, sauna_id) VALUES (%s, %s)", (window["id"], LUMO))
+    sign_in(page, base_url)
+    open_day(page, base_url, dt.date.fromisoformat(window["date"]))
+    start, end = window["start"][11:16], window["end"][11:16]
+    table = group(page, start, end).get_by_role("table", name=f"Saunas in the session {start} to {end}")
+    assert [_norm(t) for t in table.get_by_role("rowheader").all_inner_texts()] == ["Rauha", "Löyly", "Kajo", "Lumo"]
+    assert [_norm(t) for t in table.locator("tbody td").all_inner_texts()] ==         ["0 of 7", "0 of 10", "Blocked", "Private sauna only"]
+    a11y.check_axe(page)
 
 
 def test_previous_and_next_day_with_the_keyboard_alone(page: Page, base_url):
