@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-19-2026 22:10
-last_updated: 11-27-2026 20:30
+last_updated: 11-27-2026 21:00
 project: Booking platform
 project_key: NOKEY
 tracking_system: file-system
@@ -66,6 +66,6 @@ development_status:
   5-1-a-guest-sees-which-saunas-can-be-booked-whole: done
   5-2-book-and-pay-for-a-private-sauna: done
   5-3-cancel-or-move-a-private-sauna: done
-  5-4-the-administrator-sees-where-seats-are-counted: review
+  5-4-the-administrator-sees-where-seats-are-counted: done
   5-5-placement-and-private-saunas-hold-under-any-sequence-and-any: backlog
   epic-5-retrospective: optional
