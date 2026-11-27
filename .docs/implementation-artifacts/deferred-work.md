@@ -94,3 +94,4 @@
 - source_spec: `.docs/implementation-artifacts/spec-5-4-the-administrator-sees-where-seats-are-counted.md`
   summary: Row 3 of `.docs/sensorveiledning-kravsporing.md` still reports the test count of 2026-11-25 (812 tests: 610 API, 202 e2e).
   evidence: Story 5.3 and 5.4 added tests without refreshing it; the full run on 2026-11-27 had 223 e2e tests passing (the API count is in the session log).
+  status: resolved 2026-11-27 (row 3 now reads 904 tests: 680 API, 224 e2e, from `pytest --collect-only` on main after PR #32/#33).
