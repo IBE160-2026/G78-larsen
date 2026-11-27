@@ -56,3 +56,20 @@ Fullføre `bmad-build`-økten for Story 5.3 del 2: kontrollere implementeringen 
 ### Åpne punkter
 - Full e2e: de fire fr30-testene feiler fordi de ledige datoene er brukt opp. Kjør full e2e på main for å se om feilen fantes fra før, og gjør datoutvalget i e2e robust.
 - Sett 5-3 til `done` i `sprint-status.yaml` etter merge.
+
+## 2026-11-26 kl. 21:45 — Lisa Larsen
+
+### Oppgave
+Vise flyttingen i nettleseren, og bytte knappetekstene på Manage-siden, fordi «private sauna» sto i begge knappene.
+
+### Plan
+- Bygge dev-stakken på nytt og åpne Manage-lenken til en Private sauna fra Outbox.
+- Lisa valgte «Move booking» / «Cancel booking»; overskriften og fanetittelen på stegene følger lenketeksten.
+
+### Resultat
+- Lenkene, h1 og titlene er nå «Move booking» og «Cancel booking» (, sidene under ). EXPERIENCE.md, README,  og e2e-testene er oppdatert. Bekreftknappene i stegene har samme tekst.
+- Verifisert:  +  (e2e) 9 passert. Dev-stakken er bygget på nytt.
+- Committet som `2a2b087`.
+
+### Åpne punkter
+- Ingen nye.
