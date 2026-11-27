@@ -67,8 +67,8 @@ Vise flyttingen i nettleseren, og bytte knappetekstene på Manage-siden, fordi �
 - Lisa valgte «Move booking» / «Cancel booking»; overskriften og fanetittelen på stegene følger lenketeksten.
 
 ### Resultat
-- Lenkene, h1 og titlene er nå «Move booking» og «Cancel booking» (, sidene under ). EXPERIENCE.md, README,  og e2e-testene er oppdatert. Bekreftknappene i stegene har samme tekst.
-- Verifisert:  +  (e2e) 9 passert. Dev-stakken er bygget på nytt.
+- Lenkene, h1 og titlene er nå «Move booking» og «Cancel booking» (`lib/copy.js`, sidene under `app/manage/[reference]/`). EXPERIENCE.md, README, `epic-5-context.md` og e2e-testene er oppdatert. Bekreftknappene i stegene har samme tekst.
+- Verifisert: `test_fr33_whole_cancel.py` + `test_fr33_whole_move.py` (e2e) 9 passert. Dev-stakken er bygget på nytt.
 - Committet som `2a2b087`.
 
 ### Åpne punkter
