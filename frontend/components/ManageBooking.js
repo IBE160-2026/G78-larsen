@@ -10,7 +10,7 @@
 // the Seats given up, when it was cancelled, and no Changes (Lisa, 2026-11-24, EXPERIENCE.md Open Item 19).
 // The two Changes are links shown as primary buttons, side by side (Lisa, 2026-11-24).
 // A Whole-sauna booking (Story 5.2) shows its Sauna, date, session and total. Story 5.3: before its 72-hour Cutoff it
-// shows until when it can be changed and offers "Cancel private sauna" (its move is a later spec); after the Cutoff the
+// shows until when it can be changed and offers "Move private sauna" and "Cancel private sauna"; after the Cutoff the
 // 72-hour reason; once cancelled, when it was cancelled and the remedy chosen (Lisa, 2026-11-26). The Seat Changes
 // refuse it (`404 not_found`).
 //
@@ -89,6 +89,11 @@ export default function ManageBooking({ reference }) {
               <>
                 <p className="manage-until">{MANAGE.untilText(cutoffDate, cutoffTime)}</p>
                 <ul className="manage-changes">
+                  <li>
+                    <Link className="button-primary" href={`/manage/${encodeURIComponent(b.reference)}/move-sauna`}>
+                      {MANAGE.movePrivateSauna}
+                    </Link>
+                  </li>
                   <li>
                     <Link className="button-primary" href={`/manage/${encodeURIComponent(b.reference)}/cancel`}>
                       {MANAGE.cancelPrivateSauna}

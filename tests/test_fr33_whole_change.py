@@ -1,4 +1,5 @@
-"""FR-33 / AD-23 / AD-28 / AD-29 / AD-31 / AD-9 (Story 5.3, part 1): cancel a Private sauna through its Manage link.
+"""FR-33 / AD-23 / AD-24 / AD-28 / AD-29 / AD-31 / AD-9 (Story 5.3): cancel or move a Private sauna through its Manage
+link.
 
 `POST /api/manage/{reference}/whole/cancel {remedy, version}` with an `Idempotency-Key` runs
 `services.change.whole_cancel` in one `db.run`, in AD-23's write order: the Booking becomes `cancelled` (`guest`, the remedy, `version + 1`), its
@@ -10,6 +11,13 @@ the full total, valid one year, a `refund`/`voucher` row and no card row; the hi
 Refusals in AD-29's order: `booking_cancelled`, `booking_changed`, `cutoff_passed` (72 hours, tested on both sides).
 A repeat returns the first outcome; the routes of the other kind of Booking are `404 not_found`. The ledger (charges
 minus returns) is the total while active and 0 once cancelled.
+
+Part 2 (move): `POST /api/manage/{reference}/whole/move {window_id, sauna_id, version}` runs
+`services.change.whole_move`: the Booking's UPDATE (reference, total and `entry_time` kept), then its capacity row's,
+one `move` history row with both Windows and both Saunas, one Change email and no `payments` row. Refusals in AD-29's
+order: `booking_cancelled`, `booking_changed`, `change_invalid` `same_target`, `outside_horizon`, `deadline_passed`,
+`cutoff_passed`, `sauna_unavailable`, `price_differs`. The move list is the Private sauna listing with
+`ignore_booking` (migration 0015 makes the Room ahead honour it).
 
 The clock is `FAR` (2026-11-27 10:00 Venue time), more than 72 hours before `world`'s Windows of 1 December, so the
 Whole-sauna Cutoff has not passed (`BEFORE` of the Seat tests is past it).
@@ -28,13 +36,13 @@ from booking_platform import db
 from booking_platform.services import payment
 from booking_platform.services.errors import Refused
 from client import admin_client, api_client
-from conftest import raw_booking, set_clock, win_start
+from conftest import raw_booking, raw_whole, set_clock, win_start
 from test_fr25_manage_link import NOT_FOUND, TOKEN, open_link, rows
-from test_fr26_move import DAY, MANAGE_LINK_STILL_WORKS, everything, left_in, move, refused
+from test_fr26_move import DAY, MANAGE_LINK_STILL_WORKS, everything, fill, left_in, move, refused
 from test_fr27_voucher_for_seats import NEVER_PAID_OUT, _refused_by, code_of, give_up, ledger, not_in_store, walk
 from test_fr27_voucher_for_seats import opened as opened_seats
 from test_fr28_voucher import balance, payments_of, voucher_id
-from test_fr29_whole_booking import KAJO, SIMULATED, book_whole
+from test_fr29_whole_booking import KAJO, LUMO, RAUHA, SIMULATED, book_whole
 
 FAR = win_start(0) - dt.timedelta(days=4)  # 2026-11-27 09:00Z (10:00 Venue time): before every Whole-sauna Cutoff
 CUTOFF_1 = win_start(0) - dt.timedelta(hours=72)  # Window 1's Whole-sauna Cutoff
@@ -42,6 +50,8 @@ CUTOFF_AT_1 = "2026-11-28T10:00:00+01:00"
 A_YEAR = "2027-11-27"  # a Voucher issued at FAR is valid one year
 IN_30_DAYS = "2026-12-27"  # the shortest validity of a returned Voucher at FAR
 KAJO_ORE = 315000
+LOYLY = 2
+RAUHA_ORE = 185000
 
 
 def cancel(client, ref: str, remedy: str = "refund", version: int = 0, key: str | None = None):
@@ -221,7 +231,7 @@ def test_cancel_for_a_refund_returns_the_card_payment(group, pg):
     assert (read["status"], read["cancel_remedy"], read["cancelled_at"]) == ("cancelled", "refund", b["cancelled_at"])
     assert read["history"] == [{"action": "cancel", "at": read["history"][0]["at"], "seats": None,
                                 "from_window": None, "to_window": None, "new_reference": None,
-                                "voucher_value_ore": None}]
+                                "voucher_value_ore": None, "from_sauna": None, "to_sauna": None}]
 
 
 def test_the_booking_list_shows_it_cancelled_and_does_not_count_it(group, far, pg):
@@ -504,3 +514,402 @@ def test_the_ledger_holds_for_every_whole_sauna_booking(group, pg):
         pg.execute("UPDATE bookings SET status = 'cancelled', cancelled_at = app_now(), cancel_cause = 'guest', "
                    "cancel_remedy = 'refund' WHERE kind = 'seats'")
     pg.rollback()
+
+
+# ================================================================== part 2: move a Private sauna
+
+
+def whole_move(client, ref: str, window_id: int, sauna_id: int = KAJO, version: int = 0, key: str | None = None):
+    return client.post(f"/api/manage/{ref}/whole/move",
+                       json={"window_id": window_id, "sauna_id": sauna_id, "version": version},
+                       headers={"Idempotency-Key": key or str(uuid.uuid4())})
+
+
+def move_list(client, ref: str, date: str = DAY):
+    return client.get(f"/api/manage/{ref}/whole/move-list", params={"date": date})
+
+
+def listed(body: dict) -> dict[int, list[int]]:
+    """Sauna id -> its listed Window ids."""
+    return {s["id"]: [w["id"] for w in s["windows"]] for s in body["saunas"]}
+
+
+def capacity_rows(pg) -> list:
+    return rows(pg, "SELECT window_id, sauna_id, booking_id FROM whole_bookings ORDER BY booking_id")
+
+
+def set_price(pg, sauna_id: int, ore: int) -> None:
+    pg.execute("UPDATE saunas SET whole_price_ore = %s WHERE id = %s", (ore, sauna_id))
+    pg.commit()
+
+
+# ------------------------------------------------------------------ the store (migration 0015)
+
+
+def test_the_whole_move_history_shape_is_in_the_store(far, pg):
+    pg.execute(raw_booking(1, 1))
+    pg.commit()
+    bid = rows(pg, "SELECT id FROM bookings")[0][0]
+    other = pg.execute(raw_booking(1, 1) + " RETURNING id").fetchone()[0]
+    vid = pg.execute("INSERT INTO vouchers (code_hash, value_ore, balance_ore, expires_at, booking_id) "
+                     "VALUES (%s, 100, 100, app_now() + interval '1 year', %s) RETURNING id",
+                     (b"c" * 32, bid)).fetchone()[0]
+    pg.commit()
+    ins = ("INSERT INTO booking_changes (booking_id, action, seats, from_window_id, to_window_id, from_sauna_id, "
+           "to_sauna_id, new_booking_id, voucher_id) VALUES (%s, 'move', %s, %s, %s, %s, %s, %s, %s)")
+    for shape in ((None, 1, 1, KAJO, KAJO, None, None),  # nothing differs
+                  (None, 1, 2, KAJO, None, None, None), (None, 1, 2, None, KAJO, None, None),  # one Sauna only
+                  (None, None, 2, KAJO, KAJO, None, None), (None, 1, None, KAJO, KAJO, None, None),  # one Window only
+                  (1, 1, 2, KAJO, KAJO, None, None),  # Seats with Saunas
+                  (None, 1, 2, KAJO, KAJO, other, None), (None, 1, 2, KAJO, KAJO, None, vid)):
+        _refused_by(pg, "booking_changes_move_shape", ins, (bid, *shape))
+    pg.execute(ins, (bid, None, 1, 2, KAJO, KAJO, None, None))  # another Window, the same Sauna
+    pg.execute(ins, (bid, None, 1, 1, RAUHA, LOYLY, None, None))  # the same Window, another Sauna
+    pg.execute(ins, (bid, None, 1, 2, KAJO, LUMO, None, None))  # both
+    pg.execute(ins, (bid, 1, 1, 2, None, None, None, None))  # the Seat move of 0012, unchanged
+    pg.execute(ins, (bid, 1, 1, 2, None, None, other, None))  # and its split
+    pg.commit()
+    assert rows(pg, "SELECT count(*) FROM booking_changes WHERE action = 'move'") == [(5,)]
+
+
+def test_the_room_ahead_honours_ignore_booking(far, pg):
+    """0015: `whole_bookable`'s Room ahead treats the Sauna of the `ignore_booking` row as open; without it, the row
+    still closes its Sauna (the 0013 rule)."""
+    rauha = raw_whole(pg, 1, RAUHA)
+    assert rows(pg, "SELECT whole_bookable(1, %s), whole_bookable(1, %s, %s)", (RAUHA, RAUHA, rauha)) == [
+        (False, True)]  # its own pair, judged as if its row did not exist
+    fill(pg, 1, 5)  # 5 Seats: they fit Loyly's Room ahead only while Rauha is open
+    assert rows(pg, "SELECT whole_bookable(1, %s), whole_bookable(1, %s, %s), whole_bookable(1, %s, %s)",
+                (LOYLY, LOYLY, rauha, LOYLY, rauha + 1000)) == [(False, True, False)]
+
+
+# ------------------------------------------------------------------ the move
+
+
+def test_a_move_to_another_session_keeps_the_sauna_reference_price_and_entry_time(group, pg):
+    ref, _ = whole_opened(group)
+    bid = booking_row(pg, ref)[0]
+    entry = rows(pg, "SELECT entry_time, created_at FROM bookings WHERE id = %s", (bid,))
+    assert (left_in(group, 1), left_in(group, 2)) == (32, 44)
+    set_clock(pg, FAR + dt.timedelta(minutes=5))  # a later clock: the entry time must not follow it
+    r = whole_move(group, ref, 2)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert set(body) == {"booking", "emails"}
+    b = body["booking"]
+    assert (b["reference"], b["kind"], b["sauna"], b["window"]["id"], b["total_ore"], b["status"], b["version"],
+            b["change_allowed"]) == (ref, "whole", {"id": KAJO, "name": "Kajo"}, 2, KAJO_ORE, "active", 1, True)
+    # AD-23's write order in one transaction: the Booking and its capacity row moved together
+    assert booking_row(pg, ref)[1:] == ("active", None, None, 1, False, KAJO, KAJO_ORE)
+    assert rows(pg, "SELECT entry_time, created_at FROM bookings WHERE id = %s", (bid,)) == entry
+    assert capacity_rows(pg) == [(2, KAJO, bid)]
+    assert history_rows(pg, bid) == [("move", None, 1, 2, KAJO, KAJO, None, None)]
+    # capacity follows at once in both Windows; no payments row, the ledger stays the total
+    assert (left_in(group, 1), left_in(group, 2)) == (44, 32)
+    assert payments_of(pg, ref) == [("charge", "card", KAJO_ORE, None)]
+    assert ledger(pg, ref) == KAJO_ORE
+    # exactly one email: the Change confirmation with the Sauna, the new session and the price
+    [sent] = body["emails"]
+    assert sent["subject"] == f"Booking changed: {ref}"
+    assert sent["body"].split("\n")[:3] == ["Booking changed", "", "Saunalöyly"]
+    assert body_from_reference(sent["body"], ref) == [
+        f"Booking reference: {ref}", "Date: Tuesday 1 December 2026", "Session: 11:30–13:00", "Sauna: Kajo",
+        "Total: NOK 3150", "", MANAGE_LINK_STILL_WORKS]
+    assert "http" not in sent["body"]
+    assert rows(pg, "SELECT count(*) FROM outbox_emails o JOIN booking_changes h ON h.id = o.change_id "
+                    "WHERE h.booking_id = %s", (bid,)) == [(1,)]
+    # the Manage read: the history entry names both Windows and both Saunas
+    read = group.get(f"/api/manage/{ref}").json()
+    assert read["history"] == [{
+        "action": "move", "at": read["history"][0]["at"], "seats": None,
+        "from_window": {"id": 1, "start": "2026-12-01T10:00:00+01:00", "end": "2026-12-01T11:30:00+01:00"},
+        "to_window": {"id": 2, "start": "2026-12-01T11:30:00+01:00", "end": "2026-12-01T13:00:00+01:00"},
+        "new_reference": None, "voucher_value_ore": None,
+        "from_sauna": {"id": KAJO, "name": "Kajo"}, "to_sauna": {"id": KAJO, "name": "Kajo"}}]
+    # a moved Booking can still be cancelled; the ledger then returns to 0
+    assert cancel(group, ref, "refund", version=1).status_code == 200
+    assert ledger(pg, ref) == 0 and left_in(group, 2) == 44
+
+
+def test_a_move_to_another_sauna_at_the_same_price(group, pg):
+    set_price(pg, LOYLY, KAJO_ORE)
+    ref, _ = whole_opened(group)
+    bid = booking_row(pg, ref)[0]
+    r = whole_move(group, ref, 2, LOYLY)
+    assert r.status_code == 200, r.text
+    b = r.json()["booking"]
+    assert (b["sauna"], b["window"]["id"], b["total_ore"]) == ({"id": LOYLY, "name": "Loyly"}, 2, KAJO_ORE)
+    assert capacity_rows(pg) == [(2, LOYLY, bid)]
+    assert history_rows(pg, bid) == [("move", None, 1, 2, KAJO, LOYLY, None, None)]
+    assert "Sauna: Loyly" in r.json()["emails"][0]["body"]
+    assert (left_in(group, 1), left_in(group, 2)) == (44, 34)
+    assert ledger(pg, ref) == KAJO_ORE
+
+
+def test_a_move_in_the_same_window_to_a_later_sauna_counts_its_own_sauna_as_open(group, pg):
+    """0015: Rauha W1 -> Loyly W1 with 5 Seats booked, which fit Loyly's Room ahead only once Rauha is open."""
+    set_price(pg, LOYLY, RAUHA_ORE)
+    ref, _ = whole_opened(group, 1, RAUHA)
+    bid = booking_row(pg, ref)[0]
+    fill(pg, 1, 5)
+    public = listed(group.get("/api/private-saunas", params={"date": DAY}).json())
+    assert 1 not in public.get(LOYLY, [])  # for a new booking, Rauha is taken
+    assert 1 in listed(move_list(group, ref).json())[LOYLY]  # for the move, Rauha is its own
+    r = whole_move(group, ref, 1, LOYLY)
+    assert r.status_code == 200, r.text
+    assert capacity_rows(pg) == [(1, LOYLY, bid)]
+    assert history_rows(pg, bid) == [("move", None, 1, 1, RAUHA, LOYLY, None, None)]
+    assert left_in(group, 1) == 44 - 10 - 5
+
+
+# ------------------------------------------------------------------ the move list (AD-24)
+
+
+def test_the_move_list_judges_the_date_as_if_the_booking_were_absent(group, pg):
+    ref, _ = whole_opened(group)
+    public = listed(group.get("/api/private-saunas", params={"date": DAY}).json())
+    assert 1 not in public[KAJO]
+    r = move_list(group, ref)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert set(body) == {"saunas", "horizon_end", "horizon_days"}
+    assert listed(body)[KAJO][:3] == [1, 2, 3]  # its own pair stays listed
+    kajo = next(s for s in body["saunas"] if s["id"] == KAJO)
+    assert (kajo["name"], kajo["capacity"], kajo["whole_price_ore"]) == ("Kajo", 12, KAJO_ORE)
+    assert {s["id"] for s in body["saunas"]} == {RAUHA, LOYLY, KAJO, LUMO}
+    # another Booking's pair is still taken
+    raw_whole(pg, 2, LUMO)
+    assert 2 not in listed(move_list(group, ref).json())[LUMO]
+
+
+def test_the_move_list_keeps_the_own_pair_when_seats_exceed_its_room_ahead(group, pg):
+    """The own pair stays listed (the current session) also when Seats booked meanwhile exceed the own Sauna's Room
+    ahead, which `whole_bookable` alone would refuse; other Saunas in that Window are still judged by the rule."""
+    ref, _ = whole_opened(group)
+    bid = booking_row(pg, ref)[0]
+    fill(pg, 1, 18)  # Kajo's Room ahead is 17
+    assert rows(pg, "SELECT whole_bookable(1, %s, %s)", (KAJO, bid)) == [(False,)]
+    body = listed(move_list(group, ref).json())
+    assert 1 in body[KAJO]
+    assert 1 not in body.get(LOYLY, [])  # Loyly's Room ahead is 7: still refused for others
+    assert 1 not in listed(group.get("/api/private-saunas", params={"date": DAY}).json()).get(KAJO, [])
+
+
+def test_the_move_list_refuses_like_the_listing_and_writes_nothing(group, pg):
+    ref, _ = whole_opened(group)
+    before = everything(pg)
+    r = move_list(group, ref, "2027-06-01")
+    assert r.status_code == 409 and r.json()["detail"]["error"] == "outside_horizon", r.text
+    for params in ({}, {"date": "x"}, {"date": DAY, "seats": 2}):
+        r = group.get(f"/api/manage/{ref}/whole/move-list", params=params)
+        assert r.status_code == 422 and r.json()["detail"]["error"] == "invalid_input", (params, r.text)
+    assert everything(pg)[:7] == before[:7]
+
+
+def test_the_move_list_needs_the_grant_and_a_whole_sauna_booking(far, group, pg):
+    ref, _ = whole_opened(group)
+    seat_ref, _ = opened_seats(group, 2, 2)
+    assert move_list(group, seat_ref).json() == NOT_FOUND
+    with api_client(far, session=False) as anon, api_client(far) as stranger:
+        for c in (anon, stranger):
+            r = move_list(c, ref)
+            assert r.status_code == 404 and r.json() == NOT_FOUND, r.text
+
+
+# ------------------------------------------------------------------ refusals (AD-29)
+
+
+def test_another_price_is_price_differs(group, pg):
+    ref, _ = whole_opened(group)
+    before = everything(pg)
+    for wid in (1, 2):
+        refused(whole_move(group, ref, wid, LUMO), "price_differs")  # Kajo NOK 3150, Lumo NOK 3950
+    refused(whole_move(group, ref, 2, RAUHA), "price_differs")
+    assert everything(pg) == before
+    # the same Sauna never checks the price, even after the price changed
+    set_price(pg, KAJO, 400000)
+    r = whole_move(group, ref, 2, KAJO)
+    assert r.status_code == 200, r.text
+    assert r.json()["booking"]["total_ore"] == KAJO_ORE and ledger(pg, ref) == KAJO_ORE
+
+
+@pytest.mark.parametrize("taken", ["booked", "blocked", "room_ahead", "held", "unknown", "not_whole"])
+def test_a_target_the_sauna_cannot_take_is_sauna_unavailable(group, pg, taken):
+    ref, _ = whole_opened(group)
+    sid = KAJO
+    if taken == "booked":
+        raw_whole(pg, 2, KAJO)
+    elif taken == "blocked":
+        pg.execute("INSERT INTO blocks (sauna_id, during) SELECT %s, during FROM windows WHERE id = 2", (KAJO,))
+        pg.commit()
+    elif taken == "room_ahead":
+        fill(pg, 2, 18)  # Kajo's Room ahead is 17
+    elif taken == "held":
+        pg.execute("INSERT INTO holds (window_id, seats, session_id, expires_at) "
+                   "VALUES (2, 18, NULL, app_now() + interval '5 minutes')")
+        pg.commit()
+    elif taken == "unknown":
+        sid = 99
+    else:
+        set_price(pg, LOYLY, KAJO_ORE)
+        pg.execute("UPDATE saunas SET bookable_whole = false WHERE id = %s", (LOYLY,))
+        pg.commit()
+        sid = LOYLY
+    before = everything(pg)
+    refused(whole_move(group, ref, 2, sid), "sauna_unavailable")
+    assert everything(pg) == before
+
+
+def test_the_same_window_and_sauna_is_same_target(group, pg):
+    ref, _ = whole_opened(group)
+    before = everything(pg)
+    refused(whole_move(group, ref, 1, KAJO), "change_invalid", reason="same_target")
+    assert everything(pg) == before
+
+
+def test_move_targets_outside_the_horizon_or_past_their_deadline_are_refused(group, pg):
+    ref, _ = whole_opened(group)
+    late = pg.execute("INSERT INTO windows (during) VALUES (tstzrange('2027-03-01 09:00Z', '2027-03-01 10:30Z')) "
+                      "RETURNING id").fetchone()[0]
+    started = pg.execute("INSERT INTO windows (during) VALUES (tstzrange(%s, %s)) RETURNING id",
+                         (FAR - dt.timedelta(minutes=30), FAR + dt.timedelta(minutes=60))).fetchone()[0]
+    pg.commit()
+    before = everything(pg)
+    refused(whole_move(group, ref, late), "outside_horizon",
+            message="the Window starts after the end of the Booking horizon")
+    refused(whole_move(group, ref, started), "deadline_passed", message="the Booking deadline has passed")
+    assert whole_move(group, ref, 999999).json() == NOT_FOUND  # an unknown Window
+    assert everything(pg) == before
+
+
+def test_the_move_cutoff_edge_on_both_sides(group, pg):
+    ref, token = whole_opened(group)
+    set_clock(pg, CUTOFF_1)
+    assert open_link(group, token).status_code == 200
+    before = everything(pg)
+    refused(whole_move(group, ref, 2), "cutoff_passed", cutoff_at=CUTOFF_AT_1)
+    assert everything(pg) == before
+    set_clock(pg, CUTOFF_1 - dt.timedelta(seconds=1))
+    r = whole_move(group, ref, 2)
+    assert r.status_code == 200, r.text
+
+
+def test_the_move_refusal_order(group, pg):
+    ref, token = whole_opened(group)
+    late = pg.execute("INSERT INTO windows (during) VALUES (tstzrange('2027-03-01 09:00Z', '2027-03-01 10:30Z')) "
+                      "RETURNING id").fetchone()[0]
+    pg.execute("INSERT INTO blocks (sauna_id, during) SELECT %s, during FROM windows WHERE id = 2", (LUMO,))
+    pg.commit()
+    set_clock(pg, CUTOFF_1 + dt.timedelta(hours=1))
+    assert open_link(group, token).status_code == 200
+    now = group.get(f"/api/manage/{ref}").json()
+    refused(whole_move(group, ref, 1, KAJO, version=3), "booking_changed", booking=now)
+    refused(whole_move(group, ref, 1, KAJO), "change_invalid", reason="same_target")
+    refused(whole_move(group, ref, late, LUMO), "outside_horizon",
+            message="the Window starts after the end of the Booking horizon")
+    refused(whole_move(group, ref, 2, LUMO), "cutoff_passed", cutoff_at=CUTOFF_AT_1)
+    set_clock(pg, FAR)
+    assert open_link(group, token).status_code == 200
+    refused(whole_move(group, ref, 2, LUMO), "sauna_unavailable")  # Blocked, and at another price
+    pg.execute("DELETE FROM blocks")
+    pg.commit()
+    refused(whole_move(group, ref, 2, LUMO), "price_differs")
+    assert cancel(group, ref).status_code == 200
+    refused(whole_move(group, ref, 1, KAJO, version=0), "booking_cancelled")  # before booking_changed and same_target
+
+
+def test_a_stale_version_is_booking_changed_for_a_move(group, pg):
+    ref, _ = whole_opened(group)
+    pg.execute("UPDATE bookings SET version = version + 1 WHERE reference = %s", (ref,))
+    pg.commit()
+    before = everything(pg)
+    refused(whole_move(group, ref, 2), "booking_changed", booking=group.get(f"/api/manage/{ref}").json())
+    assert everything(pg) == before
+    assert whole_move(group, ref, 2, version=1).status_code == 200
+
+
+# ------------------------------------------------------------------ repeats, keys, the other kind and shape
+
+
+def test_a_move_repeat_returns_the_first_outcome_and_writes_nothing(group, pg):
+    ref, _ = whole_opened(group)
+    key = str(uuid.uuid4())
+    first = whole_move(group, ref, 2, key=key)
+    assert first.status_code == 200, first.text
+    before = everything(pg)
+    again = whole_move(group, ref, 2, key=key)
+    assert again.status_code == 200 and again.json() == first.json()
+    assert everything(pg) == before
+
+
+def test_a_known_move_key_with_another_request_or_session_is_invalid_key(far, group, pg):
+    ref, token = whole_opened(group)
+    key = str(uuid.uuid4())
+    assert whole_move(group, ref, 2, key=key).status_code == 200
+    with api_client(far, session=False) as other:
+        assert open_link(other, token).status_code == 200
+        before = everything(pg)
+        refused(whole_move(other, ref, 2, key=key), "invalid_key")  # another session
+        refused(whole_move(group, ref, 3, key=key), "invalid_key")  # another body
+        refused(cancel(group, ref, "refund", version=1, key=key), "invalid_key")  # another endpoint
+        assert everything(pg) == before
+
+
+def test_the_whole_move_of_a_seat_booking_is_404(group, pg):
+    seat_ref, _ = opened_seats(group, 2, 2)
+    before = everything(pg)
+    r = whole_move(group, seat_ref, 3)
+    assert r.status_code == 404 and r.json() == NOT_FOUND, r.text
+    assert everything(pg) == before
+
+
+def test_without_a_valid_grant_a_move_is_404(far, group, pg):
+    ref, _ = whole_opened(group)
+    before = everything(pg)
+    with api_client(far, session=False) as anon, api_client(far) as stranger:
+        for r in (whole_move(anon, ref, 2), whole_move(stranger, ref, 2), whole_move(group, "ZZZZZZZZ", 2)):
+            assert r.status_code == 404 and r.json() == NOT_FOUND, r.text
+    assert everything(pg)[:7] == before[:7]
+
+
+def test_a_move_body_or_key_of_the_wrong_shape_is_422(group, pg):
+    ref, _ = whole_opened(group)
+    before = everything(pg)
+    url = f"/api/manage/{ref}/whole/move"
+    key = {"Idempotency-Key": str(uuid.uuid4())}
+    good = {"window_id": 2, "sauna_id": KAJO, "version": 0}
+    for kwargs in ({"json": good},  # no key
+                   {"json": good, "headers": {"Idempotency-Key": "x"}},
+                   {"json": {"sauna_id": KAJO, "version": 0}, "headers": key},
+                   {"json": {"window_id": 2, "version": 0}, "headers": key},
+                   {"json": {"window_id": 2, "sauna_id": KAJO}, "headers": key},
+                   {"json": {**good, "sauna_id": "Kajo"}, "headers": key},
+                   {"json": {**good, "window_id": 2 ** 31}, "headers": key},
+                   {"json": {**good, "seats": 1}, "headers": key}):
+        r = group.post(url, **kwargs)
+        assert r.status_code == 422 and r.json()["detail"]["error"] == "invalid_input", (kwargs, r.text)
+    assert everything(pg)[:7] == before[:7]
+
+
+# ------------------------------------------------------------------ the Booking list (FR-16) and Seat history
+
+
+def test_the_booking_list_shows_the_move_with_both_saunas_and_seat_entries_name_none(group, far, pg):
+    set_price(pg, LOYLY, KAJO_ORE)
+    ref, _ = whole_opened(group)
+    seat_ref, _ = opened_seats(group, 1, 2)
+    assert whole_move(group, ref, 2, LOYLY).status_code == 200
+    r = move(group, seat_ref, 3, 2)
+    assert r.status_code == 200, r.text
+    assert all("from_sauna" not in h and "to_sauna" not in h for h in r.json()["booking"]["history"])
+    assert "Sauna:" not in r.json()["emails"][0]["body"]  # a Seat Change email never names a Sauna
+    with admin_client(far, pg) as admin:
+        ws = {w["id"]: w for w in admin.get("/api/admin/bookings", params={"date": DAY}).json()["windows"]}
+    row = {x["reference"]: x for x in ws[2]["bookings"]}[ref]
+    [entry] = row["history"]
+    assert (entry["action"], entry["from_window"]["id"], entry["to_window"]["id"], entry["from_sauna"],
+            entry["to_sauna"]) == ("move", 1, 2, {"id": KAJO, "name": "Kajo"}, {"id": LOYLY, "name": "Loyly"})
+    assert ref not in {x["reference"] for x in ws[1]["bookings"]}
+    seat_row = {x["reference"]: x for x in ws[3]["bookings"]}[seat_ref]
+    assert all("from_sauna" not in h for h in seat_row["history"])
+    assert (ws[1]["seat_capacity"], ws[2]["seat_capacity"]) == (44, 34)

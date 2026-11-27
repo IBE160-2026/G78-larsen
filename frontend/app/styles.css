@@ -1399,6 +1399,32 @@ a {
   margin-top: var(--space-5);
 }
 
+/* Move private sauna (Story 5.3 part 2): the Booking's own Sauna card is marked "Your sauna"; its own pair is a
+   disabled cell "Your current session"; a Sauna at another price says why it has no session buttons. */
+.private-card-mine {
+  box-shadow: inset 3px 0 0 var(--color-button-edge);
+}
+
+.private-card-label {
+  padding-top: var(--space-2);
+  font-size: var(--type-body-sm-size);
+  font-weight: 600;
+}
+
+.private-card-other {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.cell.slot.current,
+.cell.slot.current input {
+  cursor: default;
+}
+
+.cell.slot.current span {
+  background: var(--color-unavailable);
+}
+
 .move-new-reference {
   margin-top: var(--space-3);
 }

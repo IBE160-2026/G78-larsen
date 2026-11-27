@@ -82,16 +82,18 @@ function ViewPicker({ view, onChange }) {
   );
 }
 
-/** "13:00–14:30" and its spoken form "13:00 to 14:30", with "Already started" when it has. */
-function sessionText(w) {
+/** "13:00–14:30" and its spoken form "13:00 to 14:30", with "Already started" when it has. Shared with the Private
+ * sauna move step (Story 5.3). */
+export function sessionText(w) {
   const start = clockTime(w.start);
   const end = clockTime(w.end);
   return { shown: `${start}–${end}`, spoken: `${start} to ${end}${w.already_started ? `, ${BOOK.alreadyStarted}` : ''}` };
 }
 
 /** A Sauna's photo, name, size, price and description (Lisa 2026-11-25, proposal H). The photo is decorative here:
- * the name and the description say what the Guest needs, and the alt texts are on Landing. */
-function SaunaHead({ sauna }) {
+ * the name and the description say what the Guest needs, and the alt texts are on Landing. Shared with the Private
+ * sauna move step (Story 5.3). */
+export function SaunaHead({ sauna }) {
   const copy = SAUNA_COPY[sauna.id];
   return (
     <>

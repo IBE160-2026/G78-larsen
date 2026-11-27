@@ -277,3 +277,32 @@ def test_0013_refuses_a_seat_booking_above_10_seats_and_says_why(tmp_path, scrat
         migrations.migrate(scratch_db)
     with psycopg.connect(scratch_db) as c:  # nothing of 0013 was applied
         assert c.execute("SELECT count(*) FROM schema_migrations WHERE name LIKE '0013%'").fetchone()[0] == 0
+
+
+def test_0015_keeps_seat_move_rows_and_adds_the_whole_move_shape(tmp_path, scratch_db):
+    """AD-29 (Story 5.3, part 2): a Seat move row written before 0015 stays valid, a Whole-sauna move row (both Windows
+    and both Saunas, no Seats) is allowed afterwards, and a move that changes nothing is still refused."""
+    migrations.migrate(scratch_db, upto(tmp_path, "0014", "before"))
+    with psycopg.connect(scratch_db) as c:
+        c.execute("INSERT INTO saunas (id, name, capacity, fill_order) VALUES (1, 'A', 20, 1), (2, 'B', 24, 2)")
+        c.execute("INSERT INTO windows (during) VALUES (tstzrange('2026-12-01 09:00Z', '2026-12-01 10:30Z')), "
+                  "(tstzrange('2026-12-01 10:30Z', '2026-12-01 12:00Z'))")
+        c.execute("INSERT INTO bookings (window_id, seats, reference, name, email, price_per_seat_ore, total_ore) "
+                  "VALUES (2, 2, 'AAAAAAAA', 'Ada', 'ada@example.com', 25000, 50000)")
+        c.execute("INSERT INTO booking_changes (booking_id, action, seats, from_window_id, to_window_id) "
+                  "VALUES (1, 'move', 2, 1, 2)")
+        c.commit()
+        with pytest.raises(psycopg.errors.CheckViolation):  # 0012's shape: no Sauna in a move
+            c.execute("INSERT INTO booking_changes (booking_id, action, from_window_id, to_window_id, from_sauna_id, "
+                      "to_sauna_id) VALUES (1, 'move', 1, 1, 1, 2)")
+        c.rollback()
+    assert migrations.migrate(scratch_db, upto(tmp_path, "0015")) == ["0015_whole_move.sql"]
+    with psycopg.connect(scratch_db) as c:
+        assert c.execute("SELECT action, seats, from_window_id, to_window_id FROM booking_changes").fetchall() == [
+            ("move", 2, 1, 2)]
+        c.execute("INSERT INTO booking_changes (booking_id, action, from_window_id, to_window_id, from_sauna_id, "
+                  "to_sauna_id) VALUES (1, 'move', 1, 1, 1, 2)")
+        with pytest.raises(psycopg.errors.CheckViolation) as e:
+            c.execute("INSERT INTO booking_changes (booking_id, action, from_window_id, to_window_id, from_sauna_id, "
+                      "to_sauna_id) VALUES (1, 'move', 1, 1, 2, 2)")
+        assert e.value.diag.constraint_name == "booking_changes_move_shape"

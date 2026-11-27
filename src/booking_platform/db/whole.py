@@ -17,14 +17,18 @@ from .windows import _BOOKABLE
 def pairs_on(c: psycopg.Connection, date: dt.date, ignore_booking: int | None = None) -> list[tuple]:
     """(sauna_id, name, capacity, whole_price_ore, window_id, start, end, already_started) of every pair on a Venue
     date where the Window is inside the Booking horizon and before its Booking deadline and `whole_bookable` holds
-    (judged as if the capacity row of `ignore_booking` did not exist). Saunas in Fill order, then Windows in time
-    order. Reads only."""
+    (judged as if the capacity row of `ignore_booking` did not exist). The pair of the `ignore_booking` row itself is
+    always listed (within the time rules), also when Seats booked meanwhile exceed its Sauna's Room ahead: the move
+    list shows it as the Booking's current session (Story 5.3). Saunas in Fill order, then Windows in time order.
+    Reads only."""
     return c.execute(
         "SELECT s.id, s.name, s.capacity, s.whole_price_ore, w.id, lower(w.during), upper(w.during), "
         "       window_started(w.id) "
         "FROM saunas s CROSS JOIN windows w "
-        f"WHERE venue_date(w.id) = %s AND {_BOOKABLE} AND whole_bookable(w.id, s.id, %s) "
-        "ORDER BY s.fill_order, lower(w.during)", (date, ignore_booking)).fetchall()
+        f"WHERE venue_date(w.id) = %(d)s AND {_BOOKABLE} AND (whole_bookable(w.id, s.id, %(b)s) "
+        "  OR EXISTS (SELECT 1 FROM whole_bookings wb WHERE wb.booking_id = %(b)s AND wb.window_id = w.id "
+        "             AND wb.sauna_id = s.id)) "
+        "ORDER BY s.fill_order, lower(w.during)", {"d": date, "b": ignore_booking}).fetchall()
 
 
 # ------------------------------------------------------------------ the Whole-sauna booking (Story 5.2)
@@ -67,3 +71,20 @@ def delete_capacity(c: psycopg.Connection, booking_id: int) -> None:
     `check_whole_pair` is deferred to COMMIT). The capacity triggers recompute the Window, so Seats left rises by the
     Sauna's Capacity at once."""
     c.execute("DELETE FROM whole_bookings WHERE booking_id = %s", (booking_id,))
+
+
+# ------------------------------------------------------------------ the Whole-sauna move (Story 5.3)
+
+
+def bookable(c: psycopg.Connection, window_id: int, sauna_id: int, ignore_booking: int) -> bool:
+    """`whole_bookable(window_id, sauna_id, ignore_booking)`: FR-29 for a move target, judged as if the moving
+    Booking's capacity row did not exist (AD-24). Reads only."""
+    return c.execute("SELECT whole_bookable(%s, %s, %s)", (window_id, sauna_id, ignore_booking)).fetchone()[0]
+
+
+def move_capacity(c: psycopg.Connection, booking_id: int, window_id: int, sauna_id: int) -> None:
+    """Move the Booking's capacity row with it, after the Booking (AD-23's write order), `window_id` and `sauna_id`
+    together. `trg_check_whole` judges FR-29 with the row's own Booking ignored, the capacity triggers recompute both
+    Windows (`booked_within_capacity`) and the `(window_id, sauna_id)` key refuses a pair booked whole meanwhile."""
+    c.execute("UPDATE whole_bookings SET window_id = %s, sauna_id = %s WHERE booking_id = %s",
+              (window_id, sauna_id, booking_id))

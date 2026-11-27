@@ -29,6 +29,7 @@ STATUS: dict[str, int] = {
     "outside_horizon": 409,  # a date before today or after the end of the Booking horizon (FR-2), or a Window
     # that starts after it, on a booking, Hold or Whole-sauna booking (FR-18 IV-2, AD-4)
     "sauna_unavailable": 409,  # a Sauna that cannot be booked whole in the Window any more (FR-29, AD-24)
+    "price_differs": 409,  # a Whole-sauna move to a Sauna whose price is not the total paid (FR-33, AD-24)
     "release_after_deadline": 409,  # the Release time is later than a Booking deadline (FR-39, FR-41)
     "cutoff_passed": 409,  # a Change after the Booking's Cutoff (AD-4, AD-16); fact `cutoff_at`
     "booking_cancelled": 409,  # a Change of a cancelled Booking (AD-29)

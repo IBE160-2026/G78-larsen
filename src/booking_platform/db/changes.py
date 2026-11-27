@@ -1,5 +1,5 @@
 """SQL for Changes of a Booking (FR-26, AD-9, AD-29): the unlocked and the locked read of the Booking, the grant re-check,
-the two UPDATEs of a Seat move, the two UPDATEs of a Voucher Change, the cancellation by the Guest, the history
+the two UPDATEs of a Seat move, the Booking's UPDATE of a Whole-sauna move, the two UPDATEs of a Voucher Change, the cancellation by the Guest, the history
 (`booking_changes`), the returns of a cancelled Booking and the one-time key of a Change. Only `services.history` calls
 the functions that write or read `booking_changes`, with one exception: `has_split` is read by
 `services.payment.refund` (AD-31). Every function takes the connection of
@@ -72,6 +72,14 @@ def move_all(c: psycopg.Connection, booking_id: int, window_id: int) -> None:
               (window_id, booking_id))
 
 
+def move_whole(c: psycopg.Connection, booking_id: int, window_id: int, sauna_id: int) -> None:
+    """Move a Whole-sauna booking to another Window, Sauna or both (FR-33): one UPDATE of `window_id` and `sauna_id`
+    with `version + 1`. Reference, `total_ore` and `entry_time` are kept. AD-23's write order: this comes first, then
+    the capacity row (`db.whole.move_capacity`); the pairing check is deferred to COMMIT."""
+    c.execute("UPDATE bookings SET window_id = %s, sauna_id = %s, version = version + 1 WHERE id = %s",
+              (window_id, sauna_id, booking_id))
+
+
 def give_up_seats(c: psycopg.Connection, booking_id: int, seats: int) -> None:
     """Take `seats` Seats off the Booking (a split): its total follows its stored price per Seat (AD-13), and its
     `version` rises in the same UPDATE."""
@@ -121,8 +129,10 @@ HISTORY_COLUMNS = frozenset({"seats", "from_window_id", "to_window_id", "from_sa
 
 _HISTORY = (
     "SELECT h.id, h.booking_id, h.action, h.at, h.seats, h.from_window_id, lower(fw.during), upper(fw.during), "
-    "h.to_window_id, lower(tw.during), upper(tw.during), nb.reference, v.value_ore "
-    "FROM booking_changes h "
+    "h.to_window_id, lower(tw.during), upper(tw.during), nb.reference, v.value_ore, b.kind, "
+    "h.from_sauna_id, fs.name, h.to_sauna_id, ts.name "
+    "FROM booking_changes h JOIN bookings b ON b.id = h.booking_id "
+    "LEFT JOIN saunas fs ON fs.id = h.from_sauna_id LEFT JOIN saunas ts ON ts.id = h.to_sauna_id "
     "LEFT JOIN vouchers v ON v.id = h.voucher_id "
     "LEFT JOIN windows fw ON fw.id = h.from_window_id LEFT JOIN windows tw ON tw.id = h.to_window_id "
     "LEFT JOIN bookings nb ON nb.id = h.new_booking_id ")
@@ -130,7 +140,8 @@ _HISTORY = (
 
 def history_of(c: psycopg.Connection, booking_ids: list[int]) -> list[tuple]:
     """(id, booking_id, action, at, seats, from window id, from start, from end, to window id, to start, to end,
-    new Booking's reference, Voucher value) of every Change of these Bookings, oldest first."""
+    new Booking's reference, Voucher value, the Booking's kind, from Sauna id, from Sauna name, to Sauna id, to Sauna
+    name) of every Change of these Bookings, oldest first."""
     return c.execute(_HISTORY + "WHERE h.booking_id = ANY(%s) ORDER BY h.at, h.id", (booking_ids,)).fetchall()
 
 
