@@ -38,3 +38,21 @@ Rette funnene fra koordinatorens review av Story 5.3 del 2.
 
 ### Åpne punkter
 - Kjør hele e2e-suiten på nytt (står allerede i `issues.md`).
+
+## 2026-11-26 kl. 21:30 — Lisa Larsen
+
+### Oppgave
+Fullføre `bmad-build`-økten for Story 5.3 del 2: kontrollere implementeringen mot specen, kjøre review og verifikasjon, og committe.
+
+### Plan
+- `bmad-build` steg 3–5 for [spec-5-3-move-a-private-sauna.md](../../.docs/implementation-artifacts/spec-5-3-move-a-private-sauna.md): diff mot baseline `ab8866f`, oppgaver og I/O-matrise kontrollert, tre review-lag (Blind Hunter, Edge Case Hunter, Verification Gap), triage i specens Review Triage Log, patcher tilbake til implementeringsagenten.
+
+### Resultat
+- Alle oppgaver i specen og hver rad i I/O-matrisen er dekket av tester som kjørte og passerte. 0015 sin `whole_bookable` er kontrollert mot 0013: bare Room-ahead-delen er endret.
+- Review: 13 funn, 7 rettet (se seksjonen kl. 21:10), 6 avvist med begrunnelse i Review Triage Log. Ingen loopback.
+- Verifisert etter rettelsene: API-laget 662 passert, frontend-builden OK, full e2e 218 passert og 4 feil, alle i `test_fr30_private_sauna.py` («no second later date without bookings»). fr30 kjører før fr33-filene og passerte alene sammen med `test_fr33_whole_move.py` (13 passert). Feilene kommer altså av at tidligere e2e-tester bruker opp de ledige datoene, og er ført i `deferred-work.md`.
+- Specen har status `done`, og `sprint-status.yaml` har 5-3 på `review`. Arbeidet er committet som `1fb944a` (ikke pushet).
+
+### Åpne punkter
+- Full e2e: de fire fr30-testene feiler fordi de ledige datoene er brukt opp. Kjør full e2e på main for å se om feilen fantes fra før, og gjør datoutvalget i e2e robust.
+- Sett 5-3 til `done` i `sprint-status.yaml` etter merge.
