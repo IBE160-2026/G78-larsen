@@ -74,6 +74,7 @@
 - source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
   summary: `whole_bookable(wid, sid, ignore_booking)` must judge Room ahead as if the ignored capacity row did not exist (Story 5.3 move list).
   evidence: Only the "not booked whole" clause skips the row; `room_ahead` uses `sauna_open_for_seats`, which still sees it, so a same-Window move to a later Sauna is understated. No 5.1 caller passes `ignore_booking` except the trigger, where the row already holds the new values.
+  status: resolved in Story 5.3 part 2 (`migrations/0015_whole_move.sql`; `test_fr33_whole_change.py::test_the_room_ahead_honours_ignore_booking` and `::test_a_move_in_the_same_window_to_a_later_sauna_counts_its_own_sauna_as_open`).
 - source_spec: `.docs/implementation-artifacts/spec-5-1-a-guest-sees-which-saunas-can-be-booked-whole.md`
   summary: Restore the whole-sauna cases removed with `/api/admin/whole-bookings` (retry in test_fr14, access/unknown Sauna in test_fr20, int4 bounds in test_fr2) against Story 5.2's `POST /api/bookings` with `kind = 'whole'`.
   evidence: The slice endpoint was removed in 5.1 as AD-23 requires; its retry, access and input checks have no whole-sauna write path until 5.2.
@@ -87,3 +88,6 @@
 - source_spec: none
   summary: Story 5.3 part 2 — move a Private sauna to another session or Sauna (`POST …/whole/move`, move list via the AD-24 listing with `ignore_booking`, `sauna_unavailable`/`price_differs`/`same_target` refusals, Change email).
   evidence: Split 2026-11-26 (Lisa) from Story 5.3 at the bmad-build scope check; cancel ships first in spec-5-3-cancel-a-private-sauna, move follows as its own spec under the same story.
+- source_spec: `.docs/implementation-artifacts/spec-5-3-move-a-private-sauna.md`
+  summary: In a full e2e run, the four `test_fr30_private_sauna.py` tests error at setup with "no second later date without bookings" because earlier e2e files have used up the free dates.
+  evidence: Seen twice on 2026-11-26 (215/218 passed, 4 errors, all in fr30). fr30 runs before both fr33 files and passes alone together with `test_fr33_whole_move.py` (13 passed), so the date pool, not the move code, runs out. Unverified whether main fails the same way at the same time of day; a full e2e run on main would settle it.

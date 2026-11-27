@@ -1,5 +1,5 @@
 """Changes of a Booking through its Manage link (FR-26, FR-27, FR-33, AD-9, AD-28, AD-29, AD-30, AD-31). Story 4.2:
-the Seat move; Story 4.3: the Voucher instead of Seats; Story 5.3: the cancel of a Whole-sauna booking.
+the Seat move; Story 4.3: the Voucher instead of Seats; Story 5.3: the cancel and the move of a Whole-sauna booking.
 
 Both Changes start with one shared prologue (`_locked`), in the order of AD-29:
 
@@ -45,6 +45,18 @@ Both Changes start with one shared prologue (`_locked`), in the order of AD-29:
    history row pointing to it and one `refund`/`voucher` row, no card row;
 3. one cancellation email through `outbox.send` with the Change's id, and last the key row.
 
+`whole_move` is one `db.run` (FR-33, AD-23, AD-24), through the same prologue for `kind = 'whole'` with the target
+Window locked too:
+
+1. refuse, in this order: `booking_cancelled`; `booking_changed`; `change_invalid` `same_target` (the same Window and
+   Sauna); `outside_horizon` and `deadline_passed` for the target; `cutoff_passed`; `sauna_unavailable` (FR-29 by
+   `whole_bookable` with the Booking's own capacity row ignored; the store is the backstop, mapped by
+   `services.whole.REFUSALS`); `price_differs` (another Sauna whose `whole_price_ore` is not the Booking's total);
+2. in AD-23's write order: the Booking's UPDATE (`window_id`, `sauna_id`, `version + 1`; reference, total and
+   `entry_time` kept), then its capacity row's UPDATE, both columns together; no `payments` row;
+3. one `move` history row with both Windows and both Saunas, one Change email (Sauna, new session, total) through
+   `outbox.send` with the Change's id, and last the key row.
+
 The response is the one Change serializer: `{booking, new_booking?, voucher?: {value_ore, last_valid_date}, refund?:
 {card_ore}, emails: [{id, subject, body}]}`, each Booking in the Manage read's shape. It holds no name, email, token or
 Voucher code, and names a Sauna only for a Whole-sauna booking; the emails are what the Guest was sent, and the Voucher code is only in
@@ -70,12 +82,14 @@ from . import booking as booking_service
 from ..db import whole as wq
 from . import history, manage, outbox, payment, reference
 from . import voucher as vouchers
+from . import whole as whole_service
 from .errors import Refused
 from .windows import ensure_open_for_booking
 
 MOVE_ENDPOINT = "POST /api/manage/seats/move"
 VOUCHER_ENDPOINT = "POST /api/manage/seats/voucher"
 WHOLE_CANCEL_ENDPOINT = "POST /api/manage/whole/cancel"
+WHOLE_MOVE_ENDPOINT = "POST /api/manage/whole/move"
 MANAGE_LINK_STILL_WORKS = "The Manage link in your booking confirmation email still works."
 OWN_CONFIRMATION = "The moved seats have their own confirmation email."
 NEVER_PAID_OUT = "Use the code when you pay for a new booking. A voucher is never paid out in money."
@@ -99,6 +113,13 @@ def whole_cancel_hash(reference_: str, remedy: str, version: int) -> bytes:
     """SHA-256 of the canonical outcome-defining fields of a Whole-sauna cancel (AD-9)."""
     canonical = json.dumps({"action": "cancel", "reference": reference_, "remedy": remedy, "version": version},
                            sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).digest()
+
+
+def whole_move_hash(reference_: str, window_id: int, sauna_id: int, version: int) -> bytes:
+    """SHA-256 of the canonical outcome-defining fields of a Whole-sauna move (AD-9)."""
+    canonical = json.dumps({"action": "whole_move", "reference": reference_, "sauna_id": sauna_id,
+                            "version": version, "window_id": window_id}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).digest()
 
 
@@ -202,6 +223,14 @@ def cancellation_email(booking: dict, venue: tuple, card_ore: int, voucher: tupl
         lines += voucher_block(*voucher)
     lines.append(MANAGE_LINK_STILL_WORKS)
     return f"Booking cancelled: {booking['reference']}", "\n".join(lines)
+
+
+def whole_move_email(booking: dict, venue: tuple) -> tuple[str, str]:
+    """(subject, body) of a Whole-sauna move (Lisa, 2026-11-26): "Booking changed", the Venue block, reference, the
+    new date and session, "Sauna: {name}" and "Total: NOK {total}"; last the Manage link line. No Manage link."""
+    lines = [*_head("Booking changed", booking, venue), f"Sauna: {booking['sauna']['name']}",
+             f"Total: {booking_service.nok(booking['total_ore'])}", "", MANAGE_LINK_STILL_WORKS]
+    return f"Booking changed: {booking['reference']}", "\n".join(lines)
 
 
 # ------------------------------------------------------------------ the shared prologue and refusals (AD-29)
@@ -373,3 +402,52 @@ def whole_cancel(session_id: int, booking_id: int, reference_: str, remedy: str,
         return outcome(c, change_id)
 
     return db.run(work)
+
+
+# ------------------------------------------------------------------ move a Whole-sauna booking (FR-33)
+
+
+def _refuse_unless_whole_movable(c: psycopg.Connection, b: q.Locked, booking_id: int, window_id: int, sauna_id: int,
+                                 version: int) -> None:
+    """The refusals of AD-29 for a Whole-sauna move, in their order: `booking_cancelled`, `booking_changed`,
+    `change_invalid` `same_target` (the same Window and Sauna), `outside_horizon` and `deadline_passed` for the target,
+    `cutoff_passed` (the Booking's own Cutoff), `sauna_unavailable` (FR-29 for the target, judged as if the Booking's
+    own capacity row did not exist; an unknown Sauna too) and `price_differs` (another Sauna whose price is not the
+    total paid; the same Sauna never checks the price)."""
+    _refuse_unless_current(c, b, booking_id, None, version)
+    if window_id == b.window_id and sauna_id == b.sauna_id:
+        raise Refused("change_invalid", reason="same_target")
+    ensure_open_for_booking(c, window_id)  # outside_horizon, then deadline_passed (an unknown Window: not_found)
+    _refuse_after_cutoff(c, b)
+    if not wq.bookable(c, window_id, sauna_id, booking_id):
+        raise Refused("sauna_unavailable")
+    if sauna_id != b.sauna_id and wq.price(c, sauna_id)[0] != b.total_ore:
+        raise Refused("price_differs")
+
+
+def whole_move(session_id: int, booking_id: int, reference_: str, window_id: int, sauna_id: int, version: int,
+               key: uuid.UUID) -> dict:
+    """Move a Whole-sauna booking to the Window `window_id` and the Sauna `sauna_id` (its own or another at the same
+    price). One `db.run` (FR-33, AD-23, AD-29): the refusals above, then the Booking's UPDATE (`version + 1`; reference,
+    total and `entry_time` kept), its capacity row's UPDATE (both columns together; the store judges FR-29 again and
+    `whole.REFUSALS` maps it to `sauna_unavailable`), one `move` history row with both Windows and both Saunas, one
+    Change email and last the key row. No `payments` row: no price difference is charged or returned. Returns the
+    Change serializer; a repeat of a known key returns the first outcome and writes nothing."""
+    h = whole_move_hash(reference_, window_id, sauna_id, version)
+
+    def work(c):
+        b = _locked(c, session_id, booking_id, [window_id], key, WHOLE_MOVE_ENDPOINT, h, kind="whole")
+        if isinstance(b, dict):
+            return b  # a repeat: the first outcome
+        _refuse_unless_whole_movable(c, b, booking_id, window_id, sauna_id, version)
+
+        q.move_whole(c, booking_id, window_id, sauna_id)  # AD-23's write order: the Booking first,
+        wq.move_capacity(c, booking_id, window_id, sauna_id)  # then the capacity row
+        change_id = history.record(c, booking_id, "move", from_window_id=b.window_id, to_window_id=window_id,
+                                   from_sauna_id=b.sauna_id, to_sauna_id=sauna_id)
+        subject, body = whole_move_email(booking_service.facts(c, booking_id), vq.venue_facts(c))
+        outbox.send(c, b.email, subject, body, booking_id=booking_id, change_id=change_id)
+        q.insert_key(c, key, session_id, WHOLE_MOVE_ENDPOINT, h, change_id)
+        return outcome(c, change_id)
+
+    return db.run(work, refusals=whole_service.REFUSALS)

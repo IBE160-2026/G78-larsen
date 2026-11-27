@@ -304,13 +304,13 @@ Prices and Saunas (Open Item 27, PRD §12 Q3; changed by Lisa 2026-11-25): every
 
 **Cancel private sauna wording, accepted by Lisa as proposed (2026-11-26, Story 5.3, FR-33)**
 
-The cancel half of Story 5.3; the move of a Private sauna is a separate spec, so until then the Manage page of a Private sauna offers only "Cancel private sauna". Refusals reuse the move step's texts (Story 4.2). No page states a Voucher code: it is only in the email.
+The cancel half of Story 5.3; the move has its own wording below, and the Manage page of a Private sauna offers "Move booking" beside "Cancel booking" (Lisa changed both from "… private sauna" on 2026-11-26: the page already names the Sauna, and the repeated words made the two buttons hard to tell apart). Refusals reuse the move step's texts (Story 4.2). No page states a Voucher code: it is only in the email.
 
 | Text | Where |
 |---|---|
-| "Cancel private sauna" | Manage page of an active Private sauna before its Cutoff, the link to the cancel step (shown as a Primary button, as the Seat Changes); the step's title is "Cancel private sauna – Saunalöyly" and its `h1` "Cancel private sauna" |
+| "Cancel booking" | Manage page of an active Private sauna before its Cutoff, the link to the cancel step (shown as a Primary button, as the Seat Changes); the step's title is "Cancel booking – Saunalöyly" and its `h1` "Cancel booking" (the confirm button has the same text) |
 | "You can change this booking until {long date} at {HH:MM}." | Manage page of a Private sauna before its Cutoff (the existing text) |
-| "This booking can no longer be changed. Changes are possible until 72 hours before the session starts, and that was {long date} at {HH:MM}." | Manage page and cancel step of a Private sauna after its Cutoff, and the `cutoff_passed` reason |
+| "This booking can no longer be changed. Changes are only possible until 72 hours before the session starts." (Lisa, 2026-11-26: no date, as "and that was {long date} at {HH:MM}" could be misread; a Seat booking's text says 12 hours) | Manage page and cancel step of a Private sauna after its Cutoff, and the `cutoff_passed` reason |
 | "What do you want back?" with "A refund" (hint "Paid back the way you paid.") and "A voucher" (hint "A voucher for the full NOK {total}, valid for one year.") | Cancel step, a radio group in a fieldset with that legend; nothing is chosen first |
 | "What will happen": "Sauna" {name}, "Session" {long date}, {HH:MM}–{HH:MM}; for a refund "Refund to card" NOK {x} (only when above 0) and "New voucher" NOK {y} with "Valid until" {long date} (only when a Voucher paid part); for a voucher "Voucher value" NOK {total}, "Valid until" {long date} and "No money is paid back. The voucher can pay for a new booking until it expires." Then "Nothing changes until you confirm." | Cancel step, the confirming step once a remedy is chosen; the figures come from the API (`refund_split`, `voucher_last_valid_date`) |
 | "Cancel booking" | Cancel step, the Primary button |
@@ -319,6 +319,27 @@ The cancel half of Story 5.3; the move of a Private sauna is a separate spec, so
 | Subject "Booking cancelled: {ref}". Body "Booking cancelled", the Venue block, reference, date, session, "Sauna: {name}"; for a refund "Refunded to card: NOK {x}" and "Simulated payment: no money moves" (when a card part is returned) and the Voucher block (when a Voucher part is returned); for a voucher the Voucher block; last "The Manage link in your booking confirmation email still works." | Cancellation email; the Voucher block is the one of the Voucher email ("Voucher", "Code: …", "Value: …", "Valid until: …", "Use the code when you pay for a new booking. A voucher is never paid out in money.") |
 | "Cancelled on {dd.mm.yyyy HH:MM} for a refund" / "Cancelled on {dd.mm.yyyy HH:MM} for a voucher of NOK {value}" | Booking list, history line under a cancelled Private sauna; never the code |
 | "Cancelled {dd.mm.yyyy HH:MM} · Guest · Refund" / "… · Guest · Voucher" | Booking list, Status cell (as for Seat bookings); it stays listed and takes no Seats |
+
+**Move private sauna wording, accepted by Lisa as proposed (2026-11-26, Story 5.3, FR-33)**
+
+The move half of Story 5.3, built like Move seats (Story 4.2) and the cancel above. The move list is the Private sauna listing judged as if this Booking were absent. All four seeded Saunas have different prices, so in practice the Booking moves to another session of its own Sauna; a Sauna at the same price could be chosen too.
+
+| Text | Where |
+|---|---|
+| "Move booking" | Manage page of an active Private sauna before its Cutoff, the link to the move step (a Primary button beside "Cancel booking"); the step's title is "Move booking – Saunalöyly" and its `h1` "Move booking" (the confirm button has the same text) |
+| "1. Choose a date" | Move step, the Date calendar |
+| "2. Choose a sauna and a session" | Move step, the legend of the one radio group of Sauna cards; the Booking's own Sauna first |
+| "Your sauna" | Move step, the label on the Booking's own Sauna card |
+| "Your current session" | Move step, the Booking's own pair, a disabled button |
+| "This sauna has another price than you paid. To book it, cancel this booking and book again." | Move step, a Sauna card whose price differs from the total paid (it shows its price and has no session buttons), and the `price_differs` reason |
+| "What will happen": "From" {Sauna}, {long date}, {HH:MM}–{HH:MM}; "To" in the same form; "Price" "NOK {total} (unchanged)"; then "Nothing changes until you confirm." | Move step, the confirming step once a pair is chosen |
+| "Move booking" | Move step, the Primary button |
+| "Booking moved", "Your booking has been changed.", the email under "Sent by email:", "Back to your booking" | Result page of the move |
+| "This sauna can no longer be booked for this session. Nothing has changed." | `sauna_unavailable` reason; the date's list is read again |
+| "This is your current session. Nothing has changed." | `change_invalid` / `same_target` reason |
+| Other refusals: the Move seats texts ("This session can no longer be booked. Nothing has changed.", "This booking was changed in the meantime. Check it and choose again.", "The change could not be completed, please try again."); `cutoff_passed` the 72-hour text above | Move step |
+| Subject "Booking changed: {ref}". Body "Booking changed", the Venue block, reference, date, session, "Sauna: {name}", "Total: NOK {total}", last "The Manage link in your booking confirmation email still works." | Move email (the Booking as it is now); no Manage link |
+| "Moved on {dd.mm.yyyy HH:MM} from {Sauna} {dd.mm.yyyy HH:MM–HH:MM} to {Sauna} {dd.mm.yyyy HH:MM–HH:MM}" | Booking list, history line under a moved Private sauna |
 
 "What happens next" is not a heading, on the page or in the email. The reception sentence stands by itself.
 

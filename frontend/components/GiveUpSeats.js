@@ -158,7 +158,7 @@ export default function GiveUpSeats({ reference }) {
     );
   }
 
-  const cutoffText = (at) => MANAGE.cutoffPassed(longDate(at.slice(0, 10)), clockTime(at));
+  const cutoffText = () => MANAGE.cutoffPassed();
   const shownCutoff = cutoffAt || (b && b.status === 'active' && !b.change_allowed ? b.cutoff_at : null);
   const cancelledAt = b && b.status === 'cancelled' && b.cancelled_at ? b.cancelled_at : null;
   const some = b && Number.isInteger(seats) && seats < b.seats;
@@ -181,7 +181,7 @@ export default function GiveUpSeats({ reference }) {
         </div>
       )}
       {load.status === 'failed' && <div className="move-notice"><Notice>{MANAGE.loadFailed}</Notice></div>}
-      {shownCutoff && <div className="move-notice"><Notice>{cutoffText(shownCutoff)}</Notice></div>}
+      {shownCutoff && <div className="move-notice"><Notice>{cutoffText()}</Notice></div>}
       {cancelledAt && (
         <div className="move-notice">
           <Notice>{MANAGE.cancelled(longDate(cancelledAt.slice(0, 10)), clockTime(cancelledAt))}</Notice>

@@ -7,7 +7,8 @@
   `require_grant`. No grant, no session, another Booking and an unknown reference are all `404 not_found`; a Manage
   route never answers `401`. `POST …/seats/move` is the Seat move (FR-26, AD-29) and `POST …/seats/voucher` the
   Voucher instead of Seats (FR-27, AD-29, AD-30); `POST …/whole/cancel` cancels a Whole-sauna booking for a refund
-  or a Voucher (FR-33, AD-31). Each needs an `Idempotency-Key` (AD-9); a route of the other kind of Booking is `404
+  or a Voucher (FR-33, AD-31) and `POST …/whole/move` moves it (FR-33, AD-23), with `GET …/whole/move-list?date=` as
+  its listing (AD-24; no lock, no key). Each POST needs an `Idempotency-Key` (AD-9); a route of the other kind of Booking is `404
   not_found` (AD-28).
 """
 
@@ -16,11 +17,11 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request, Response
+from fastapi import APIRouter, Depends, Header, Query, Request, Response
 
 from ..services import change, manage, sessions
 from .deps import COOKIE, current_session, set_session_cookie
-from .schemas import ManageOpenIn, MoveIn, VoucherIn, WholeCancelIn
+from .schemas import ManageOpenIn, MoveIn, VoucherIn, WholeCancelIn, WholeMoveIn, WholeMoveListQuery
 
 open_router = APIRouter(prefix="/api/manage", redirect_slashes=False)
 
@@ -74,3 +75,20 @@ def cancel_whole(reference: str, body: WholeCancelIn,
     transaction. A repeat with the same key from the same session returns the first outcome (no second refund or
     Voucher)."""
     return change.whole_cancel(s.id, booking_id, reference, body.remedy, body.version, idempotency_key)
+
+
+@router.post("/whole/move")
+def move_whole(reference: str, body: WholeMoveIn, idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
+               booking_id: int = Depends(require_grant), s: sessions.Session | None = Depends(current_session)):
+    """Move a Whole-sauna booking to another session, keeping its Sauna or picking another at the same price (FR-33).
+    The grant is checked again inside the transaction. A repeat with the same key from the same session returns the
+    first outcome."""
+    return change.whole_move(s.id, booking_id, reference, body.window_id, body.sauna_id, body.version,
+                             idempotency_key)
+
+
+@router.get("/whole/move-list")
+def whole_move_list(query: Annotated[WholeMoveListQuery, Query()], booking_id: int = Depends(require_grant)):
+    """The Private sauna listing of one date for the move step (AD-24), judged as if this Booking were absent. Takes
+    no lock and writes nothing apart from the grant touch and `ensure_generated()`."""
+    return manage.whole_move_list(booking_id, query.date)

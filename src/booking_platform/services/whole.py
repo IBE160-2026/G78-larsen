@@ -48,11 +48,13 @@ REFUSALS = {
 }
 
 
-def listing(date: dt.date) -> dict:
+def listing(date: dt.date, ignore_booking: int | None = None) -> dict:
     """`GET /api/private-saunas?date=`: `{saunas: [{id, name, capacity, whole_price_ore, windows: [{id, start, end,
     already_started}]}], horizon_end, horizon_days}`. Saunas in Fill order, each with its free Windows in time order;
     a Sauna with no free Window is left out. A date outside `today..horizon_end` is `409 outside_horizon`, judged
-    before anything is written, as `GET /api/windows`. Takes no lock; the only write is `ensure_generated()`."""
+    before anything is written, as `GET /api/windows`. Takes no lock; the only write is `ensure_generated()`.
+    The Manage move list (Story 5.3) is the same query with `ignore_booking` set to the moving Booking: every pair is
+    judged as if its capacity row did not exist, and its own pair is always listed (`db.whole.pairs_on`)."""
     today, horizon_end, _, _ = db.run(wq.horizon)
     if not today <= date <= horizon_end:
         raise Refused("outside_horizon", today=today.isoformat(), horizon_end=horizon_end.isoformat())
@@ -60,7 +62,7 @@ def listing(date: dt.date) -> dict:
 
     def work(c):
         _, horizon_end, days, tz_name = wq.horizon(c)
-        return horizon_end, days, ZoneInfo(tz_name), q.pairs_on(c, date)
+        return horizon_end, days, ZoneInfo(tz_name), q.pairs_on(c, date, ignore_booking)
 
     horizon_end, days, tz, rows = db.run(work)
     saunas = []

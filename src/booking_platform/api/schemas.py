@@ -108,6 +108,23 @@ class WholeCancelIn(Strict):
     version: Int4
 
 
+class WholeMoveIn(Strict):
+    """`POST /api/manage/{reference}/whole/move` (FR-33, AD-28, AD-29): the target Window and Sauna and the Booking's
+    `version` as the page read it. Any whole numbers are accepted here: an unknown Window is `404 not_found`, an
+    unknown Sauna `409 sauna_unavailable`, another version `409 booking_changed`, never a shape error."""
+
+    window_id: Int4
+    sauna_id: Int4
+    version: Int4
+
+
+class WholeMoveListQuery(DateQuery):
+    """`GET /api/manage/{reference}/whole/move-list?date=` (Story 5.3, AD-24): the Venue date is required. No other
+    field."""
+
+    date: dt.date
+
+
 # A typed Voucher code: any JSON string up to 1024 characters for the shape; whether it is a code is
 # `services.voucher`'s question (`409 voucher_invalid`), never a shape error (AD-30). It is never stripped (also
 # inside `BookingIn`), so input longer than 32 characters stays too long however much of it is spaces.

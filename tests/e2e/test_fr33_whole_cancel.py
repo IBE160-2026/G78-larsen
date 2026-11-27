@@ -1,7 +1,7 @@
 """FR-33 / AD-29 / AD-31 (Story 5.3, part 1) in the compose stack, over HTTPS: a Guest cancels a Private sauna through
 the Manage page with the keyboard alone (every key through `a11y.press` / `a11y.tab_to`).
 
-The Manage page of a Whole-sauna booking shows until when it can be changed and the link "Cancel private sauna". The
+The Manage page of a Whole-sauna booking shows until when it can be changed and the link "Cancel booking". The
 step asks "What do you want back?" (a radio group in a fieldset with a legend: "A refund" or "A voucher", each with
 its hint); once a remedy is chosen, "What will happen" states the Sauna, the session and the refund (card part, and a
 new Voucher for a Voucher part) or the Voucher (value, last valid date, no money back), and nothing changes until
@@ -87,13 +87,13 @@ def _open_manage(page: Page, base_url: str, paid: dict) -> tuple[str, str]:
 
 
 def _open_step_by_keyboard(page: Page, base_url: str, reference: str) -> None:
-    link = page.get_by_role("link", name="Cancel private sauna")
+    link = page.get_by_role("link", name="Cancel booking")
     link.wait_for()  # the Manage page has read the Booking
     page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")
     a11y.tab_to(page, link)
     a11y.press(page, "Enter")
     page.wait_for_url(f"{base_url}/manage/{reference}/cancel")
-    page.get_by_role("heading", level=1, name="Cancel private sauna").wait_for()
+    page.get_by_role("heading", level=1, name="Cancel booking").wait_for()
     page.wait_for_function("() => document.activeElement && document.activeElement.tagName === 'H1'")
 
 
@@ -138,7 +138,7 @@ def test_a_guest_cancels_a_private_sauna_for_a_refund_with_the_keyboard_alone(pa
     a11y.check_axe(page)
 
     _open_step_by_keyboard(page, base_url, reference)
-    assert page.title() == "Cancel private sauna – Saunalöyly"
+    assert page.title() == "Cancel booking – Saunalöyly"
     key = _slot(page, reference)
     assert key and re.fullmatch(r"[0-9a-f-]{36}", key)
     assert _norm(page.locator("#remedy legend").inner_text()) == "What do you want back?"
@@ -205,7 +205,7 @@ def test_a_guest_cancels_a_private_sauna_for_a_refund_with_the_keyboard_alone(pa
     line = _norm(page.locator(".manage-cancelled").inner_text())
     assert re.fullmatch(r"This booking was cancelled on \w+ \d{1,2} \w+ \d{4} at \d\d:\d\d\. You chose a refund, "
                         r"which was sent by email\.", line), line
-    assert page.get_by_role("link", name="Cancel private sauna").count() == 0
+    assert page.get_by_role("link", name="Cancel booking").count() == 0
     assert page.locator(".manage-until").count() == 0
     a11y.check_axe(page)
     # a reload of the step shows why there is no step
@@ -335,8 +335,8 @@ def test_a_stale_version_renews_the_step_with_a_new_key(page: Page, base_url, db
     assert _state(db, reference) == ("cancelled", 2, 0, 1, 0)
 
 
-CUTOFF_72 = re.compile(r"This booking can no longer be changed\. Changes are possible until 72 hours before the "
-                       r"session starts, and that was \w+day \d{1,2} \w+ \d{4} at \d\d:\d\d\.")
+CUTOFF_72 = re.compile(r"This booking can no longer be changed\. Changes are only possible until 72 hours before the "
+                       r"session starts\.")
 
 
 def test_after_the_72_hour_cutoff_the_pages_give_the_reason(page: Page, base_url, stack):
@@ -364,10 +364,10 @@ def test_after_the_72_hour_cutoff_the_pages_give_the_reason(page: Page, base_url
             notice.wait_for()
             assert CUTOFF_72.fullmatch(_norm(notice.inner_text())), notice.inner_text()
             assert page.locator(".manage-until").count() == 0
-            assert page.get_by_role("link", name="Cancel private sauna").count() == 0
+            assert page.get_by_role("link", name="Cancel booking").count() == 0
             a11y.check_axe(page)
             page.goto(f"{base_url}/manage/{reference}/cancel")
-            page.get_by_role("heading", level=1, name="Cancel private sauna").wait_for()
+            page.get_by_role("heading", level=1, name="Cancel booking").wait_for()
             notice = page.locator(".notice", has_text="can no longer be changed")
             notice.wait_for()
             assert CUTOFF_72.fullmatch(_norm(notice.inner_text())), notice.inner_text()

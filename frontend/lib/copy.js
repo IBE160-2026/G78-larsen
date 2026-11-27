@@ -172,9 +172,10 @@ export const CONFIRMATION = Object.freeze({
 export const MANAGE = Object.freeze({
   heading: 'Manage booking',
   untilText: (longDate, time) => `You can change this booking until ${longDate} at ${time}.`,
-  // The reason for the refusal `cutoff_passed` (fact `cutoff_at`), and the page's text after the Cutoff.
-  cutoffPassed: (longDate, time, hours = 12) =>
-    `This booking can no longer be changed. Changes are possible until ${hours} hours before the session starts, and that was ${longDate} at ${time}.`,
+  // The reason for the refusal `cutoff_passed`, and the page's text after the Cutoff. It states no date: "and that was
+  // {date} at {time}" was dropped because it could be misread (Lisa, 2026-11-26).
+  cutoffPassed: (hours = 12) =>
+    `This booking can no longer be changed. Changes are only possible until ${hours} hours before the session starts.`,
   // The Cutoff of a Private sauna, in hours (`cutoffPassed`'s third argument; a Seat booking's 12 is the default).
   wholeHours: 72,
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
@@ -187,7 +188,9 @@ export const MANAGE = Object.freeze({
     `This booking was cancelled on ${longDate} at ${time}. You gave up all seats for a voucher, which was sent by email.`,
   // Story 5.3 (Lisa, 2026-11-26, EXPERIENCE.md "Cancel private sauna wording"): the link to the cancel step of a Private
   // sauna, and the page of a cancelled one.
-  cancelPrivateSauna: 'Cancel private sauna',
+  cancelPrivateSauna: 'Cancel booking',
+  // Story 5.3 part 2 (Lisa, 2026-11-26, EXPERIENCE.md "Move private sauna wording"): the link to the move step.
+  movePrivateSauna: 'Move booking',
   cancelledWhole: (longDate, time, remedy) =>
     `This booking was cancelled on ${longDate} at ${time}. You chose ${remedy === 'refund' ? 'a refund' : 'a voucher'}, which was sent by email.`,
 });
@@ -242,7 +245,7 @@ export const VOUCHER = Object.freeze({
 // Cancel private sauna (FR-33, Story 5.3): the confirming step and its result. Verbatim from Lisa's decisions of
 // 2026-11-26 (EXPERIENCE.md "Cancel private sauna wording"). Refusals reuse the move texts (`moveRefusal`).
 export const CANCEL_WHOLE = Object.freeze({
-  heading: 'Cancel private sauna',
+  heading: 'Cancel booking',
   back: 'Back',
   remedyQuestion: 'What do you want back?',
   refund: 'A refund',
@@ -264,6 +267,30 @@ export const CANCEL_WHOLE = Object.freeze({
   refundInEmail: 'Your refund is in the email below.',
   codeInEmail: 'Your voucher code is in the email below.',
   backToBooking: 'Back to your booking',
+});
+
+// Move private sauna (FR-33, Story 5.3 part 2): the confirming step and its result. Verbatim from Lisa's decisions of
+// 2026-11-26 (EXPERIENCE.md "Move private sauna wording"). Refusals: `wholeMoveRefusal`.
+export const MOVE_WHOLE = Object.freeze({
+  heading: 'Move booking',
+  back: 'Back',
+  dateQuestion: '1. Choose a date',
+  pairQuestion: '2. Choose a sauna and a session',
+  yourSauna: 'Your sauna',
+  currentSession: 'Your current session',
+  otherPrice: 'This sauna has another price than you paid. To book it, cancel this booking and book again.',
+  summaryHeading: 'What will happen',
+  from: 'From',
+  to: 'To',
+  price: 'Price',
+  unchanged: (total) => `${total} (unchanged)`,
+  nothingYet: 'Nothing changes until you confirm.',
+  confirm: 'Move booking',
+  resultHeading: 'Booking moved',
+  resultLine: 'Your booking has been changed.',
+  backToBooking: 'Back to your booking',
+  unavailable: 'This sauna can no longer be booked for this session. Nothing has changed.',
+  sameTarget: 'This is your current session. Nothing has changed.',
 });
 
 /**
@@ -294,6 +321,19 @@ export function moveRefusal(code, facts = {}) {
     default:
       return { kind: 'stay', text: MOVE.tryAgain };
   }
+}
+
+/**
+ * The Private sauna move step's mapping (Story 5.3 part 2, Lisa 2026-11-26): `sauna_unavailable`, `price_differs` and
+ * `change_invalid`/`same_target` have their own texts and keep the step; every other code is `moveRefusal`'s
+ * (`cutoff_passed` shows the 72-hour Cutoff text).
+ * @returns {{kind: 'stay'|'reload'|'cutoff', text: string|null}}
+ */
+export function wholeMoveRefusal(code, facts = {}) {
+  if (code === 'sauna_unavailable') return { kind: 'stay', text: MOVE_WHOLE.unavailable };
+  if (code === 'price_differs') return { kind: 'stay', text: MOVE_WHOLE.otherPrice };
+  if (code === 'change_invalid' && facts.reason === 'same_target') return { kind: 'stay', text: MOVE_WHOLE.sameTarget };
+  return moveRefusal(code, facts);
 }
 
 // Landing's two Booking choices (UX-DR41, Lisa 2026-11-25). Verbatim from EXPERIENCE.md (Private sauna wording).
@@ -374,6 +414,8 @@ export const BOOKING_LIST = Object.freeze({
   gaveUp: (seats, at, value) => `Gave up ${seatsWord(seats)} on ${at} for a voucher of ${value}`,
   // Story 5.3 (Lisa, 2026-11-26): a Private sauna cancelled by the Guest (the Voucher's value, never the code).
   cancelledFor: (at, value) => (value ? `Cancelled on ${at} for a voucher of ${value}` : `Cancelled on ${at} for a refund`),
+  // Story 5.3 part 2 (Lisa, 2026-11-26): a Private sauna moved by the Guest, with both Saunas.
+  movedWhole: (at, fromSauna, from, toSauna, to) => `Moved on ${at} from ${fromSauna} ${from} to ${toSauna} ${to}`,
   cancelledAt: (at, cause, remedy) => [`Cancelled ${at}`, cause, remedy].filter(Boolean).join(' · '),
   cause: Object.freeze({ guest: 'Guest', block: 'Block', overbooking: 'Overbooking' }),
   remedy: Object.freeze({ voucher: 'Voucher', refund: 'Refund' }),

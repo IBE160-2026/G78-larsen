@@ -87,3 +87,19 @@ Merge PR #27 (Story 5.3 del 1).
 
 ### Åpne punkter
 - PR #28 (kalenderen) er åpen og venter på merge.
+
+## 2026-11-26 kl. 18:52 — Lisa Larsen
+
+### Oppgave
+Merge PR #28 (kalendervelgeren i bookinglisten).
+
+### Plan
+- Merget med merge-commit, som de tidligere PR-ene, og oppdaterte lokal `main`.
+
+### Resultat
+- PR #28 er merget til `main`: `442cd021021752f3263be7818be1b4d332ebafdf`. Kalendervelgeren og rettelsen av månedslinjen ligger nå i `main`.
+- Loggcommiten ligger på den lokale branchen `chore/logg-2026-11-26`, ikke pushet.
+- `feat/booking-list-date-picker` er slettet lokalt og på origin etter at det var sjekket at den var helt merget i `main`.
+
+### Åpne punkter
+- Ingen nye.

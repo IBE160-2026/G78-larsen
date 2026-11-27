@@ -13,10 +13,12 @@ and the read of the Booking it opens.
   unknown reference are all `404 not_found`, never `401`.
 - `read` writes nothing. Its Booking JSON never holds a name, an email, an Outbox body or a token (FR-17), and names a
   Sauna only for a Whole-sauna booking (`kind = 'whole'`, FR-4, AD-25).
+- `whole_move_list` is the Private sauna listing with `ignore_booking` set to the Booking (Story 5.3, AD-24).
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import secrets
 from zoneinfo import ZoneInfo
 
@@ -141,6 +143,19 @@ def read(booking_id: int) -> dict:
     has `refund_split` (Story 5.3). A cancelled Booking
     still reads; its page offers no Change. Times are ISO strings in Venue time. Reads only."""
     return db.run(lambda c: booking_now(c, booking_id))
+
+
+def whole_move_list(booking_id: int, date: dt.date) -> dict:
+    """`GET /api/manage/{reference}/whole/move-list?date=` (Story 5.3, AD-24): the Private sauna listing of the date
+    (`services.whole.listing`) with `ignore_booking` set to this Booking: the Saunas around it are judged as if it were
+    absent, and its own pair is always listed (within the time rules), shown as the current session. A Seat booking is `404 not_found` (a route of the other kind, AD-28).
+    Takes no lock; the only write is the listing's `ensure_generated()`."""
+    from . import whole  # services.whole imports this module
+
+    row = db.run(lambda c: q.booking(c, booking_id))
+    if row is None or row[13] != "whole":
+        raise Refused("not_found")
+    return whole.listing(date, ignore_booking=booking_id)
 
 
 def purge() -> int:
