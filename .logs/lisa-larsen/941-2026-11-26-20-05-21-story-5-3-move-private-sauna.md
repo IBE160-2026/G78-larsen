@@ -87,3 +87,21 @@ Pushe grenen og lage en PR mot main, etter at Lisa testet flyttingen i nettleser
 
 ### Åpne punkter
 - Ingen nye. Å sette 5-3 til `done` etter merge står allerede i `issues.md`.
+
+## 2026-11-26 kl. 22:20 — Lisa Larsen
+
+### Oppgave
+Kjøre full e2e på main med en underagent, for å avgjøre om fr30-feilene fantes fra før.
+
+### Plan
+- Underagent i en midlertidig worktree av `origin/main` (`442cd02`), uten `DB_PORT`, og worktreen ble fjernet etterpå.
+
+### Resultat
+- main kl. 21:54: 144 passert, 63 feilet, 10 errors.
+- Alle 10 testene i `test_fr30_private_sauna.py` stoppet i oppsettet med «no later date without bookings» (fixturen `day`). På grenen var det 4.
+- 5 andre tester (3 i fr33-kanselleringen, 1 i fr24 og 1 tidsavbrudd) hadde samme problem med ledige datoer.
+- 58 feil kom av at worktreen manglet `frontend/node_modules` (axe-core). De sier ingenting om koden.
+- Konklusjon: datoproblemet finnes også på main og er ikke laget av Story 5.3 del 2.
+
+### Åpne punkter
+- Gjør datoutvalget i e2e robust (står allerede i `issues.md`, nå bekreftet på main).
