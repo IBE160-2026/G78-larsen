@@ -138,3 +138,17 @@ Merge PR #29 (Story 5.3 del 2) og sette 5-3 til `done`.
 
 ### Åpne punkter
 - PR #30 venter på merge. Kjør deretter full e2e én gang på main.
+
+## 2026-11-26 kl. 23:03 — Lisa Larsen
+
+### Oppgave
+Merge PR #30, og pushe `chore/5-3-done` med en PR.
+
+### Plan
+- `gh pr merge 30 --merge`, lukke fr30-punktet, pushe grenen og opprette en PR.
+
+### Resultat
+- PR #30 (e2e-opprydningen) er merget inn i main som `7c67e8e`. fr30-punktet i `issues.md` er lukket.
+
+### Åpne punkter
+- Kjør full e2e én gang på main nå som #29 og #30 begge er merget.
