@@ -18,7 +18,7 @@ SIGN_IN, BOOKINGS = "/admin/sign-in", "/admin/bookings"
 
 def db_url(stack) -> str:
     """The stack's own database (compose project `booking_e2e`)."""
-    return f"postgresql://postgres:booking@127.0.0.1:{stack.db_port}/booking"
+    return stack.db_url
 
 
 @pytest.fixture(autouse=True)
