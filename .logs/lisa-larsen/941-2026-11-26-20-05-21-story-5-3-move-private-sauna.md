@@ -73,3 +73,17 @@ Vise flyttingen i nettleseren, og bytte knappetekstene på Manage-siden, fordi �
 
 ### Åpne punkter
 - Ingen nye.
+
+## 2026-11-26 kl. 21:49 — Lisa Larsen
+
+### Oppgave
+Pushe grenen og lage en PR mot main, etter at Lisa testet flyttingen i nettleseren.
+
+### Plan
+- Pushe `feat/5-3-move-private-sauna` og opprette en PR med `gh`.
+
+### Resultat
+- Grenen er pushet, og PR #29 er opprettet: https://github.com/IBE160-2026/G78-larsen/pull/29. Testresultatene står i PR-beskrivelsen, også de fire fr30-feilene som er ført i `deferred-work.md`.
+
+### Åpne punkter
+- Ingen nye. Å sette 5-3 til `done` etter merge står allerede i `issues.md`.
