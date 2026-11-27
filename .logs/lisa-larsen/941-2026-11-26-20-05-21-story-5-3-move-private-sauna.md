@@ -122,3 +122,19 @@ Endre Cutoff-teksten på Manage booking-siden til «This booking can no longer b
 
 ### Åpne punkter
 - Ingen nye.
+
+## 2026-11-26 kl. 23:02 — Lisa Larsen
+
+### Oppgave
+Merge PR #29 (Story 5.3 del 2) og sette 5-3 til `done`.
+
+### Plan
+- `gh pr merge 29 --merge`, så ny gren `chore/5-3-done` fra `origin/main` for statusendringen.
+
+### Resultat
+- PR #29 er merget inn i main som `6a1e90b`.
+- `sprint-status.yaml` har 5-3 satt til `done`, committet på `chore/5-3-done` (ikke pushet).
+- `issues.md`: punktet om å sette 5-3 til `done` er lukket. Punktet om fr30 og ledige datoer viser til PR #30.
+
+### Åpne punkter
+- PR #30 venter på merge. Kjør deretter full e2e én gang på main.
