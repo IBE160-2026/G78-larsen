@@ -91,3 +91,6 @@
 - source_spec: `.docs/implementation-artifacts/spec-5-3-move-a-private-sauna.md`
   summary: In a full e2e run, the four `test_fr30_private_sauna.py` tests error at setup with "no second later date without bookings" because earlier e2e files have used up the free dates.
   evidence: Seen twice on 2026-11-26 (215/218 passed, 4 errors, all in fr30). fr30 runs before both fr33 files and passes alone together with `test_fr33_whole_move.py` (13 passed), so the date pool, not the move code, runs out. Unverified whether main fails the same way at the same time of day; a full e2e run on main would settle it.
+- source_spec: `.docs/implementation-artifacts/spec-5-4-the-administrator-sees-where-seats-are-counted.md`
+  summary: Row 3 of `.docs/sensorveiledning-kravsporing.md` still reports the test count of 2026-11-25 (812 tests: 610 API, 202 e2e).
+  evidence: Story 5.3 and 5.4 added tests without refreshing it; the full run on 2026-11-27 had 223 e2e tests passing (the API count is in the session log).

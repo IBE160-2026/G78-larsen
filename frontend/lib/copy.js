@@ -419,6 +419,13 @@ export const BOOKING_LIST = Object.freeze({
   cancelledAt: (at, cause, remedy) => [`Cancelled ${at}`, cause, remedy].filter(Boolean).join(' · '),
   cause: Object.freeze({ guest: 'Guest', block: 'Block', overbooking: 'Overbooking' }),
   remedy: Object.freeze({ voucher: 'Voucher', refund: 'Refund' }),
+  // Story 5.4 (EXPERIENCE.md, FR-31): each Session group's "Saunas" table, in Fill order, as the API gives it.
+  saunasCaption: (start, end) => `Saunas in the session ${start} to ${end}`,
+  saunaColumns: Object.freeze({ sauna: 'Sauna', counted: 'Seats counted' }),
+  counted: (n, cap) => `${n} of ${cap}`,
+  bookedWhole: (ref) => `Booked whole · ${ref}`,
+  blocked: 'Blocked',
+  privateOnly: 'Private sauna only',
   // EXPERIENCE.md: a failed read shows a Notice with "please try again".
   failed: 'The booking list could not be loaded, please try again.',
 });

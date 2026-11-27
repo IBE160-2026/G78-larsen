@@ -46,7 +46,9 @@ def me():
 @router.get("/bookings")
 def bookings(query: Annotated[BookingListQuery, Query()]):
     """The Booking list of one Venue date (FR-16, AD-4, AD-5): every Window of the date in time order with its
-    figures and active Bookings, oldest first. Without `date`, the API's today. Takes no lock; the only write is
+    figures, its Bookings (active and cancelled), oldest first, and its Placement from `placement()` (FR-31, AD-25:
+    each Sauna in Fill order with name, Capacity, state, Seats counted and a Whole-sauna booking's reference; no
+    response outside `/api/admin/` carries it). Without `date`, the API's today. Takes no lock; the only write is
     `windows.ensure_generated()`, and a refused request (422) writes nothing. Name and email of a Booking due for
     retention are masked (FR-21)."""
     return booking_list.day(query.date)

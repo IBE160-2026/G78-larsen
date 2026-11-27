@@ -1741,6 +1741,26 @@ a {
   border-top: 0;
 }
 
+/* The "Saunas" table of a Session group (Story 5.4): the Booking table's look, narrow, with the Sauna as row header. */
+.placement-table {
+  width: auto;
+  min-width: 320px;
+  max-width: calc(100% - var(--space-4));
+  table-layout: auto;
+}
+
+.booking-table .col-sauna {
+  width: 160px;
+}
+
+.placement-table tbody th {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 400;
+  border-top: 1px solid var(--color-border);
+}
+
 /* ------------------------------------------------------------------ simple stacked layout below 1024 px (WCAG 1.4.4) */
 
 /* At 200 % zoom a 1366 px screen is 683 CSS px wide, and the 320 px rail left the main column narrow enough to

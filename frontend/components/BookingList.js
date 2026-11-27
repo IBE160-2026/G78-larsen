@@ -19,6 +19,10 @@
 //   Guest · Voucher" (Story 4.3, Lisa 2026-11-24). A cancelled Private sauna's line is "Cancelled on 24.11.2026 14:05
 //   for a refund" or "… for a voucher of NOK 3150", a moved one's "Moved on 24.11.2026 14:05 from Kajo 01.12.2026
 //   10:00–11:30 to Kajo 01.12.2026 11:30–13:00" (Story 5.3, Lisa 2026-11-26).
+// - Story 5.4 (FR-31, AD-25): after the figures line and before the Booking table, every group (also one with no
+//   Bookings) has the "Saunas" table: one row per Sauna in Fill order with its Seats counted ("7 of 7", "0 of 12"),
+//   "Booked whole · {ref}", "Blocked" or "Private sauna only", always in words, never by colour alone. The rows are
+//   the API's `placement` as given; the page computes no Placement.
 // - Stored text (name, email) is rendered as React text, never as HTML (IV-5).
 // - A 401 goes to Sign-in; any other failure shows the "please try again" Notice.
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -71,6 +75,41 @@ function statusText(b) {
   return BOOKING_LIST.status[b.status] ?? b.status;
 }
 
+/** The "Seats counted" cell of one Placement row (Story 5.4). */
+function countedText(p) {
+  if (p.state === 'whole') return BOOKING_LIST.bookedWhole(p.reference);
+  if (p.state === 'blocked') return BOOKING_LIST.blocked;
+  if (p.state === 'marked') return BOOKING_LIST.privateOnly;
+  return BOOKING_LIST.counted(p.seats, p.capacity);
+}
+
+/** The "Saunas" table of a Session group: the API's Placement rows in Fill order (FR-31, AD-25). */
+function SaunaTable({ placement, start, end }) {
+  return (
+    <table className="booking-table placement-table">
+      <caption className="visually-hidden">{BOOKING_LIST.saunasCaption(start, end)}</caption>
+      <colgroup>
+        <col className="col-sauna" />
+        <col />
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">{BOOKING_LIST.saunaColumns.sauna}</th>
+          <th scope="col">{BOOKING_LIST.saunaColumns.counted}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {placement.map((p) => (
+          <tr key={p.sauna.id} className="placement-row">
+            <th scope="row">{p.sauna.name}</th>
+            <td className="tabular">{countedText(p)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function SessionGroup({ session }) {
   const start = clockTime(session.start);
   const end = clockTime(session.end);
@@ -98,6 +137,7 @@ function SessionGroup({ session }) {
         </p>
         {session.bookings.length === 0 && <p className="session-group-none">{BOOKING_LIST.noBookings}</p>}
       </div>
+      {(session.placement || []).length > 0 && <SaunaTable placement={session.placement} start={start} end={end} />}
       {session.bookings.length > 0 && (
         <table className="booking-table">
           <caption className="visually-hidden">{BOOKING_LIST.caption(start, end)}</caption>
